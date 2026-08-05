@@ -4,6 +4,9 @@
 - Fecha: 2026-08-04
 - Decisión de producto: incorporar `reference_data` como plugin funcional
   compartido para catálogos normativos versionados
+- Decisión complementaria: 2026-08-05; preservar `minor unit = N.A.` como
+  ausencia explícita y usar búsqueda bajo demanda cuando una fuente supere 100
+  opciones, con páginas de 50
 - Modifica: la propiedad pendiente de países y monedas de ADR-0028 y la
   composición fundacional de ADR-0011, sin renumerar ERP 1–19
 
@@ -58,10 +61,10 @@ La primera versión posee:
 - consulta pública por empresa y código;
 - una pantalla neutral de consulta de ediciones y procedencia.
 
-El primer corte usa un `BOOTSTRAP_SUBSET` verificable —`PY`, `PYG` y `USD`— para
-cerrar contratos, migración y consumo sin fingir una importación completa. La
-edición completa, el proceso reproducible de importación y la conciliación de
-cambios permanecen como gates explícitos antes de uso multinacional o certificación.
+El primer corte usó un `BOOTSTRAP_SUBSET` verificable —`PY`, `PYG` y `USD`— para
+cerrar contratos, migración y consumo sin fingir una importación completa. RD-05
+conserva esas ediciones históricas e incorpora publicaciones `FULL` reproducibles;
+ello no constituye por sí solo certificación normativa o fiscal.
 
 ### 3. Modelo de versiones
 
@@ -104,8 +107,9 @@ La pantalla `/reference-data` permite consultar fuente, alcance, checksum y
 entradas visibles. No permite crear países o monedas. El permiso
 `reference_data.view` controla la consulta.
 
-La habilitación empresarial y la promoción de una edición completa se agregarán
-mediante comandos auditados y permiso separado. Importar una publicación exige:
+La habilitación empresarial está implementada mediante comandos auditados y
+permiso separado. La promoción `FULL` de RD-05 se materializa como migración
+inmutable revisada; importar una publicación exige:
 
 1. obtener el artefacto de una fuente primaria autorizada;
 2. conservar el original local bajo `.tools/downloads/reference-data/`;
@@ -126,14 +130,31 @@ El 2026-08-04 se observaron:
 
 | Catálogo | Fuente primaria | Tamaño | SHA-256 | Alcance usado |
 |---|---|---:|---|---|
-| país | UN Statistics Division, tabla M49 con columnas ISO alfa-2/alfa-3 | 1.721.568 bytes | `748f6ff7380c8a50ea9448f068b79e3a1ee31be63207249e8cc89bf1eb969d11` | `PY/PRY/600`, subconjunto |
-| moneda | SIX, ISO 4217 List One XML | 47.463 bytes | `838dfb991648cf36df939edd5fe3811737962b75a32252847d239cedd1e291c9` | `PYG/600/0` y `USD/840/2`, subconjunto |
+| país | UN Statistics Division, tabla M49 con columnas ISO alfa-2/alfa-3 | 1.721.568 bytes | `748f6ff7380c8a50ea9448f068b79e3a1ee31be63207249e8cc89bf1eb969d11` | 248 países únicos |
+| moneda | SIX, ISO 4217 List One XML | 47.463 bytes | `838dfb991648cf36df939edd5fe3811737962b75a32252847d239cedd1e291c9` | 277 filas, 178 códigos únicos, 13 con `N.A.` |
 
 La tabla UN M49 es la fuente pública de los nombres y códigos numéricos y publica
 las columnas ISO alfa-2/alfa-3. No se presenta como sustituto contractual de una
 suscripción ISO. Una composición que requiera certificación o la lista completa
 de ISO 3166 debe adquirir o usar la fuente autorizada aplicable y registrar su
 licencia.
+
+### 7. Unidad menor no aplicable y listas grandes
+
+La publicación completa ISO 4217 observada contiene códigos cuya unidad menor es
+`N.A.`. No se normalizan a cero: cero significa una unidad menor definida con cero
+decimales, mientras `N.A.` significa que el dato no aplica. El contrato 1.x
+conserva el constructor y el acceso entero para monedas con unidad definida y
+agrega una consulta opcional explícita; llamar al acceso entero sobre un valor no
+aplicable falla de forma comprensible. Persistencia representa esa ausencia como
+`NULL`, nunca mediante `0`, `-1` o texto centinela.
+
+Una fuente con hasta 100 opciones puede entregarse inline. Al superar 100, el
+selector usa `SEARCH_ON_DEMAND`, búsqueda en servidor y páginas máximas de 50.
+La pantalla propietaria tampoco intenta construir una tabla neutral superior al
+límite del contrato; ofrece búsqueda paginada y conserva código, filtro y empresa
+en cada solicitud. El umbral es una decisión de experiencia y seguridad, no una
+propiedad del estándar normativo.
 
 ## Consecuencias
 
@@ -149,10 +170,11 @@ licencia.
 
 - agrega dos módulos Maven y una dependencia funcional temprana;
 - una lista completa de países puede exigir licencia o fuente autorizada;
-- el subconjunto inicial no habilita operación multinacional;
-- todavía falta la administración auditada de anulaciones empresariales;
-- el renderer actual necesita una decisión de umbral antes de ofrecer listas
-  completas inline.
+- una publicación completa no sustituye la revisión de licencia ni certifica por sí sola una operación multinacional;
+- la administración auditada de anulaciones empresariales está implementada y
+  pendiente de gates runtime;
+- la publicación completa y la búsqueda paginada están materializadas y requieren
+  los gates runtime antes de promover el baseline.
 
 ## Alternativas descartadas
 

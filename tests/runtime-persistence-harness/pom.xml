@@ -14,7 +14,7 @@
     <artifactId>runtime-persistence-harness</artifactId>
     <packaging>war</packaging>
 
-    <name>Logixone Runtime Persistence Harness</name>
+    <name>Smart ERP Runtime Persistence Harness</name>
 
     <dependencies>
         <dependency>

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import org.junit.jupiter.api.Test;
 import py.com.logixone.plugin.api.PluginApiVersion;
@@ -27,6 +28,8 @@ class ReferenceDataPluginDefinitionTest {
         assertEquals(ReferenceDataPermissions.all(), descriptor.permissions());
         assertEquals(2, descriptor.capabilities().size());
         assertEquals(1, descriptor.menuContributions().size());
+        assertEquals(Optional.of(ReferenceDataPermissions.POLICY_MANAGE),
+                descriptor.menuContributions().getFirst().requiredPermission());
         assertEquals(ReferenceDataScreenContract.ROUTE,
                 descriptor.menuContributions().getFirst().route());
         assertEquals("plg_reference_data", descriptor.migrations().getFirst().schema());

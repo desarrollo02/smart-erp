@@ -37,7 +37,7 @@ public class ReferenceDataPluginDefinition implements PluginDefinition {
                     new ContributionId("reference_data.catalogs.menu"),
                     "reference_data.menu.catalogs",
                     ReferenceDataScreenContract.ROUTE,
-                    Optional.of(ReferenceDataPermissions.VIEW))),
+                    Optional.of(ReferenceDataPermissions.POLICY_MANAGE))),
             List.of(new MigrationContribution(
                     "plg_reference_data",
                     "classpath:db/migration/reference_data")),

@@ -12,12 +12,13 @@
     <f:viewParam name="selectorContext" value="#{shellView.selectorContextId}"/>
     <f:viewParam name="selectorReturn" value="#{shellView.selectorReturnId}"/>
     <f:event type="preRenderView" listener="#{shellView.prepare}"/>
+    <f:event type="preRenderView" listener="#{shellView.selectRequestedSelectorOption}"/>
 </f:metadata>
 <h:head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta name="theme-color" content="#006a64"/>
-    <title>Logixone · #{shellView.activeTitle}</title>
+    <title>Smart ERP · #{shellView.activeTitle}</title>
     <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
     <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/selector-return.js?ln=logixone"
             defer="defer"></script>
@@ -27,9 +28,9 @@
     <div class="app-frame">
         <header class="topbar">
             <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
-                          styleClass="brand" pt:aria-label="Ir al inicio de Logixone">
-                <span class="brand-mark" aria-hidden="true">L</span>
-                <span class="brand-copy"><strong>Logixone</strong><small>ERP modular</small></span>
+                          styleClass="brand" pt:aria-label="Ir al inicio de Smart ERP">
+                <span class="brand-mark" aria-hidden="true">S</span>
+                <span class="brand-copy"><strong>Smart ERP</strong><small>ERP modular</small></span>
             </h:outputLink>
             <ui:fragment rendered="#{shellView.ready}">
                 <details class="mobile-navigation">
@@ -270,7 +271,8 @@
                                                                      disabled="#{not field.enabled}"
                                                                      styleClass="text-control text-control-compact"/>
                                                     </h:panelGroup>
-                                                    <h:panelGroup layout="block" rendered="#{field.select}"
+                                                    <h:panelGroup layout="block"
+                                                                  rendered="#{field.select and not shellView.activeInteraction.selectorSources[field.id].searchOnDemand}"
                                                                   styleClass="screen-field search-select-field">
                                                         <div class="selector-field-heading">
                                                             <h:outputLabel for="directory-select" value="#{field.label}"/>
@@ -383,6 +385,40 @@
                                             </h:outputLink>
                                         </ui:repeat>
                                     </div>
+
+                                    <h:form styleClass="directory-pagination"
+                                            rendered="#{shellView.activeInteraction.table.paged}">
+                                        <input type="hidden" name="route" value="#{shellView.requestedRoute}"/>
+                                        <input type="hidden" name="mode" value="directory"/>
+                                        <input type="hidden" name="selectorContext" value="#{shellView.selectorContextId}"/>
+                                        <h:inputHidden value="#{shellView.tableOffset}"/>
+                                        <h:inputHidden value="#{shellView.tablePageSize}"/>
+                                        <ui:repeat value="#{shellView.activeScreen.directorySections}" var="pageSection">
+                                            <ui:fragment rendered="#{pageSection.id eq 'search'}">
+                                                <ui:repeat value="#{pageSection.fields}" var="pageField">
+                                                    <h:inputHidden value="#{shellView.inputValues[pageField.id]}"/>
+                                                </ui:repeat>
+                                            </ui:fragment>
+                                        </ui:repeat>
+                                        <p class="directory-page-summary" role="status">
+                                            Mostrando #{shellView.activeInteraction.table.firstVisible}–#{shellView.activeInteraction.table.lastVisible}
+                                            de #{shellView.activeInteraction.table.total}
+                                        </p>
+                                        <div class="directory-page-actions">
+                                            <h:commandButton value="Anterior"
+                                                             action="#{shellView.changeTablePage}"
+                                                             disabled="#{not shellView.activeInteraction.table.hasPreviousPage}"
+                                                             styleClass="button button-quiet">
+                                                <f:setPropertyActionListener target="#{shellView.requestedTablePageDirection}" value="#{-1}"/>
+                                            </h:commandButton>
+                                            <h:commandButton value="Siguiente"
+                                                             action="#{shellView.changeTablePage}"
+                                                             disabled="#{not shellView.activeInteraction.table.hasNextPage}"
+                                                             styleClass="button button-quiet">
+                                                <f:setPropertyActionListener target="#{shellView.requestedTablePageDirection}" value="#{1}"/>
+                                            </h:commandButton>
+                                        </div>
+                                    </h:form>
                                 </h:panelGroup>
                             </h:panelGroup>
 
@@ -419,7 +455,8 @@
                                                                      styleClass="text-control text-control-compact"/>
                                                         <h:message for="create-text" styleClass="field-message"/>
                                                     </h:panelGroup>
-                                                    <h:panelGroup layout="block" rendered="#{field.select}"
+                                                    <h:panelGroup layout="block"
+                                                                  rendered="#{field.select and not shellView.activeInteraction.selectorSources[field.id].searchOnDemand}"
                                                                   styleClass="screen-field">
                                                         <div class="field-heading selector-field-heading">
                                                             <span class="field-label-with-mark">
@@ -448,6 +485,75 @@
                                                                            itemValue="#{option.value}"
                                                                            itemLabel="#{option.label}"/>
                                                         </h:selectOneMenu>
+                                                    </h:panelGroup>
+                                                    <h:panelGroup layout="block"
+                                                                  rendered="#{field.select and shellView.activeInteraction.selectorSources[field.id].searchOnDemand}"
+                                                                  styleClass="screen-field selector-search-field">
+                                                        <div class="field-heading selector-field-heading">
+                                                            <span class="field-label-with-mark">
+                                                                <h:outputLabel for="create-selector-search" value="#{field.label}"/>
+                                                                <h:panelGroup layout="inline" styleClass="required-mark"
+                                                                              rendered="#{field.required}">*</h:panelGroup>
+                                                            </span>
+                                                            <h:commandLink
+                                                                    rendered="#{shellView.activeInteraction.selectorSources[field.id].managementAvailable}"
+                                                                    action="#{shellView.openSelectorManagement(field.id)}"
+                                                                    immediate="true"
+                                                                    onclick="LogixoneSelectorReturn.capture(this);"
+                                                                    styleClass="selector-management-link">
+                                                                #{shellView.activeInteraction.selectorSources[field.id].managementLabel}
+                                                            </h:commandLink>
+                                                        </div>
+                                                        <h:inputHidden value="#{shellView.inputValues[field.id]}"/>
+                                                        <p class="selector-current-value">
+                                                            Selección actual:
+                                                            <strong>#{empty shellView.inputValues[field.id] ? 'Ninguna' : shellView.inputValues[field.id]}</strong>
+                                                        </p>
+                                                        <div class="selector-search-controls">
+                                                                <h:inputText id="create-selector-search"
+                                                                             value="#{shellView.selectorSearchValues[field.id]}"
+                                                                             maxlength="100"
+                                                                         pt:aria-label="Buscar opciones de #{field.label}"
+                                                                         styleClass="text-control text-control-compact"/>
+                                                                <h:commandButton value="Buscar opciones"
+                                                                                 action="#{shellView.searchSelectorOptions}"
+                                                                                 styleClass="button button-tonal">
+                                                                <f:setPropertyActionListener target="#{shellView.requestedSelectorFieldId}" value="#{field.id}"/>
+                                                                <f:setPropertyActionListener target="#{shellView.requestedSelectorPageDirection}" value="#{0}"/>
+                                                            </h:commandButton>
+                                                        </div>
+                                                        <h:panelGroup layout="block" styleClass="selector-search-results"
+                                                                      rendered="#{not empty shellView.selectorOptionPages[field.id]}">
+                                                            <h:inputHidden value="#{shellView.selectorSearchOffsets[field.id]}"/>
+                                                            <p class="selector-search-summary" role="status">
+                                                                #{shellView.selectorOptionPages[field.id].firstVisible}–#{shellView.selectorOptionPages[field.id].lastVisible}
+                                                                de #{shellView.selectorOptionPages[field.id].total} opciones
+                                                            </p>
+                                                            <ui:repeat value="#{shellView.selectorOptionPages[field.id].options}" var="selectorOption">
+                                                                <button type="submit"
+                                                                        name="selectorOption:#{field.id}"
+                                                                        value="#{selectorOption.value}"
+                                                                        class="selector-option-button">
+                                                                    #{selectorOption.label} · #{selectorOption.value}
+                                                                </button>
+                                                            </ui:repeat>
+                                                            <div class="selector-page-actions">
+                                                                            <h:commandButton value="Anterior"
+                                                                                             action="#{shellView.searchSelectorOptions}"
+                                                                                             disabled="#{not shellView.selectorOptionPages[field.id].hasPreviousPage}"
+                                                                                 styleClass="button button-quiet">
+                                                                    <f:setPropertyActionListener target="#{shellView.requestedSelectorFieldId}" value="#{field.id}"/>
+                                                                    <f:setPropertyActionListener target="#{shellView.requestedSelectorPageDirection}" value="#{-1}"/>
+                                                                </h:commandButton>
+                                                                            <h:commandButton value="Siguiente"
+                                                                                             action="#{shellView.searchSelectorOptions}"
+                                                                                             disabled="#{not shellView.selectorOptionPages[field.id].hasNextPage}"
+                                                                                 styleClass="button button-quiet">
+                                                                    <f:setPropertyActionListener target="#{shellView.requestedSelectorFieldId}" value="#{field.id}"/>
+                                                                    <f:setPropertyActionListener target="#{shellView.requestedSelectorPageDirection}" value="#{1}"/>
+                                                                </h:commandButton>
+                                                            </div>
+                                                        </h:panelGroup>
                                                     </h:panelGroup>
                                                     <h:panelGroup layout="block" rendered="#{field.displayText}"
                                                                   styleClass="screen-field create-display-summary">
@@ -582,7 +688,8 @@
                                                                              styleClass="text-control text-control-compact"/>
                                                                 <h:message for="detail-text" styleClass="field-message"/>
                                                             </h:panelGroup>
-                                                            <h:panelGroup layout="block" rendered="#{field.select}"
+                                                            <h:panelGroup layout="block"
+                                                                          rendered="#{field.select and not shellView.activeInteraction.selectorSources[field.id].searchOnDemand}"
                                                                           styleClass="screen-field">
                                                                 <div class="field-heading selector-field-heading">
                                                                     <span class="field-label-with-mark">
@@ -612,6 +719,73 @@
                                                                                    itemValue="#{option.value}"
                                                                                    itemLabel="#{option.label}"/>
                                                                 </h:selectOneMenu>
+                                                            </h:panelGroup>
+                                                            <h:panelGroup layout="block"
+                                                                          rendered="#{field.select and shellView.activeInteraction.selectorSources[field.id].searchOnDemand}"
+                                                                          styleClass="screen-field selector-search-field">
+                                                                <div class="field-heading selector-field-heading">
+                                                                    <span class="field-label-with-mark">
+                                                                        <h:outputLabel for="detail-selector-search" value="#{field.label}"/>
+                                                                        <h:panelGroup layout="inline" styleClass="required-mark"
+                                                                                      rendered="#{field.required}">*</h:panelGroup>
+                                                                    </span>
+                                                                    <h:commandLink
+                                                                            rendered="#{shellView.activeInteraction.selectorSources[field.id].managementAvailable}"
+                                                                            action="#{shellView.openSelectorManagement(field.id)}"
+                                                                            immediate="true"
+                                                                            onclick="LogixoneSelectorReturn.capture(this);"
+                                                                            styleClass="selector-management-link">
+                                                                        #{shellView.activeInteraction.selectorSources[field.id].managementLabel}
+                                                                    </h:commandLink>
+                                                                </div>
+                                                                <h:inputHidden value="#{shellView.inputValues[field.id]}"/>
+                                                                <p class="selector-current-value">
+                                                                    Selección actual:
+                                                                    <strong>#{empty shellView.inputValues[field.id] ? 'Ninguna' : shellView.inputValues[field.id]}</strong>
+                                                                </p>
+                                                                <div class="selector-search-controls">
+                                                                    <h:inputText id="detail-selector-search"
+                                                                                 value="#{shellView.selectorSearchValues[field.id]}"
+                                                                                 maxlength="100"
+                                                                                 pt:aria-label="Buscar opciones de #{field.label}"
+                                                                                 styleClass="text-control text-control-compact"/>
+                                                                    <h:commandButton value="Buscar opciones"
+                                                                                     action="#{shellView.searchSelectorOptions}"
+                                                                                     styleClass="button button-tonal">
+                                                                        <f:setPropertyActionListener target="#{shellView.requestedSelectorFieldId}" value="#{field.id}"/>
+                                                                        <f:setPropertyActionListener target="#{shellView.requestedSelectorPageDirection}" value="#{0}"/>
+                                                                    </h:commandButton>
+                                                                </div>
+                                                                <h:panelGroup layout="block" styleClass="selector-search-results"
+                                                                              rendered="#{not empty shellView.selectorOptionPages[field.id]}">
+                                                                    <h:inputHidden value="#{shellView.selectorSearchOffsets[field.id]}"/>
+                                                                    <p class="selector-search-summary" role="status">
+                                                                        #{shellView.selectorOptionPages[field.id].firstVisible}–#{shellView.selectorOptionPages[field.id].lastVisible}
+                                                                        de #{shellView.selectorOptionPages[field.id].total} opciones
+                                                                    </p>
+                                                                    <ui:repeat value="#{shellView.selectorOptionPages[field.id].options}" var="selectorOption">
+                                                                        <button type="submit"
+                                                                                name="selectorOption:#{field.id}"
+                                                                                value="#{selectorOption.value}"
+                                                                                class="selector-option-button">
+                                                                            #{selectorOption.label} · #{selectorOption.value}
+                                                                        </button>
+                                                                    </ui:repeat>
+                                                                    <div class="selector-page-actions">
+                                                                        <h:commandButton value="Anterior" action="#{shellView.searchSelectorOptions}"
+                                                                                         disabled="#{not shellView.selectorOptionPages[field.id].hasPreviousPage}"
+                                                                                         styleClass="button button-quiet">
+                                                                            <f:setPropertyActionListener target="#{shellView.requestedSelectorFieldId}" value="#{field.id}"/>
+                                                                            <f:setPropertyActionListener target="#{shellView.requestedSelectorPageDirection}" value="#{-1}"/>
+                                                                        </h:commandButton>
+                                                                        <h:commandButton value="Siguiente" action="#{shellView.searchSelectorOptions}"
+                                                                                         disabled="#{not shellView.selectorOptionPages[field.id].hasNextPage}"
+                                                                                         styleClass="button button-quiet">
+                                                                            <f:setPropertyActionListener target="#{shellView.requestedSelectorFieldId}" value="#{field.id}"/>
+                                                                            <f:setPropertyActionListener target="#{shellView.requestedSelectorPageDirection}" value="#{1}"/>
+                                                                        </h:commandButton>
+                                                                    </div>
+                                                                </h:panelGroup>
                                                             </h:panelGroup>
                                                             <h:panelGroup layout="block" rendered="#{field.displayText}"
                                                                           styleClass="screen-field detail-display-summary">
@@ -734,7 +908,7 @@
         </div>
 
         <footer class="app-footer">
-            <span>Logixone · Jakarta EE 11</span>
+            <span>Smart ERP · Jakarta EE 11</span>
             <span>JSF server-side · Material Design 3</span>
         </footer>
     </div>

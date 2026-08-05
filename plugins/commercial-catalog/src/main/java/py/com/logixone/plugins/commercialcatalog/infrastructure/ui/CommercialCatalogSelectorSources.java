@@ -254,11 +254,11 @@ final class CommercialCatalogSelectorSources {
                 SelectorSourceKind.NORMATIVE_CATALOG,
                 SemanticVersion.parse("1.0.0"),
                 Optional.of("/reference-data"),
-                Optional.of(new ContributionId("reference_data.view")),
+                Optional.of(new ContributionId("reference_data.policy.manage")),
                 Set.of(SelectorManagementCapability.VIEW),
                 SelectorEmptyOptionPolicy.NOT_ALLOWED,
                 SelectorInactiveValuePolicy.EXCLUDE_FOR_NEW_KEEP_SELECTED,
-                SelectorLoadingStrategy.INLINE);
+                SelectorLoadingStrategy.SEARCH_ON_DEMAND);
     }
 
     private static SelectorSourceDefinition source(

@@ -1,14 +1,16 @@
 # Vista general de arquitectura
 
-- Versión: 48
-- Fecha: 2026-08-04
-- Estado: J11-S8-C02 en ejecución; contrato/renderer, ciclos empresariales, cuatro clases de definiciones de socios, revisión e historial append-only y asignación versionada de familias a artículos validados; fuentes normativas, paginación, recongelación,
-  PDF, decisión de instalador, matriz, Authenticode y G7 independiente pendientes
-- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08` y `J11-S8-C01` a `J11-S8-C02`; ADR-0009 a ADR-0037
+- Versión: 52
+- Fecha: 2026-08-05
+- Estado: J11-S8-C07 implementado y validado; publicaciones completas, unidad menor opcional, búsqueda paginada, contrato/renderer, ciclos empresariales, cuatro clases de definiciones de socios, revisión e historial append-only y asignación versionada de familias a artículos; gates técnicos, recongelación y PDF verdes; producto decidió `NO` crear instalador para este baseline; G7 independiente pendiente
+- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08` y `J11-S8-C01` a `J11-S8-C07`; ADR-0009 a ADR-0039
 
 ## Objetivo
 
-Definir la forma inicial de Logixone Jakarta 11 y los límites que deben permanecer ciertos mientras se construye el sistema.
+Definir la forma inicial de Smart ERP y los límites que deben permanecer ciertos mientras se construye el sistema.
+
+**Smart ERP** es la marca vigente. Los identificadores técnicos que contienen
+`logixone` permanecen estables por compatibilidad según ADR-0039.
 
 ## Principios
 
@@ -74,7 +76,7 @@ El alta de una empresa requiere desplegar primero una imagen que contenga su JAR
 ## Estructura Maven objetivo
 
 ```text
-LogixoneJakarta11/
+smart-erp/
 ├── pom.xml
 ├── .mvn/ y Maven Wrapper
 ├── platform-bom/
@@ -129,7 +131,7 @@ La estructura de módulos y sus POM quedó materializada en `J11-S1-02`. `J11-S1
 | `web-shell` | Navegación, endpoints y composición de UI | contratos de aplicación y Jakarta EE `provided` |
 | `<plugin>-api` | Contratos empresariales públicos de un plugin | Java estándar y, si es indispensable, `kernel-api` |
 | `<plugin>-impl` | Dominio, casos de uso y adaptadores propios | su API, `plugin-api`, `kernel-api`; Jakarta solo en adaptadores |
-| `reference-data-api` | publicaciones, países y monedas públicos `1.0.0` | Java estándar y `CompanyId` |
+| `reference-data-api` | publicaciones, países y monedas públicos `1.1.0` | Java estándar y `CompanyId` |
 | `reference-data` | procedencia, políticas empresariales y consulta normativa | su API, `plugin-api`, `kernel-api`; Jakarta sólo en adaptadores CDI/JPA/UI |
 | `commercial-catalog-api` | referencias, conversión y cotización públicas `1.0.0` | Java estándar y `CompanyId` |
 | `commercial-catalog` | descriptor y dominio privado de ítems/listas | su API, `plugin-api`, `kernel-api`; Jakarta solo en el descriptor CDI |
@@ -150,7 +152,7 @@ Reglas negativas:
 ### Contrato y catálogo de plugins implementados
 
 - `PluginDefinition` es el SPI neutral que expone un `PluginDescriptor`; el adaptador CDI implementado depende de esta interfaz, no al revés.
-- `PluginDescriptor` exige `PluginKind.FUNCTIONAL` o `PluginKind.CUSTOMIZATION`; el contrato semántico vigente es `PluginApiVersion.CURRENT = 0.4.2`.
+- `PluginDescriptor` exige `PluginKind.FUNCTIONAL` o `PluginKind.CUSTOMIZATION`; el contrato semántico vigente es `PluginApiVersion.CURRENT = 0.4.3`.
 - `PluginId` usa `snake_case` en minúsculas y deriva sin normalización el esquema `plg_<plugin_id>`.
 - `SemanticVersion` aplica SemVer 2.0.0 y `VersionRange` representa intervalos `[mínimo inclusivo, máximo exclusivo)`.
 - El descriptor copia defensivamente dependencias, capacidades, permisos, menús, migraciones, definiciones de pantalla y overlays.
@@ -602,17 +604,30 @@ roadmap completo está detallado en la
 ### Fundación normativa `reference_data`
 
 J11-S8-C03 materializa [ADR-0038](../adr/0038-plugin-datos-referencia-normativos.md)
-en `reference-data-api@1.0.0` y `reference_data@1.0.0`. La API Java pura publica
+en `reference-data-api@1.0.0` y `reference_data@1.0.0`; J11-S8-C07 evoluciona el
+contrato público de forma aditiva a `reference-data-api@1.1.0`. La API Java pura publica
 tipos de código, referencias y publicaciones por `CompanyId`; no expone JPA ni
 Jakarta. La implementación posee `plg_reference_data` V1 con cinco tablas para
-publicaciones, países, monedas y políticas por empresa.
+publicaciones, países, monedas y políticas por empresa. J11-S8-C06 agrega V2 con
+una historia empresarial append-only; la ausencia de fila continúa significando
+habilitado con versión efectiva cero y cada cambio avanza una versión bajo JTA.
+V3 permite ausencia real para la unidad menor `N.A.` y V4 incorpora publicaciones
+`FULL` corrientes con 248 países y 178 códigos únicos de moneda o fondo.
 
-El seed `PY/PYG/USD` conserva autoridad, URI, fecha, SHA-256, cantidad y la marca
-`BOOTSTRAP_SUBSET`. La pantalla `/reference-data` es de sólo lectura bajo
-`reference_data.view`; no crea códigos ni consulta Internet. `business_partners`
+El seed histórico `PY/PYG/USD` conserva autoridad, URI, fecha, SHA-256, cantidad y
+la marca `BOOTSTRAP_SUBSET`; no se reescribe al promover V4. La pantalla
+`/reference-data` exige
+`reference_data.policy.manage`: permite habilitar o inhabilitar códigos existentes,
+consulta historia y procedencia, pero no crea códigos ni consulta Internet.
+`business_partners`
 y `commercial_catalog` requieren `reference_data` 1.x, consumen únicamente su API
 y revalidan país/moneda dentro de la transacción. No hay FK, relación JPA, SQL ni
-import interno cruzado.
+import interno cruzado. El servicio puro exige autorización empresarial confiable,
+versión observada y código de la publicación corriente; registra resultado y
+versiones mediante `TechnicalAudit` sin copiar nombres normativos al log. País y
+moneda usan búsqueda bajo demanda; el filtro, el aislamiento empresarial y la
+paginación máxima de 50 se ejecutan en servidor. El valor normativo `N.A.` se
+expone como ausencia opcional, distinto de una unidad menor definida en cero.
 
 ### Frontera y persistencia de `business_partners`
 
@@ -721,8 +736,9 @@ comprobar estado activo, versión exacta, obligatoriedad y tipo. El adaptador Fa
 sólo transporta identidad/revisión y valores neutrales; no aporta autoridad ni
 decide la estructura. No hay relaciones JPA ni SQL hacia otro plugin.
 
-J11-S8-C03 convierte `price_currency` en selector normativo. La lista nueva
-ofrece `PYG/USD` del subconjunto vigente y el caso de uso rechaza una moneda ausente
+J11-S8-C03 convierte `price_currency` en selector normativo. J11-S8-C07 lo cambia
+a `SEARCH_ON_DEMAND` sobre la publicación `FULL`: busca por código o nombre en el
+servidor, devuelve hasta 50 resultados y el caso de uso rechaza una moneda ausente
 o inhabilitada después de revalidar autorización y empresa.
 
 El plugin aporta permisos, comandos, menús y pantallas neutrales, y forma parte de
@@ -1026,7 +1042,8 @@ La auditoría actual contabiliza 18 selectores nativos y 71 declarados por plugi
 El vigésimo corte J11-S8-C02 cubre contractualmente los 89: los plugins conservan
 `SelectorSourceDefinition` y el kernel/shell publica
 `PlatformSelectorSourceDefinition`, ambos mediante `SelectorSourceMetadata` de
-`plugin-api` 0.4.2. El componente Faces del shell muestra el origen en los 18
+`plugin-api` 0.4.2. J11-S8-C07 eleva el contrato compatible a 0.4.3 con búsqueda
+bajo demanda y tablas paginadas de hasta 50 elementos. El componente Faces del shell muestra el origen en los 18
 controles nativos y sólo entrega una ruta administrativa cuando la autoridad
 global actual contiene el permiso declarado. Los cortes posteriores agregaron
 inactivación/reactivación con
@@ -1040,8 +1057,8 @@ administrables mediante whitelist de origen/destino/inputs, UUID canónico,
 continuidad explícita en postbacks y restauración específica; los otros siete usos
 son cerrados o de despliegue. El vigésimo corte gobierna también tipos de
 identificación, tipos/propósitos de dirección y tipos de canal mediante la misma
-raíz privada V4 de `business_partners`; sólo país/moneda y otras fuentes
-normativas, la paginación y la recongelación siguen pendientes. El detalle está en el
+raíz privada V4 de `business_partners`; país y moneda usan ahora la publicación
+completa y búsqueda paginada; sus gates técnicos y la recongelación están verdes. El detalle está en el
 [inventario de selectores](inventario-selectores-y-datos-administrables.md).
 
 ## Decisiones diferidas sin bloqueo

@@ -14,7 +14,7 @@
     <artifactId>business-partners-api</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Business Partners API</name>
+    <name>Smart ERP Business Partners API</name>
     <description>Pure Java public contracts for the business partners plugin</description>
 
     <dependencies>

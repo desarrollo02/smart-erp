@@ -1,7 +1,7 @@
 # Épica - Gobierno de selectores y datos administrables
 
-- Estado: En progreso; SEL-01 y metadatos 91/91, retorno seguro de plugins y los 11 usos nativos administrables, altas de SEL-03/SEL-05, ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo/revisión/historial de perfiles, cuatro clases de definiciones de socios y familias, asignación versionada de familias a artículos y subconjunto normativo `PY/PYG/USD` implementados; publicación completa, paginación y cierre pendientes
-- Fecha: 2026-08-04
+- Estado: En progreso; SEL-01–SEL-08 implementados, incluidos metadatos 91/91, retorno seguro, ciclos/historia/reemplazo, cuatro clases de socios, familias, publicaciones normativas completas y búsqueda paginada; gates runtime y cierre pendientes
+- Fecha: 2026-08-05
 - Decisión: [ADR-0028](../adr/0028-gobierno-de-selectores-y-datos-administrables.md)
 - Fuente: [inventario del baseline](../architecture/inventario-selectores-y-datos-administrables.md)
 - Prioridad: resolver antes de iniciar `purchasing`
@@ -21,9 +21,9 @@ sin convertir estados cerrados ni códigos normativos en texto libre.
 | SEL-03 | centro de definiciones de catálogo: altas de unidades, categorías, marcas, etiquetas y familias implementadas; ciclo activo/inactivo, revisión permitida e historial append-only de todos esos maestros, reemplazo seguro de las cuatro definiciones simples y asignación visual/versionada de familias a artículos implementados |
 | SEL-04 | perfiles tributarios: consulta, alta, revisión explícita de contenido/vigencia, historial visual de solo lectura e inactivación/reactivación versionada implementadas |
 | SEL-05 | tipos de canal, tipos de identificación y tipos/propósitos de dirección con consulta, alta, revisión de nombre, historial visible append-only e inactivación/reactivación versionada implementados mediante V4 privada |
-| SEL-06 | ADR-0038, `reference_data`, procedencia y selectores de país/moneda implementados para `PY/PYG/USD`; publicación completa y políticas administrables pendientes |
+| SEL-06 | ADR-0038, `reference_data`, políticas administrables, publicaciones `FULL` 248/178, `N.A.` opcional y selectores paginados de país/moneda implementados; gates runtime pendientes |
 | SEL-07 | enlaces contextuales para empresas, usuarios, roles, depósitos, ubicaciones y artículos — metadatos, autorización y retorno validados |
-| SEL-08 | conservación acotada de borrador implementada para plugins y nativos administrables; búsqueda/paginación, vacíos y opciones inactivas pendientes |
+| SEL-08 | conservación acotada de borrador implementada para plugins y nativos administrables; búsqueda/paginación máxima 50 implementada para fuentes normativas grandes |
 | SEL-09 | permisos, auditoría, seguridad negativa y límites arquitectónicos |
 | SEL-10 | demo acumulada, manuales, fotografía, PDF y evidencia de cierre |
 

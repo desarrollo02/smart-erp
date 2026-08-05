@@ -1,10 +1,12 @@
 # Sprint 8 - Inventario `inventory`
 
-- Estado: Reabierto; J11-S8-C03 eleva los metadatos neutrales a 91/91, incorpora `reference_data` con el subconjunto normativo trazable `PY/PYG/USD` y conecta país/moneda a socios y catálogo; J11-S8-C02 mantiene retorno contextual seguro para selectores de plugins y los 11 usos nativos administrables, alta/consulta y ciclo activo/inactivo de
+- Estado: Reabierto; J11-S8-C06 y J11-S8-C07 están completadas con PostgreSQL, `clean verify` 26/26 y 498 pruebas, 28 ArchUnit, Compose, health, OIDC, JTA y Playwright verdes; J11-S8-C07 publica 248 países y 178 códigos de moneda/fondo, conserva `N.A.` y busca/pagina en servidor; J11-S8-C05 adopta Smart ERP como marca visible sin migrar identificadores técnicos; J11-S8-C04 implementa y valida localmente el gobierno Git por Sprint, con `sprint/08-cierre` publicada y el PR/protecciones remotas pendientes; J11-S8-C03 eleva los metadatos neutrales a 91/91 y conecta país/moneda a socios y catálogo; J11-S8-C02 mantiene retorno contextual seguro para selectores de plugins y los 11 usos nativos administrables, alta/consulta y ciclo activo/inactivo de
   unidades, categorías, marcas, etiquetas, perfiles tributarios, tipos de canal y familias de variantes, revisión
   explícita e historial visible de contenido/vigencia tributaria, además de altas de familias de
   variantes, revisión/historial append-only y reemplazo seguro de definiciones simples, revisión de nombre con historial visible append-only de tipos de canal, revisión estructural/historial append-only de familias y asignación versionada de familias a artículos;
-  definiciones gobernadas de identificación/dirección; publicación completa, paginación, recongelación, PDF, instalador y G7 pendientes; Docker/Playwright de C03 verdes
+  definiciones gobernadas de identificación/dirección; fotografía y PDF están
+  recongelados; producto decidió `NO` crear un instalador para este baseline y
+  queda pendiente G7 independiente
 - Fecha de planificación: 2026-07-31
 - Dependencia técnica: G0-G6 de Sprint 7 verdes
 - Pendiente transversal: validación independiente G7 de la guía candidata
@@ -31,13 +33,31 @@ leer sus tablas ni importar sus entidades.
 | 8 | [J11-S8-07](J11-S8-07-validacion-demo-cierre.md) | validación integral, demo oficial, retrospectiva y PDF; baseline congelado |
 | 9 | [J11-S8-08](J11-S8-08-instalador-windows-cierre.md) | instalador Windows, preflight, montaje, pruebas y cierre formal |
 
-Corrección posterior al congelamiento:
+Correcciones posteriores al congelamiento:
 
 | Historia | Resultado esperado |
 |---|---|
 | [J11-S8-C01](J11-S8-C01-administracion-perfiles-tributarios.md) | administración visual autorizada de perfiles, recongelación y repetición de gates afectados |
 | [J11-S8-C02](J11-S8-C02-gobierno-selectores-administrables.md) | fuentes gobernadas y administración visible de catálogos antes de recongelar |
 | [J11-S8-C03](J11-S8-C03-datos-referencia-normativos.md) | países y monedas normativos compartidos, trazables y revalidados antes de `purchasing` |
+| [J11-S8-C04](J11-S8-C04-gobierno-git-ramas.md) | adoptar ramas por Sprint, protección de `main`, PR por historia y detener el crecimiento de temporales versionados |
+| [J11-S8-C05](J11-S8-C05-marca-smart-erp.md) | adoptar Smart ERP como marca visible conservando identificadores técnicos compatibles |
+| [J11-S8-C06](J11-S8-C06-politicas-reference-data.md) | completar RD-04 con políticas empresariales versionadas, historia y auditoría |
+| [J11-S8-C07](J11-S8-C07-publicaciones-completas-reference-data.md) | completar RD-05 con publicaciones completas, unidad menor opcional y búsqueda paginada |
+
+## Plan de ramas para el cierre
+
+La estrategia Git aprobada el 2026-08-05 usa `main` como baseline aceptado, una
+única rama `sprint/*` activa y ramas cortas `story/*`, `fix/*` o `chore/*`. Como el
+primer commit Git importó el estado abierto de Sprint 8, se registra una excepción
+transitoria: `main` permanece congelada en `166c5e1` y el cierre continúa en
+`sprint/08-cierre`. No se creará `sprint/09-purchasing` hasta completar todos los
+gates, integrar el cierre en `main` y crear el tag anotado `sprint-08`.
+
+La adopción, las protecciones, los checks y la higiene no destructiva del índice
+se detallan en [J11-S8-C04](J11-S8-C04-gobierno-git-ramas.md). El responsable de
+producto autorizó el 2026-08-05 ejecutar la adopción. La autorización no permite
+fusionar el cierre del Sprint en `main` antes de completar todos sus gates.
 
 ## Límites iniciales
 
@@ -65,11 +85,15 @@ instalador Windows conforme a la
 Debe diagnosticar antes de cambiar la máquina, pedir consentimiento/UAC, montar el
 proyecto, verificar health y conservar datos. La edición interna
 `0.8.0-internal.1` recorrió esas fases y conservó datos, pero quedó obsoleta al
-aprobar J11-S8-C01. Sprint 8 no se cierra hasta completar la corrección,
-resolver el gate de selectores acordado, recongelar y preguntar a producto si se
-creará un instalador nuevo. Con respuesta `SÍ` se ejecutarán la matriz Windows
-independiente y los gates de entrega aplicables; con `NO`, `current` permanecerá
-intacto y no representará el baseline nuevo. G7 continúa pendiente.
+aprobar J11-S8-C01.
+
+El 2026-08-05, el responsable de producto respondió `NO` a
+`¿Crearemos un nuevo instalador Windows para este Sprint?`. La razón registrada es
+que Smart ERP tendrá un instalador nuevo cuando exista una versión comercializable
+y útil para al menos un tipo de negocio. `installer/windows/current` permanece
+intacto, pertenece al baseline anterior y no representa J11-S8-C07. Por esta
+respuesta, la matriz Windows, UAC/cancelación reales y Authenticode no son gates de
+Sprint 8; G7 independiente continúa pendiente.
 
 ## Estado del incremento
 
@@ -97,12 +121,12 @@ verdes, y dos reparaciones conservaron secretos, volúmenes y conteos. El hallaz
 visual J11-S8-C01 reabrió ese baseline. La corrección agregó el octavo menú
 fusionado, administración autorizada de perfiles tributarios y demo Playwright en
 375/720/1280 px; reactor, arquitectura, composición, health y seguridad negativa
-quedaron verdes. Faltan resolver el gate de selectores, recongelar la fotografía y
-el PDF, preguntar si se creará un instalador y completar G7. Si la respuesta es
-`SÍ`, se suman VM Windows limpia e incompatible, escenarios reales de
-UAC/cancelación, Authenticode y la matriz acordada; con `NO`, esos escenarios no
-son gate del Sprint y `current` queda intacto. No se autoriza iniciar el siguiente
-plugin ni declarar cerrado el Sprint hasta resolver los gates aplicables.
+quedaron verdes. El gate de selectores y los gates técnicos C06/C07 también están
+verdes. La fotografía y el PDF se recongelaron contra C07. Producto respondió
+`NO` al instalador por no existir aún una versión comercializable útil para un tipo
+de negocio; `current` queda intacto y no representa este baseline. Falta completar
+G7 independiente. No se autoriza iniciar el siguiente plugin ni declarar cerrado
+el Sprint hasta resolver los gates aplicables.
 
 ADR-0027 agregó históricamente `point_of_sale` como décimo plugin futuro, después
 de `treasury`. ADR-0033 insertó luego `recurring_billing` como orden 8 y desplazó
@@ -178,8 +202,9 @@ para el migrador. Aplicación, PostgreSQL 19/19, migración real e idempotente,
 imágenes, health y Playwright responsive quedaron verdes. Antes de iniciar
 `purchasing` debían resolverse países/monedas, sus fuentes normativas y la
 estrategia de listas grandes. J11-S8-C03 resolvió propiedad, procedencia y
-revalidación del subconjunto inicial; la publicación completa y la estrategia de
-listas grandes continúan pendientes. El décimo corte migró los 18 selectores nativos a
+revalidación del subconjunto inicial; J11-S8-C07 conserva esas ediciones e
+implementa publicaciones `FULL`, unidad menor opcional y listas paginadas. Sus
+gates PostgreSQL, Compose, JTA/OIDC y Playwright quedaron verdes. El décimo corte migró los 18 selectores nativos a
 un propietario de plataforma explícito, mostró origen/clase mediante un componente
 Faces común y filtró enlaces con autoridad global; sus 342 pruebas de regresión y
 el gate integral de 24/24 módulos quedaron verdes. El undécimo corte agregó
@@ -214,8 +239,9 @@ agrega dos selectores normativos —país y moneda—, por lo que el inventario 
 pasa a 18 nativos y 73 de plugins, 91/91 con fuente y propietario.
 `reference_data` es la fundación R0 número veintinueve del catálogo global y no
 renumera ERP 1–19. Docker/Compose, health/OIDC y Playwright responsive de C03
-quedaron verdes. Faltan publicación completa, listas grandes y los gates formales
-de recongelación/cierre. Sprint 8
+quedaron verdes. C07 agrega V3–V4, `reference-data-api` 1.1.0 y `plugin-api` 0.4.3;
+su gate integral y runtime quedaron verdes. Faltan los gates formales de
+recongelación/cierre. Sprint 8
 continúa abierto y no se autoriza iniciar `purchasing`.
 G0 del decimosexto corte validó 280 Markdown sin enlaces rotos, errores UTF-8,
 mojibake ni filtraciones de secretos. G0 del decimonoveno corte repitió el control

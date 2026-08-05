@@ -2,9 +2,12 @@ package py.com.logixone.plugins.referencedata.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 
 class ReferenceDataContractTest {
@@ -54,5 +57,32 @@ class ReferenceDataContractTest {
         assertEquals(0, currency.minorUnit());
         assertThrows(IllegalArgumentException.class, () -> new CurrencyReference(
                 new CurrencyCode("PYG"), "600", 10, "Guarani", "release", true));
+    }
+
+    @Test
+    void preservesNotApplicableMinorUnitWithoutMappingItToZero() {
+        var fund = new CurrencyReference(
+                new CurrencyCode("XDR"),
+                "960",
+                OptionalInt.empty(),
+                "SDR (Special Drawing Right)",
+                "six-list-one-2026-08-04",
+                true);
+
+        assertTrue(fund.minorUnitIfDefined().isEmpty());
+        assertThrows(IllegalStateException.class, fund::minorUnit);
+        assertTrue(fund.toString().contains("minorUnit=N.A."));
+    }
+
+    @Test
+    void normalizesAndBoundsServerSideReferenceQueries() {
+        var query = new ReferenceDataQuery("  GUARANÍ   ", 0, 50, true);
+
+        assertEquals("guaraní", query.text());
+        assertTrue(query.matches("Guaraní"));
+        assertThrows(IllegalArgumentException.class,
+                () -> new ReferenceDataQuery("", 0, 51, true));
+        assertThrows(IllegalArgumentException.class,
+                () -> new ReferenceDataPage<>(List.of(), 0, 0, 51));
     }
 }

@@ -30,6 +30,14 @@ public final class ScreenInteraction {
             return Map.of();
         }
 
+        /**
+         * Resolves one bounded page for a selector declared as SEARCH_ON_DEMAND.
+         * The shell validates ownership and strategy before invoking this method.
+         */
+        default SelectorOptionPage searchOptions(SelectorOptionRequest request) {
+            throw new UnsupportedOperationException("On-demand selector search is not supported");
+        }
+
         Result interact(Request request);
     }
 
@@ -37,7 +45,16 @@ public final class ScreenInteraction {
             Optional<ScreenElementId> actionId,
             Map<ScreenElementId, String> inputs,
             Optional<String> selectedResourceId,
-            Optional<Long> selectedResourceVersion) {
+            Optional<Long> selectedResourceVersion,
+            Optional<TablePageRequest> tablePage) {
+
+        public Request(
+                Optional<ScreenElementId> actionId,
+                Map<ScreenElementId, String> inputs,
+                Optional<String> selectedResourceId,
+                Optional<Long> selectedResourceVersion) {
+            this(actionId, inputs, selectedResourceId, selectedResourceVersion, Optional.empty());
+        }
 
         public Request {
             actionId = Objects.requireNonNull(actionId, "actionId");
@@ -45,6 +62,7 @@ public final class ScreenInteraction {
             selectedResourceId = text(selectedResourceId, "selectedResourceId", 160);
             selectedResourceVersion = Objects.requireNonNull(
                     selectedResourceVersion, "selectedResourceVersion");
+            tablePage = Objects.requireNonNull(tablePage, "tablePage");
             if (inputs.size() > MAX_INPUTS) {
                 throw new IllegalArgumentException("Too many screen inputs");
             }
@@ -61,7 +79,52 @@ public final class ScreenInteraction {
         }
 
         public static Request load(Map<ScreenElementId, String> inputs) {
-            return new Request(Optional.empty(), inputs, Optional.empty(), Optional.empty());
+            return new Request(
+                    Optional.empty(), inputs, Optional.empty(), Optional.empty(), Optional.empty());
+        }
+    }
+
+    public record TablePageRequest(int offset, int limit) {
+
+        public TablePageRequest {
+            if (offset < 0 || limit < 1 || limit > 50) {
+                throw new IllegalArgumentException("Table pages must contain between 1 and 50 rows");
+            }
+        }
+    }
+
+    public record SelectorOptionRequest(
+            ScreenElementId elementId,
+            String query,
+            int offset,
+            int limit) {
+
+        public SelectorOptionRequest {
+            Objects.requireNonNull(elementId, "elementId");
+            query = requireTextValue(query, "selector query", 100, true).strip();
+            if (offset < 0 || limit < 1 || limit > 50) {
+                throw new IllegalArgumentException(
+                        "Selector pages must contain between 1 and 50 options");
+            }
+        }
+    }
+
+    public record SelectorOptionPage(
+            List<Option> options,
+            long total,
+            int offset,
+            int limit) {
+
+        public SelectorOptionPage {
+            options = List.copyOf(Objects.requireNonNull(options, "options"));
+            if (offset < 0
+                    || limit < 1
+                    || limit > 50
+                    || options.size() > limit
+                    || total < options.size()
+                    || offset > total) {
+                throw new IllegalArgumentException("Invalid selector option page");
+            }
         }
     }
 
@@ -111,7 +174,18 @@ public final class ScreenInteraction {
             List<Row> rows,
             long total,
             String emptyTitle,
-            String emptyDescription) {
+            String emptyDescription,
+            Optional<TablePage> page) {
+
+        public Table(
+                ScreenElementId elementId,
+                List<Column> columns,
+                List<Row> rows,
+                long total,
+                String emptyTitle,
+                String emptyDescription) {
+            this(elementId, columns, rows, total, emptyTitle, emptyDescription, Optional.empty());
+        }
 
         public Table {
             Objects.requireNonNull(elementId, "elementId");
@@ -128,6 +202,22 @@ public final class ScreenInteraction {
             emptyTitle = requireTextValue(emptyTitle, "emptyTitle", 160, false);
             emptyDescription = requireTextValue(
                     emptyDescription, "emptyDescription", 320, false);
+            page = Objects.requireNonNull(page, "page");
+            if (page.isPresent()) {
+                TablePage value = page.orElseThrow();
+                if (rows.size() > value.limit() || value.offset() > total) {
+                    throw new IllegalArgumentException("Invalid table page");
+                }
+            }
+        }
+    }
+
+    public record TablePage(int offset, int limit) {
+
+        public TablePage {
+            if (offset < 0 || limit < 1 || limit > 50) {
+                throw new IllegalArgumentException("Table pages must contain between 1 and 50 rows");
+            }
         }
     }
 

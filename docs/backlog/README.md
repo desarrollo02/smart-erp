@@ -97,8 +97,9 @@ Los países y monedas compartidos tienen propietario explícito en
 [ADR-0038](../adr/0038-plugin-datos-referencia-normativos.md) y se implementan en
 la [épica de datos de referencia normativos](epica-datos-referencia-normativos.md).
 `reference_data` es una fundación R0 que eleva el catálogo global a veintinueve
-reutilizables sin renumerar ERP 1–19; su primer subconjunto `PY/PYG/USD` está en
-el reactor y la publicación completa permanece pendiente.
+reutilizables sin renumerar ERP 1–19. El reactor conserva el subconjunto histórico
+`PY/PYG/USD` y J11-S8-C07 implementa publicaciones `FULL` 248/178, unidad menor
+opcional y búsqueda paginada; sus gates runtime y la recongelación permanecen pendientes.
 
 [COOP-00](COOP-00-gobierno-alcance-matriz-normativa.md) quedó refinada con
 COOP-D01–D15, registro de fuentes, mapa de dependencias y gates G0–G5. Continúa

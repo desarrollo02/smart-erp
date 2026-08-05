@@ -1,6 +1,6 @@
 {
   "realm": "logixone",
-  "displayName": "Logixone",
+  "displayName": "Smart ERP",
   "enabled": true,
   "sslRequired": "external",
   "registrationAllowed": false,
@@ -15,7 +15,7 @@
   "clients": [
     {
       "clientId": "${LOGIXONE_OIDC_CLIENT_ID}",
-      "name": "Logixone Web",
+      "name": "Smart ERP Web",
       "description": "Cliente confidencial del shell ERP; no contiene roles funcionales.",
       "enabled": true,
       "clientAuthenticatorType": "client-secret",

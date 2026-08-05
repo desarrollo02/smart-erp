@@ -44,3 +44,5 @@ Las primeras decisiones previstas cubrirán el baseline Jakarta EE 11, el modelo
 - [ADR-0036 — Operaciones del proveedor, soporte y conector seguro](0036-operaciones-proveedor-soporte-lanzamientos-conector.md)
 - [ADR-0037 — Familia para cooperativas de ahorro y crédito de Paraguay](0037-familia-cooperativa-ahorro-credito-paraguay.md)
 - [ADR-0038 — Plugin de datos de referencia normativos compartidos](0038-plugin-datos-referencia-normativos.md)
+- [ADR-0039 — Marca Smart ERP e identificadores técnicos compatibles](0039-marca-smart-erp-identificadores-compatibles.md)
+- [ADR-0039 — Marca Smart ERP e identificadores técnicos compatibles](0039-marca-smart-erp-identificadores-compatibles.md)

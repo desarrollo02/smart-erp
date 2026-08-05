@@ -13,7 +13,7 @@
     <artifactId>web-shell</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Web Shell</name>
+    <name>Smart ERP Web Shell</name>
 
     <dependencies>
         <dependency>

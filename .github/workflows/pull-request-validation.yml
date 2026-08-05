@@ -1,0 +1,103 @@
+name: Pull request validation
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "sprint/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-validation-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  governance:
+    name: governance
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout exact pull request merge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Validate branch direction
+        shell: bash
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          case "$BASE_BRANCH" in
+            main)
+              [[ "$HEAD_BRANCH" == sprint/* || "$HEAD_BRANCH" == hotfix/* ]]
+              ;;
+            sprint/*)
+              [[ "$HEAD_BRANCH" == story/* || "$HEAD_BRANCH" == fix/* || "$HEAD_BRANCH" == chore/* ]]
+              ;;
+            *)
+              echo "Unsupported pull request target: $BASE_BRANCH" >&2
+              exit 1
+              ;;
+          esac
+
+      - name: Validate maintained documentation
+        run: python3 tools/validate_docs.py
+
+      - name: Reject tracked temporary files and caches
+        shell: bash
+        run: |
+          set -euo pipefail
+          tracked="$(git ls-files 'tmp/**' '**/__pycache__/**' '*.pyc')"
+          if [[ -n "$tracked" ]]; then
+            echo "Temporary files or caches are still tracked:" >&2
+            echo "$tracked" >&2
+            exit 1
+          fi
+
+      - name: Check whitespace in the pull request
+        run: git diff --check HEAD^1 HEAD
+
+      - name: Scan high-confidence credential formats
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E 'ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{40,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{20,}|BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY'; then
+            echo "A high-confidence credential pattern was found." >&2
+            exit 1
+          fi
+
+  maven-verify:
+    name: maven-verify
+    runs-on: ubuntu-24.04
+    env:
+      MAVEN_USER_HOME: ${{ github.workspace }}/.tools/maven-wrapper-home
+      TMPDIR: ${{ github.workspace }}/.tools/tmp
+    steps:
+      - name: Checkout exact pull request merge
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up the validated Java baseline
+        uses: actions/setup-java@03ad4de0992f5dab5e18fcb136590ce7c4a0ac95 # v5.6.0
+        with:
+          distribution: temurin
+          java-version: "21.0.11+10"
+
+      - name: Prepare project-local caches
+        shell: bash
+        run: mkdir -p .tools/maven-wrapper-home .tools/maven-repository .tools/tmp
+
+      - name: Verify Java and Maven bootstrap
+        shell: bash
+        run: |
+          set -euo pipefail
+          java -version
+          sh ./mvnw --version
+
+      - name: Verify the complete reactor
+        run: sh ./mvnw -B verify

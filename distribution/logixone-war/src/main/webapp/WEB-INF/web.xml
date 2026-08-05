@@ -38,7 +38,7 @@
 
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>Logixone protected pages</web-resource-name>
+            <web-resource-name>Smart ERP protected pages</web-resource-name>
             <url-pattern>/app/*</url-pattern>
             <url-pattern>/admin/*</url-pattern>
             <url-pattern>/faces/*</url-pattern>
@@ -50,7 +50,7 @@
 
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>Logixone protected REST API</web-resource-name>
+            <web-resource-name>Smart ERP protected REST API</web-resource-name>
             <url-pattern>/api/*</url-pattern>
         </web-resource-collection>
         <auth-constraint>

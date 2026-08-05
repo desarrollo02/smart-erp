@@ -14,8 +14,8 @@
     <artifactId>plugin-scaffold</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Plugin Scaffold</name>
-    <description>Deterministic generator for neutral Logixone plugin modules</description>
+    <name>Smart ERP Plugin Scaffold</name>
+    <description>Deterministic generator for neutral Smart ERP plugin modules</description>
 
     <dependencies>
         <dependency>

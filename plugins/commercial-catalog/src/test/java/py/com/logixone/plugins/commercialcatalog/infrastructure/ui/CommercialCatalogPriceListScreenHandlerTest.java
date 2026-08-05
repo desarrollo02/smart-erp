@@ -86,13 +86,28 @@ class CommercialCatalogPriceListScreenHandlerTest {
         assertEquals(List.of(CommercialCatalogPermissions.VIEW.value()), authorization.permissions);
         assertEquals(1, result.table().orElseThrow().rows().size());
         assertEquals("Lista general", result.detail().orElseThrow().title());
-        assertEquals("PYG", result.inputs().get(CommercialCatalogScreenContract.PRICE_CURRENCY));
-        assertEquals(List.of("PYG", "USD"), result.options()
+        assertEquals(null, result.inputs().get(CommercialCatalogScreenContract.PRICE_CURRENCY));
+        assertEquals(List.of(), result.options()
                 .get(CommercialCatalogScreenContract.PRICE_CURRENCY).stream()
                 .map(ScreenInteraction.Option::value)
                 .toList());
         assertEquals(ITEM_ID.toString(), result.inputs().get(
                 CommercialCatalogScreenContract.PRICE_ENTRY_ITEM));
+    }
+
+    @Test
+    void searchesCurrencyOptionsOnDemandWithA50OptionCeiling() {
+        ScreenInteraction.SelectorOptionPage page = handler.searchOptions(
+                new ScreenInteraction.SelectorOptionRequest(
+                        CommercialCatalogScreenContract.PRICE_CURRENCY,
+                        "dollar",
+                        0,
+                        50));
+
+        assertEquals(List.of("USD"), page.options().stream()
+                .map(ScreenInteraction.Option::value).toList());
+        assertEquals(1, page.total());
+        assertEquals(List.of(CommercialCatalogPermissions.VIEW.value()), authorization.permissions);
     }
 
     @Test

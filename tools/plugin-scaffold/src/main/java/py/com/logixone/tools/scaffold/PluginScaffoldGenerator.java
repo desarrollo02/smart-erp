@@ -3,6 +3,7 @@ package py.com.logixone.tools.scaffold;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -20,6 +21,8 @@ import py.com.logixone.plugin.api.PluginKind;
 /** Writes a complete plugin skeleton through a staging directory and a final move. */
 public final class PluginScaffoldGenerator {
 
+    private static final int WINDOWS_MOVE_ATTEMPTS = 6;
+    private static final long WINDOWS_MOVE_RETRY_MILLIS = 50L;
     private static final Pattern UNRESOLVED_TOKEN = Pattern.compile("\\{\\{[A-Z0-9_]+}}") ;
     private static final List<TemplateFile> COMMON_FILES = List.of(
             new TemplateFile("plugin/pom.xml.tpl", "pom.xml"),
@@ -195,10 +198,40 @@ public final class PluginScaffoldGenerator {
     }
 
     private static void moveCompletedTree(Path source, Path target) throws IOException {
+        boolean atomicMove = true;
+        AccessDeniedException lastAccessDenied = null;
+        for (int attempt = 1; attempt <= WINDOWS_MOVE_ATTEMPTS; attempt++) {
+            try {
+                if (atomicMove) {
+                    Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
+                } else {
+                    Files.move(source, target);
+                }
+                return;
+            } catch (AtomicMoveNotSupportedException ignored) {
+                atomicMove = false;
+            } catch (AccessDeniedException failure) {
+                lastAccessDenied = failure;
+                atomicMove = false;
+                if (Files.exists(target) || attempt == WINDOWS_MOVE_ATTEMPTS) {
+                    throw failure;
+                }
+                waitBeforeMoveRetry(attempt, failure);
+            }
+        }
+        throw lastAccessDenied == null
+                ? new IOException("Unable to move completed plugin tree to " + target)
+                : lastAccessDenied;
+    }
+
+    private static void waitBeforeMoveRetry(int attempt, IOException failure) throws IOException {
         try {
-            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE);
-        } catch (AtomicMoveNotSupportedException ignored) {
-            Files.move(source, target);
+            Thread.sleep(WINDOWS_MOVE_RETRY_MILLIS * attempt);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            IOException aborted = new IOException("Interrupted while retrying plugin tree move", interrupted);
+            aborted.addSuppressed(failure);
+            throw aborted;
         }
     }
 

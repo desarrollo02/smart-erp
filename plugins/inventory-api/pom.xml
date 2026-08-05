@@ -14,7 +14,7 @@
     <artifactId>inventory-api</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Inventory API</name>
+    <name>Smart ERP Inventory API</name>
     <description>Pure Java public contracts for the inventory plugin</description>
 
     <dependencies>

@@ -14,7 +14,7 @@
     <artifactId>reference-customization-a</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Reference Customization A</name>
+    <name>Smart ERP Reference Customization A</name>
 
     <dependencies>
         <dependency>

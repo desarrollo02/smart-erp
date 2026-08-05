@@ -25,5 +25,6 @@ Cada procedimiento debe declarar prerrequisitos, comandos, resultado esperado, v
 - [Demo visual de cierre de Sprint 7 — J11-S7-07](demo-cierre-sprint-07.md)
 - [Demo visual oficial de cierre técnico de Sprint 8 — J11-S8-07](demo-cierre-sprint-08.md)
 - [Demo de datos de referencia normativos — J11-S8-C03](demo-datos-referencia-j11-s8-c03.md)
+- [Demo de publicaciones completas y políticas de referencia — J11-S8-C07](demo-datos-referencia-j11-s8-c07.md)
 - [Construcción y operación del migrador](migrator.md)
 - [Backup y restauración controlada de PostgreSQL](postgresql-backup-restore.md)

@@ -14,7 +14,7 @@
     <artifactId>architecture-tests</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Architecture Tests</name>
+    <name>Smart ERP Architecture Tests</name>
 
     <dependencies>
         <dependency>
