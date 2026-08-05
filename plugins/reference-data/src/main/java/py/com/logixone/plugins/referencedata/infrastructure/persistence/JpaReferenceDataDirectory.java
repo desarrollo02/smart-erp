@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import py.com.logixone.kernel.api.company.CompanyId;
 import py.com.logixone.plugins.referencedata.api.CatalogCompleteness;
 import py.com.logixone.plugins.referencedata.api.CountryCode;
@@ -19,6 +20,8 @@ import py.com.logixone.plugins.referencedata.api.CurrencyCode;
 import py.com.logixone.plugins.referencedata.api.CurrencyReference;
 import py.com.logixone.plugins.referencedata.api.ReferenceDataCatalog;
 import py.com.logixone.plugins.referencedata.api.ReferenceDataDirectory;
+import py.com.logixone.plugins.referencedata.api.ReferenceDataPage;
+import py.com.logixone.plugins.referencedata.api.ReferenceDataQuery;
 import py.com.logixone.plugins.referencedata.api.ReferenceDataRelease;
 
 /** Native read adapter over the plugin-owned schema; no foreign schema is queried. */
@@ -74,8 +77,47 @@ public class JpaReferenceDataDirectory implements ReferenceDataDirectory {
 
     @Override
     public Optional<CountryReference> findCountry(CompanyId companyId, CountryCode code) {
+        Objects.requireNonNull(companyId, "companyId");
         Objects.requireNonNull(code, "code");
-        return countries(companyId).stream().filter(value -> value.code().equals(code)).findFirst();
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery(
+                        countrySelect()
+                                + "WHERE r.catalog_kind = 'COUNTRY' AND r.current_release "
+                                + "AND e.alpha2_code = :code")
+                .setParameter("company", companyId.value())
+                .setParameter("code", code.value())
+                .setMaxResults(1)
+                .getResultList();
+        return rows.stream().map(JpaReferenceDataDirectory::country).findFirst();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ReferenceDataPage<CountryReference> searchCountries(
+            CompanyId companyId, ReferenceDataQuery query) {
+        Objects.requireNonNull(companyId, "companyId");
+        Objects.requireNonNull(query, "query");
+        String where = "WHERE r.catalog_kind = 'COUNTRY' AND r.current_release "
+                + "AND (:enabledOnly = FALSE OR COALESCE(p.enabled, TRUE)) "
+                + "AND (STRPOS(LOWER(e.display_name), :query) > 0 "
+                + "OR STRPOS(LOWER(e.alpha2_code), :query) > 0 "
+                + "OR STRPOS(LOWER(e.alpha3_code), :query) > 0 "
+                + "OR STRPOS(e.numeric_code, :query) > 0) ";
+        Number total = (Number) parameters(entityManager.createNativeQuery(
+                        "SELECT COUNT(*) " + countryFrom() + where), companyId, query)
+                .getSingleResult();
+        int offset = Math.min(query.offset(), total.intValue());
+        List<Object[]> rows = parameters(entityManager.createNativeQuery(
+                        countrySelect() + where + "ORDER BY e.display_name, e.alpha2_code"),
+                        companyId, query)
+                .setFirstResult(offset)
+                .setMaxResults(query.limit())
+                .getResultList();
+        return new ReferenceDataPage<>(
+                rows.stream().map(JpaReferenceDataDirectory::country).toList(),
+                total.longValue(),
+                offset,
+                query.limit());
     }
 
     @Override
@@ -99,8 +141,82 @@ public class JpaReferenceDataDirectory implements ReferenceDataDirectory {
 
     @Override
     public Optional<CurrencyReference> findCurrency(CompanyId companyId, CurrencyCode code) {
+        Objects.requireNonNull(companyId, "companyId");
         Objects.requireNonNull(code, "code");
-        return currencies(companyId).stream().filter(value -> value.code().equals(code)).findFirst();
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = entityManager.createNativeQuery(
+                        currencySelect()
+                                + "WHERE r.catalog_kind = 'CURRENCY' AND r.current_release "
+                                + "AND e.alphabetic_code = :code")
+                .setParameter("company", companyId.value())
+                .setParameter("code", code.value())
+                .setMaxResults(1)
+                .getResultList();
+        return rows.stream().map(JpaReferenceDataDirectory::currency).findFirst();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public ReferenceDataPage<CurrencyReference> searchCurrencies(
+            CompanyId companyId, ReferenceDataQuery query) {
+        Objects.requireNonNull(companyId, "companyId");
+        Objects.requireNonNull(query, "query");
+        String where = "WHERE r.catalog_kind = 'CURRENCY' AND r.current_release "
+                + "AND (:enabledOnly = FALSE OR COALESCE(p.enabled, TRUE)) "
+                + "AND (STRPOS(LOWER(e.display_name), :query) > 0 "
+                + "OR STRPOS(LOWER(e.alphabetic_code), :query) > 0 "
+                + "OR STRPOS(e.numeric_code, :query) > 0) ";
+        Number total = (Number) parameters(entityManager.createNativeQuery(
+                        "SELECT COUNT(*) " + currencyFrom() + where), companyId, query)
+                .getSingleResult();
+        int offset = Math.min(query.offset(), total.intValue());
+        List<Object[]> rows = parameters(entityManager.createNativeQuery(
+                        currencySelect() + where + "ORDER BY e.display_name, e.alphabetic_code"),
+                        companyId, query)
+                .setFirstResult(offset)
+                .setMaxResults(query.limit())
+                .getResultList();
+        return new ReferenceDataPage<>(
+                rows.stream().map(JpaReferenceDataDirectory::currency).toList(),
+                total.longValue(),
+                offset,
+                query.limit());
+    }
+
+    private static jakarta.persistence.Query parameters(
+            jakarta.persistence.Query nativeQuery,
+            CompanyId companyId,
+            ReferenceDataQuery query) {
+        return nativeQuery
+                .setParameter("company", companyId.value())
+                .setParameter("enabledOnly", query.enabledOnly())
+                .setParameter("query", query.text());
+    }
+
+    private static String countrySelect() {
+        return "SELECT e.alpha2_code, e.alpha3_code, e.numeric_code, e.display_name, "
+                + "r.release_id, COALESCE(p.enabled, TRUE) " + countryFrom();
+    }
+
+    private static String countryFrom() {
+        return "FROM " + SCHEMA + ".catalog_release r "
+                + "JOIN " + SCHEMA + ".country_entry e "
+                + "ON e.catalog_kind = r.catalog_kind AND e.release_id = r.release_id "
+                + "LEFT JOIN " + SCHEMA + ".company_country_policy p "
+                + "ON p.company_id = :company AND p.alpha2_code = e.alpha2_code ";
+    }
+
+    private static String currencySelect() {
+        return "SELECT e.alphabetic_code, e.numeric_code, e.minor_unit, e.display_name, "
+                + "r.release_id, COALESCE(p.enabled, TRUE) " + currencyFrom();
+    }
+
+    private static String currencyFrom() {
+        return "FROM " + SCHEMA + ".catalog_release r "
+                + "JOIN " + SCHEMA + ".currency_entry e "
+                + "ON e.catalog_kind = r.catalog_kind AND e.release_id = r.release_id "
+                + "LEFT JOIN " + SCHEMA + ".company_currency_policy p "
+                + "ON p.company_id = :company AND p.alphabetic_code = e.alphabetic_code ";
     }
 
     private static ReferenceDataRelease release(ReferenceDataCatalog catalog, Object[] row) {
@@ -130,7 +246,7 @@ public class JpaReferenceDataDirectory implements ReferenceDataDirectory {
         return new CurrencyReference(
                 new CurrencyCode(string(row[0])),
                 string(row[1]),
-                number(row[2]).intValue(),
+                row[2] == null ? OptionalInt.empty() : OptionalInt.of(number(row[2]).intValue()),
                 string(row[3]),
                 string(row[4]),
                 bool(row[5]));

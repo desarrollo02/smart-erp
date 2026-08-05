@@ -8,7 +8,7 @@
 - Digest ejecutable: `sha256:26939e1318d6f008fc2ee6e10cec1cf8f1ba8a21846c1bc81b91ed0506bc2a7a`.
 - Índice OCI publicado: `sha256:0f198be292568439d700cdbfb893e69a6009bb43a94a06a945b1d3d506c76b13`.
 - Origen: registro oficial `quay.io/keycloak/keycloak`.
-- Licencia del producto: Apache License 2.0. La imagen no se incorpora al WAR ni a la imagen de Logixone; se opera como servicio externo.
+- Licencia del producto: Apache License 2.0. La imagen no se incorpora al WAR ni a la imagen de Smart ERP; se opera como servicio externo.
 
 El digest ejecutable se obtuvo el 2026-07-28 con
 `docker buildx imagetools inspect quay.io/keycloak/keycloak:26.7.0`. La etiqueta

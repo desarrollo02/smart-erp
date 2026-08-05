@@ -1,4 +1,4 @@
-# Documentación de Logixone Jakarta 11
+# Documentación de Smart ERP
 
 Esta carpeta es la fuente única de documentación del proyecto. Toda decisión, análisis, procedimiento, historia, prueba y evidencia debe quedar registrada aquí en el mismo cambio que la produce.
 
@@ -91,7 +91,8 @@ el PDF continúan pendientes.
 - [Guía de implementación del ERP por empresa](implementation-guide/README.md)
 - [Manual de usuario](user-guide/README.md)
 - [Manual técnico para desarrolladores](developer-guide/README.md)
-- [Guía para levantar Logixone con Visual Studio Code](runbooks/levantar-logixone-visual-studio-code.md)
+- [J11-S8-C04 — Gobierno Git y ramas por Sprint](sprints/sprint-08/J11-S8-C04-gobierno-git-ramas.md)
+- [Guía para levantar Smart ERP con Visual Studio Code](runbooks/levantar-logixone-visual-studio-code.md)
 - [Estructura de plugins y dependencias de Sprint 7](sprints/sprint-07/estructura-plugins-y-dependencias.md)
 - [Estructura de plugins y dependencias de Sprint 8](sprints/sprint-08/estructura-plugins-y-dependencias.md)
 - [Construcción local con Maven Wrapper](runbooks/build-local.md)
@@ -104,7 +105,7 @@ el PDF continúan pendientes.
 - [Construcción y operación del migrador](runbooks/migrator.md)
 - [Migrador one-shot y fallo seguro](evidence/J11-S1-03-migrator-one-shot.md)
 - [Explicación en PDF de migrator.jar y la estructura del repositorio](output/pdf/explicacion-migrator-y-estructura-repositorio.pdf)
-- [Guía PDF vigente de estructura completa del repositorio](output/pdf/guia-estructura-repositorio-logixone.pdf)
+- [Guía PDF verificada del baseline J11-S8-C07](output/pdf/guia-estructura-repositorio-logixone.pdf)
 - [Evidencia de generación y revisión del PDF](evidence/J11-S1-03-guia-pdf-migrator-repositorio.md)
 - [Persistencia, health y smoke del sexto incremento](evidence/J11-S1-03-persistencia-smoke.md)
 - [Backup y restauración controlada de PostgreSQL](runbooks/postgresql-backup-restore.md)

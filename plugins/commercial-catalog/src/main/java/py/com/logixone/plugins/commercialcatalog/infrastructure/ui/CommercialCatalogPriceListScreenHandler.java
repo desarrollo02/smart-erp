@@ -46,7 +46,9 @@ import py.com.logixone.plugins.commercialcatalog.domain.PriceListSnapshot;
 import py.com.logixone.plugins.commercialcatalog.domain.PriceListState;
 import py.com.logixone.plugins.commercialcatalog.domain.UnitCode;
 import py.com.logixone.plugins.referencedata.api.CurrencyReference;
+import py.com.logixone.plugins.referencedata.api.CurrencyCode;
 import py.com.logixone.plugins.referencedata.api.ReferenceDataDirectory;
+import py.com.logixone.plugins.referencedata.api.ReferenceDataQuery;
 
 /** Price-list interaction adapter; all commands remain company-scoped and audited. */
 @ApplicationScoped
@@ -75,6 +77,28 @@ public class CommercialCatalogPriceListScreenHandler implements ScreenInteractio
     @Override
     public Map<ScreenElementId, SelectorSourceDefinition> selectorSources() {
         return CommercialCatalogSelectorSources.PRICE_LISTS;
+    }
+
+    @Override
+    public ScreenInteraction.SelectorOptionPage searchOptions(
+            ScreenInteraction.SelectorOptionRequest request) {
+        if (!request.elementId().equals(CommercialCatalogScreenContract.PRICE_CURRENCY)) {
+            throw new IllegalArgumentException("Unsupported commercial-catalog selector source");
+        }
+        CatalogOperationContext viewContext = context(CommercialCatalogPermissions.VIEW);
+        var page = referenceDataDirectory.searchCurrencies(
+                viewContext.companyContext().companyId(),
+                new ReferenceDataQuery(
+                        request.query(), request.offset(), request.limit(), true));
+        return new ScreenInteraction.SelectorOptionPage(
+                page.entries().stream()
+                        .map(currency -> new ScreenInteraction.Option(
+                                currency.code().value(),
+                                currency.displayName() + " · " + currency.code().value()))
+                        .toList(),
+                page.total(),
+                page.offset(),
+                page.limit());
     }
 
     @Override
@@ -229,10 +253,8 @@ public class CommercialCatalogPriceListScreenHandler implements ScreenInteractio
             CatalogOperationContext viewContext = context(CommercialCatalogPermissions.VIEW);
 
             stage = "reference-currencies";
-            List<CurrencyReference> currencies = referenceDataDirectory
-                    .currencies(viewContext.companyContext().companyId()).stream()
-                    .filter(CurrencyReference::enabled)
-                    .toList();
+            List<CurrencyReference> currencies = selectedCurrency(
+                    viewContext, inputs).stream().toList();
 
             stage = "definitions";
             CatalogOperationResult<CatalogDefinitions.Snapshot> available =
@@ -420,11 +442,6 @@ public class CommercialCatalogPriceListScreenHandler implements ScreenInteractio
     private static void applyOptionDefaults(
             Map<ScreenElementId, String> inputs,
             Map<ScreenElementId, List<ScreenInteraction.Option>> options) {
-        first(options, CommercialCatalogScreenContract.PRICE_CURRENCY).ifPresent(value ->
-                inputs.compute(CommercialCatalogScreenContract.PRICE_CURRENCY,
-                        (field, selected) -> options.get(field).stream()
-                                .anyMatch(option -> option.value().equals(selected))
-                                        ? selected : value));
         first(options, CommercialCatalogScreenContract.PRICE_ENTRY_ITEM).ifPresent(value ->
                 inputs.putIfAbsent(CommercialCatalogScreenContract.PRICE_ENTRY_ITEM, value));
         first(options, CommercialCatalogScreenContract.PRICE_ENTRY_UNIT).ifPresent(value ->
@@ -438,6 +455,27 @@ public class CommercialCatalogPriceListScreenHandler implements ScreenInteractio
             ScreenElementId id) {
         return options.getOrDefault(id, List.of()).stream().findFirst()
                 .map(ScreenInteraction.Option::value);
+    }
+
+    private Optional<CurrencyReference> selectedCurrency(
+            CatalogOperationContext context,
+            Map<ScreenElementId, String> inputs) {
+        String selected = inputs.get(CommercialCatalogScreenContract.PRICE_CURRENCY);
+        if (selected == null || selected.isBlank()) {
+            return Optional.empty();
+        }
+        Optional<CurrencyReference> found;
+        try {
+            found = referenceDataDirectory.findCurrency(
+                    context.companyContext().companyId(), new CurrencyCode(selected));
+        } catch (IllegalArgumentException invalid) {
+            found = Optional.empty();
+        }
+        if (found.isEmpty() || !found.orElseThrow().enabled()) {
+            inputs.remove(CommercialCatalogScreenContract.PRICE_CURRENCY);
+            return Optional.empty();
+        }
+        return found;
     }
 
     private static Map<ScreenElementId, String> defaults(

@@ -14,7 +14,7 @@
     <artifactId>logixone-plugin-set</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Physical Plugin Set</name>
+    <name>Smart ERP Physical Plugin Set</name>
     <description>Single physical plugin selection shared by the WAR and migrator</description>
 
     <profiles>

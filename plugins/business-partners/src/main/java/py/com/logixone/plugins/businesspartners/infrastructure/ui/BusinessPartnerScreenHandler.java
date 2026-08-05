@@ -45,7 +45,9 @@ import py.com.logixone.plugins.businesspartners.domain.BusinessPartnerIdentifica
 import py.com.logixone.plugins.businesspartners.domain.BusinessPartnerName;
 import py.com.logixone.plugins.businesspartners.domain.BusinessPartnerSnapshot;
 import py.com.logixone.plugins.referencedata.api.CountryReference;
+import py.com.logixone.plugins.referencedata.api.CountryCode;
 import py.com.logixone.plugins.referencedata.api.ReferenceDataDirectory;
+import py.com.logixone.plugins.referencedata.api.ReferenceDataQuery;
 
 /** Plugin-owned interaction adapter; it provides data, never markup or EL. */
 @ApplicationScoped
@@ -75,6 +77,28 @@ public class BusinessPartnerScreenHandler implements ScreenInteraction.Handler {
     @Override
     public Map<ScreenElementId, SelectorSourceDefinition> selectorSources() {
         return BusinessPartnerSelectorSources.DIRECTORY;
+    }
+
+    @Override
+    public ScreenInteraction.SelectorOptionPage searchOptions(
+            ScreenInteraction.SelectorOptionRequest request) {
+        if (!request.elementId().equals(BusinessPartnersScreenContract.IDENTIFICATION_COUNTRY)) {
+            throw new IllegalArgumentException("Unsupported business-partner selector source");
+        }
+        BusinessPartnerOperationContext viewContext = context(BusinessPartnerPermissions.VIEW);
+        var page = referenceDataDirectory.searchCountries(
+                viewContext.companyContext().companyId(),
+                new ReferenceDataQuery(
+                        request.query(), request.offset(), request.limit(), true));
+        return new ScreenInteraction.SelectorOptionPage(
+                page.entries().stream()
+                        .map(country -> new ScreenInteraction.Option(
+                                country.code().value(),
+                                country.displayName() + " · " + country.code().value()))
+                        .toList(),
+                page.total(),
+                page.offset(),
+                page.limit());
     }
 
     @Override
@@ -315,10 +339,8 @@ public class BusinessPartnerScreenHandler implements ScreenInteraction.Handler {
         try {
             BusinessPartnerOperationContext viewContext = context(BusinessPartnerPermissions.VIEW);
             stage = "reference-countries";
-            List<CountryReference> countries = referenceDataDirectory
-                    .countries(viewContext.companyContext().companyId()).stream()
-                    .filter(CountryReference::enabled)
-                    .toList();
+            List<CountryReference> countries = selectedCountry(
+                    viewContext, inputs).stream().toList();
             stage = "company-definitions";
             List<BusinessPartnerDefinition> activeChannelKinds = activeDefinitions(
                     viewContext, BusinessPartnerDefinitionKind.CHANNEL_KIND);
@@ -332,7 +354,6 @@ public class BusinessPartnerScreenHandler implements ScreenInteraction.Handler {
                     activeChannelKinds);
             normalizeSelection(inputs, BusinessPartnersScreenContract.IDENTIFICATION_TYPE,
                     activeIdentificationTypes);
-            normalizeOptionalCountry(inputs, countries);
             normalizeSelection(inputs, BusinessPartnersScreenContract.ADDRESS_TYPE,
                     activeAddressTypes);
             normalizeSelection(inputs, BusinessPartnersScreenContract.ADDRESS_PURPOSE,
@@ -525,13 +546,25 @@ public class BusinessPartnerScreenHandler implements ScreenInteraction.Handler {
         }
     }
 
-    private static void normalizeOptionalCountry(
-            Map<ScreenElementId, String> inputs, List<CountryReference> countries) {
+    private Optional<CountryReference> selectedCountry(
+            BusinessPartnerOperationContext context,
+            Map<ScreenElementId, String> inputs) {
         String selected = inputs.get(BusinessPartnersScreenContract.IDENTIFICATION_COUNTRY);
-        if (selected != null && countries.stream()
-                .noneMatch(country -> country.code().value().equals(selected))) {
-            inputs.remove(BusinessPartnersScreenContract.IDENTIFICATION_COUNTRY);
+        if (selected == null || selected.isBlank()) {
+            return Optional.empty();
         }
+        Optional<CountryReference> found;
+        try {
+            found = referenceDataDirectory.findCountry(
+                    context.companyContext().companyId(), new CountryCode(selected));
+        } catch (IllegalArgumentException invalid) {
+            found = Optional.empty();
+        }
+        if (found.isEmpty() || !found.orElseThrow().enabled()) {
+            inputs.remove(BusinessPartnersScreenContract.IDENTIFICATION_COUNTRY);
+            return Optional.empty();
+        }
+        return found;
     }
 
     private static Map<ScreenElementId, String> defaults(

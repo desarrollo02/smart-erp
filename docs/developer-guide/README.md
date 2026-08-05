@@ -1,27 +1,33 @@
-# Manual técnico para desarrolladores de Logixone
+# Manual técnico para desarrolladores de Smart ERP
 
-- Edición: 0.1-rc36
-- Fecha: 2026-08-04
-- Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C03 agrega la fundación
-  `reference_data`, su API 1.0.0, V1 privada, trazabilidad `PY/PYG/USD` y consumo
-  desde socios/catálogo; exige Docker/Playwright, recongelación y decisión de
-  producto sobre un instalador nuevo
+- Edición: 0.1-rc42
+- Fecha: 2026-08-05
+- Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C07 implementa publicaciones
+  completas, unidad menor opcional y búsqueda paginada de `reference_data`;
+  J11-S8-C06 mantiene políticas optimistas y V2 append-only; PostgreSQL, Docker,
+  JTA/OIDC y Playwright de C06/C07 están verdes y el PDF fue verificado; producto
+  decidió `NO` crear instalador para este baseline; G7 permanece pendiente
 - Audiencia: desarrolladores, revisores, arquitectos e implementadores técnicos
 - Estado: inicial; G7 independiente y autorización de producción pendientes
 
 ## 1. Propósito
 
-Este manual explica cómo entender y extender Logixone sin romper sus límites de
+Este manual explica cómo entender y extender Smart ERP sin romper sus límites de
 plugins. `AGENTS.md` contiene reglas obligatorias, los ADR explican decisiones y
 los documentos de Sprint conservan criterios y evidencia. Este manual conecta esas
 fuentes en un recorrido práctico; no las reemplaza.
 
 ## 2. Modelo mental del sistema
 
-Logixone es un monolito modular desplegado como un WAR. Los plugins son JAR
+Smart ERP es un monolito modular desplegado como un WAR. Los plugins son JAR
 seleccionados durante el build, descubiertos por CDI en WildFly y por
 `ServiceLoader` en el migrador. La activación por empresa ocurre en runtime, pero
 agregar o retirar físicamente un JAR exige reconstruir y redesplegar.
+
+La marca del producto es **Smart ERP**. El cambio es deliberadamente seguro:
+`py.com.logixone`, los `artifactId`, `logixone.war`, el contexto `/logixone`, el
+realm, las variables `LOGIXONE_*`, imágenes, volúmenes y nombres de migraciones
+permanecen estables hasta que una migración técnica independiente sea aprobada.
 
 ```mermaid
 flowchart TB
@@ -96,6 +102,29 @@ El Wrapper de Windows selecciona el JDK 21.0.11 y su distribución Maven validad
 bajo `.tools`, incluso si el entorno global apunta a Java 8. Las dependencias y
 descargas del proyecto permanecen bajo `.tools/`. Use siempre el Wrapper y no
 prepare `JAVA_HOME`, `PATH` o `MAVEN_USER_HOME` manualmente antes de cada build.
+
+### 4.1 Aislamiento de la automatización
+
+Las validaciones oficiales no usan la toolchain ni los servicios configurados en
+IntelliJ IDEA. En particular, no reutilizan ni detienen su compilador, servidor de
+build, WildFly o PostgreSQL. JDK, Maven y cualquier intérprete auxiliar deben
+estar aprovisionados bajo `.tools/`; si falta uno, el gate se detiene hasta
+incorporarlo con origen, licencia y checksum verificados.
+
+Antes de probar un cambio, la automatización prepara únicamente sus archivos en
+el índice Git y los materializa bajo
+`.tools/tmp/validation/<historia>/`. El Wrapper de la raíz se invoca con `-f`
+contra ese `pom.xml`, por lo que Maven escribe los `target/` en la copia aislada y
+no compite con el IDE. Los servicios se levantan mediante Docker/Compose del
+repositorio y secretos bajo `.tools/`, nunca mediante un servidor registrado en
+el IDE. La copia se elimina de forma segura después de la evidencia.
+
+Git, PowerShell, el sistema operativo, Docker/Compose y el navegador siguen siendo
+prerrequisitos de plataforma. Su presencia no permite reemplazar las toolchains o
+servidores gobernados por instalaciones globales. Los runners CI efímeros pueden
+aprovisionar versiones fijadas mediante acciones por SHA; no reutilizan una
+instalación del equipo del usuario y mantienen los datos del proyecto en `.tools/`
+dentro del workspace del job.
 
 ## 5. Dependencias permitidas
 
@@ -346,30 +375,72 @@ Compose habilite `app`.
 Después de cada cambio de código ejecute inmediatamente la prueba más pequeña que
 lo demuestra. No continúe con una prueba relevante fallando.
 
+### 15.1 Flujo Git por Sprint
+
+El repositorio usa un GitFlow liviano dirigido por Sprint:
+
+```text
+story/* | fix/* | chore/* -> sprint/NN-descripcion -> main -> tag sprint-NN
+hotfix/* -------------------------------------------> main -> Sprint activo
+```
+
+| Rama | Origen | Destino | Duración |
+|---|---|---|---|
+| `main` | baseline aceptado | no aplica | permanente |
+| `sprint/NN-descripcion` | `main` después del cierre anterior | `main` | un Sprint |
+| `story/<id>-descripcion` | Sprint activo | Sprint activo | una historia |
+| `fix/<id>-descripcion` | Sprint activo | Sprint activo | una corrección |
+| `chore/<id>-descripcion` | Sprint activo | Sprint activo | una tarea técnica |
+| `hotfix/<id>-descripcion` | tag productivo o `main` | `main` y Sprint activo | un incidente |
+
+No existe `develop`: con un solo Sprint autorizado, la rama `sprint/*` ya es la
+línea de integración. Tampoco se mantiene `release/*`; los candidatos se fijan con
+tags inmutables `sprint-NN-rc.N`. Las historias usan squash merge hacia el Sprint
+y el cierre usa merge commit hacia `main`. `main` sólo recibe cierres o hotfixes
+mediante Pull Request.
+
+El PR de una historia documenta la prueba mínima, `mvn verify` y los gates
+adicionales aplicables. El PR de cierre exige la matriz integral, demo, seguridad,
+topología, manuales, PDF, validación independiente y decisión del instalador. La
+rama del Sprint se elimina después de crear el tag anotado `sprint-NN`; `vX.Y.Z`
+se reserva para una versión de producto aprobada.
+
+La adopción inicial está planificada en
+[J11-S8-C04](../sprints/sprint-08/J11-S8-C04-gobierno-git-ramas.md). Hasta cerrar
+Sprint 8, `main` conserva excepcionalmente el importe inicial de un Sprint todavía
+abierto y no debe interpretarse como un release formal.
+
 ## 16. Comandos de prueba
+
+Los ejemplos siguientes se ejecutan sobre una materialización preparada. Desde
+la raíz del repositorio:
+
+```powershell
+$validationPom = '.tools\tmp\validation\<historia>\pom.xml'
+```
 
 Prueba del módulo:
 
 ```powershell
-.\mvnw.cmd -B -pl plugins/<plugin> -am test
+.\mvnw.cmd -B -f $validationPom -pl plugins/<plugin> -am test
 ```
 
 Verificación completa sin implementaciones:
 
 ```powershell
-.\mvnw.cmd -B clean verify
+.\mvnw.cmd -B -f $validationPom clean verify
 ```
 
 Verificación del perfil actual:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-inventory-demo clean verify
+.\mvnw.cmd -B -f $validationPom -Pwith-inventory-demo clean verify
 ```
 
 PostgreSQL focalizado cuando el plugin declare el perfil de integración:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-inventory-demo `
+.\mvnw.cmd -B -f $validationPom -Pwith-inventory-demo `
   -pl migrator,plugins/<plugin> -am verify `
   "-Dlogixone.postgres.integration=true"
 ```
@@ -567,10 +638,27 @@ códigos ya persistidos y crea sus revisiones iniciales sin agregar tablas. Los
 consumidores ofrecen sólo opciones activas y la aplicación resuelve de nuevo
 empresa, clase y estado antes de persistir; el país normativo permanece fuera de
 este maestro empresarial. J11-S8-C03 concreta ese límite en `reference_data`:
-`business_partners` usa exclusivamente `reference-data-api`, ofrece países
-habilitados y vuelve a resolver `CompanyId`/código en la transacción antes del
-insert. `commercial_catalog` aplica el mismo patrón a la moneda de la lista de
-precios. Ninguno consulta las tablas `plg_reference_data`.
+`business_partners` usa exclusivamente `reference-data-api`, busca países
+habilitados en servidor y vuelve a resolver `CompanyId`/código en la transacción
+antes del insert. `commercial_catalog` aplica el mismo patrón a la moneda de la
+lista de precios. Ninguno consulta las tablas `plg_reference_data`.
+
+J11-S8-C06 mantiene el puerto y servicio de políticas en Java puro. El adaptador
+`JpaReferenceDataPolicyRepository` escribe la fila corriente V1 y la revisión V2
+en la misma transacción JTA, usando `expectedVersion`; una carrera no sobrescribe
+el cambio ganador. La fachada `TransactionalReferenceDataPolicyUseCases` recibe
+un `AuthorizedCompanyOperation` creado por la frontera confiable, exige
+`reference_data.policy.manage` para mutar y admite `view` o `policy.manage` para
+consultas internas. La pantalla y las rutas **Administrar** se publican sólo con
+el permiso de gestión.
+
+Los selectores `SEARCH_ON_DEMAND` se resuelven en cada POST. Como el shell usa un
+bean `@RequestScoped`, la respuesta de búsqueda no puede suponerse disponible en
+la petición siguiente: el control envía sólo `selectorOption:<fieldId>` y el
+valor elegido. Antes de aceptar la selección, `ShellViewBean` reconstruye la
+vista, revalida fuente, acción, empresa y permiso, y vuelve a buscar exactamente
+esa opción en servidor. Una fuente duplicada, inexistente o manipulada falla
+cerrada; el cliente nunca convierte un label o un código libre en dato válido.
 
 El decimosexto corte agrega `ReviseSimpleDefinition` y
 `simpleDefinitionHistory` para unidad, categoría, marca y etiqueta. V2 crea una
@@ -659,10 +747,10 @@ migraciones idempotentes, OIDC, administración de permisos y el recorrido
 Playwright completo. J11-S8-07 repitió el gate integral, verificó la dependencia
 `inventory -> commercial_catalog`, congeló el baseline y dejó abierta la demo real.
 J11-S8-08 creó y probó internamente el instalador sin recomponer esos artefactos.
-Esa edición quedó obsoleta al reabrirse el baseline. J11-S8-C01 y los gates
-afectados ya quedaron verdes. El Sprint permanece abierto hasta resolver el gate
-de selectores acordado, recongelar fotografía/PDF, preguntar si se creará un nuevo
-instalador y completar los gates derivados de esa respuesta, además de G7.
+Esa edición quedó obsoleta al reabrirse el baseline. J11-S8-C01 a C07 y sus gates
+afectados quedaron verdes; fotografía y PDF se recongelaron. Producto decidió
+`NO` crear un instalador hasta que exista una versión comercializable útil para
+un tipo de negocio. `current` permanece intacto y el Sprint sigue abierto por G7.
 
 ## 23. Roadmap vigente y familias futuras
 
@@ -857,6 +945,21 @@ renderizados directamente por kernel/shell. `SelectorSourceOwner` distingue
 `logixone:selectorSource` muestra origen/clase y filtra la ruta con la autoridad
 global vigente.
 
+`plugin-api` 0.4.3 agrega de forma aditiva `Handler.searchOptions`, solicitudes y
+respuestas paginadas de selector y metadatos de página para tablas; el límite
+contractual es 50. El shell sólo invoca la búsqueda si la fuente declara
+`SEARCH_ON_DEMAND`, conserva filtro y desplazamiento por POST y vuelve a aplicar
+autorización en cada solicitud. `reference-data-api` 1.1.0 agrega
+`ReferenceDataQuery`, `ReferenceDataPage` y unidad menor opcional. El constructor y
+los accesores 1.x existentes continúan disponibles para unidades definidas; un
+valor SIX `N.A.` se expone como `OptionalInt.empty()` y el acceso entero falla de
+forma explícita en vez de inventar cero.
+
+`plg_reference_data` V3 permite `NULL` para esa ausencia y V4 publica 248 países y
+178 códigos únicos de moneda o fondo, conservando el seed V1 como edición
+histórica. El adaptador JPA filtra, cuenta y pagina en PostgreSQL; no carga el
+catálogo completo para recortarlo en memoria.
+
 El undécimo corte implementa el retorno para el renderer genérico de plugins. El
 enlace hace un POST inmediato y un recurso JS propiedad del shell serializa sólo
 controles con `data-screen-input`; `SelectorReturnDraft` vuelve a limitar y filtrar
@@ -907,9 +1010,11 @@ plataforma y un renderer común; cerrados/despliegue explican su origen sin ofre
 altas, y los administrables sólo exponen la ruta con permiso global. Consulte la
 [auditoría detallada](../architecture/inventario-selectores-y-datos-administrables.md)
 y la [épica de remediación](../backlog/epica-gobierno-selectores-datos-administrables.md).
-País y moneda pertenecen a `reference_data`; el corte inicial sólo contiene
-`PY/PYG/USD` y muestra `BOOTSTRAP_SUBSET`. No se inicia `purchasing` mientras
-falten la publicación completa y la estrategia comprobada de listas grandes.
+País y moneda pertenecen a `reference_data`; V4 conserva el seed histórico y
+publica 248 países y 178 códigos únicos de moneda o fondo. Ambos selectores usan
+`SEARCH_ON_DEMAND` y páginas máximas de 50. Sus gates runtime y la recongelación
+están verdes; la decisión del instalador quedó registrada como `NO`. No se inicia
+`purchasing` mientras falte G7 independiente.
 
 ## 25. Referencias internas
 

@@ -1,14 +1,14 @@
-# Levantar Logixone con IntelliJ IDEA Ultimate
+# Levantar Smart ERP con IntelliJ IDEA Ultimate
 
-- Edición: 1.3
-- Fecha de verificación: 2026-08-01
+- Edición: 1.4
+- Fecha de verificación: 2026-08-05
 - IDE verificado: IntelliJ IDEA Ultimate 2026.2
 - Sistema de ejemplo: Windows 11 con PowerShell
 - Baseline: Java 21, Maven Wrapper 3.9.16, Docker/Compose, PostgreSQL, Keycloak 26.7.0 y WildFly 41
 - Distribución de demo: perfil Maven `with-inventory-demo`, baseline J11-S8-07
 - Instalador: `0.8.0-internal.1` disponible sólo para evaluación interna; no
   sustituye la preparación del entorno de desarrollo
-- Edición PDF: [guia-levantar-logixone-intellij-idea-ultimate.pdf](../output/pdf/guia-levantar-logixone-intellij-idea-ultimate.pdf)
+- PDF del baseline anterior: [guia-levantar-logixone-intellij-idea-ultimate.pdf](../output/pdf/guia-levantar-logixone-intellij-idea-ultimate.pdf); conserva la marca Logixone y se regenerará en el gate documental de cierre
 
 ## 1. Objetivo y resultado esperado
 
@@ -31,7 +31,7 @@ Al terminar, deben responder:
 - Keycloak de desarrollo/demo: `http://keycloak.localhost:8180`.
 
 > **Decisión operativa:** IntelliJ es el entorno de edición, navegación, ejecución de
-> pruebas y control de Docker. La forma oficial de ejecutar Logixone completo sigue
+> pruebas y control de Docker. La forma oficial de ejecutar Smart ERP completo sigue
 > siendo la imagen reproducible y `infra/compose/compose.yaml`. Instalar WildFly
 > directamente en IntelliJ no es necesario para este primer arranque.
 
@@ -42,7 +42,7 @@ Al terminar, deben responder:
 ## 2. Por qué usamos Docker aunque IntelliJ Ultimate soporte WildFly
 
 IntelliJ Ultimate puede registrar un servidor JBoss/WildFly local. Sin embargo,
-Logixone también necesita PostgreSQL, el migrador one-shot, Keycloak, secretos
+Smart ERP también necesita PostgreSQL, el migrador one-shot, Keycloak, secretos
 montados, configuración OIDC y la configuración reproducible de WildFly.
 
 El recorrido oficial conserva estas piezas juntas:
@@ -69,7 +69,7 @@ Antes de abrir el proyecto, comprobar:
 - IntelliJ IDEA Ultimate 2026.2 instalado y con licencia activa;
 - Docker Desktop iniciado y configurado para contenedores Linux;
 - Docker Engine, Buildx y Docker Compose disponibles;
-- repositorio ubicado en `C:\cosme\LogixoneJakarta11`;
+- repositorio ubicado en `C:\cosme\smart-erp`;
 - puertos `18080` y `8180` disponibles;
 - acceso a Internet para el primer build si las dependencias o imágenes todavía no
   existen en las cachés locales;
@@ -91,7 +91,7 @@ cliente pero no el servidor, iniciar Docker Desktop antes de continuar.
 1. Abrir IntelliJ IDEA.
 2. Elegir **File > Open**.
 3. Seleccionar la carpeta raíz
-   `C:\cosme\LogixoneJakarta11`, no un submódulo ni un POM individual.
+   `C:\cosme\smart-erp`, no un submódulo ni un POM individual.
 4. Confirmar **Trust Project** si IntelliJ solicita confianza.
 5. Cuando detecte Maven, seleccionar **Load Maven Project**.
 6. Esperar a que finalice el primer índice antes de corregir referencias.
@@ -125,10 +125,10 @@ del repositorio.
 3. Seleccionar:
 
    ```text
-   C:\cosme\LogixoneJakarta11\.tools\jdk\jdk-21.0.11+10
+   C:\cosme\smart-erp\.tools\jdk\jdk-21.0.11+10
    ```
 
-4. Nombrarlo, por ejemplo, `Logixone JDK 21.0.11`.
+4. Nombrarlo, por ejemplo, `Smart ERP JDK 21.0.11`.
 5. Dejar **Language level** en `SDK default` o Java 21.
 
 ### 6.2 JDK usado por Maven
@@ -223,7 +223,7 @@ configuración; no borrar el volumen para evitar ese trabajo.
 
 ## 10. Crear los secretos locales sin pisar los existentes
 
-Logixone necesita cuatro archivos externos. El siguiente bloque crea solamente los
+Smart ERP necesita cuatro archivos externos. El siguiente bloque crea solamente los
 que falten y conserva cualquier valor existente:
 
 ```powershell
@@ -387,7 +387,7 @@ Keycloak debe solicitar autenticación. Usar el usuario ficticio
 Se puede agregar una configuración:
 
 1. **Run > Edit Configurations > + > Docker Compose**.
-2. Nombre: `Logixone - Compose`.
+2. Nombre: `Smart ERP - Compose`.
 3. Compose file: `infra/compose/compose.yaml`.
 4. Environment file: `infra/compose/compose.env.local`.
 5. Servicios: todos.
@@ -401,7 +401,7 @@ visual es un atajo para el trabajo diario.
 
 Crear una configuración **Maven**:
 
-- nombre: `Logixone - Verify demo`;
+- nombre: `Smart ERP - Verify demo`;
 - directorio: raíz del repositorio;
 - comando: `-B -Pwith-inventory-demo clean verify`;
 - Maven: Wrapper;

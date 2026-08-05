@@ -14,7 +14,7 @@
     <artifactId>logixone-war</artifactId>
     <packaging>war</packaging>
 
-    <name>Logixone WAR Distribution</name>
+    <name>Smart ERP WAR Distribution</name>
 
     <dependencies>
         <dependency>

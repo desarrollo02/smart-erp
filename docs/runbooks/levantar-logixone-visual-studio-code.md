@@ -1,7 +1,7 @@
-# Levantar Logixone con Visual Studio Code
+# Levantar Smart ERP con Visual Studio Code
 
-- Edición: 0.5
-- Fecha de actualización: 2026-08-01
+- Edición: 0.6
+- Fecha de actualización: 2026-08-05
 - Entorno de referencia: Windows 11 y PowerShell
 - Baseline: Java 21, Maven Wrapper 3.9.16, Docker/Compose, PostgreSQL, Keycloak
   26.7.0 y WildFly 41
@@ -11,7 +11,7 @@
 
 > **Instalador interno disponible:** `installer/windows/current/` contiene
 > `0.8.0-internal.1`. Diagnostica y monta el baseline después del consentimiento,
-> pero está sin Authenticode y no puede entregarse a una empresa. Esta guía manual
+> conserva la marca Logixone, está sin Authenticode y no puede entregarse a una empresa. Esta guía manual
 > continúa siendo la fuente para preparar un entorno de desarrollo en VS Code.
 
 ## 1. Resultado esperado
@@ -45,7 +45,7 @@ Antes de abrir el proyecto:
 - instalar la versión estable vigente de Visual Studio Code;
 - iniciar Docker Desktop con contenedores Linux;
 - disponer de PowerShell y Git;
-- ubicar el repositorio en `C:\cosme\LogixoneJakarta11`;
+- ubicar el repositorio en `C:\cosme\smart-erp`;
 - dejar libres los puertos `18080` y `8180`;
 - conservar espacio para `.tools/`, imágenes y volúmenes Docker;
 - tener acceso inicial a los registros de dependencias e imágenes si las cachés
@@ -68,7 +68,7 @@ Instálelas desde **View > Extensions** (`Ctrl+Shift+X`) buscando el identificad
 exacto. No instale extensiones Spring, Quarkus o un servidor WildFly para sustituir
 el baseline Jakarta EE del repositorio.
 
-| Obligación | Extensión | Identificador | Editor | Uso en Logixone |
+| Obligación | Extensión | Identificador | Editor | Uso en Smart ERP |
 |---|---|---|---|---|
 | requerida | Extension Pack for Java | `vscjava.vscode-java-pack` | Microsoft | lenguaje Java, navegación, depuración, JUnit, Maven y proyectos |
 | requerida | Container Tools | `ms-azuretools.vscode-containers` | Microsoft | Dockerfiles, Compose, imágenes, contenedores y logs |
@@ -92,7 +92,7 @@ por separado esos componentes.
 
 1. Abra Visual Studio Code.
 2. Elija **File > Open Folder**.
-3. Seleccione `C:\cosme\LogixoneJakarta11`, no `plugins/`, `web-shell/` ni un
+3. Seleccione `C:\cosme\smart-erp`, no `plugins/`, `web-shell/` ni un
    `pom.xml` aislado.
 4. Confirme confianza sólo si reconoce el repositorio.
 5. Espere a que el indicador Java termine de importar los proyectos Maven.
@@ -181,7 +181,7 @@ volumen para evitar una corrección de configuración.
 
 ## 8. Crear secretos sólo cuando falten
 
-Logixone monta cuatro archivos externos. Este bloque conserva los existentes y
+Smart ERP monta cuatro archivos externos. Este bloque conserva los existentes y
 crea valores aleatorios únicamente para nombres ausentes:
 
 ```powershell

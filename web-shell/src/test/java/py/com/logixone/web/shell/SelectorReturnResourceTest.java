@@ -17,19 +17,35 @@ class SelectorReturnResourceTest {
             throws IOException {
         String source = resource("app/view.xhtml");
 
-        assertEquals(3, occurrences(source,
+        assertEquals(5, occurrences(source,
                 "action=\"#{shellView.openSelectorManagement(field.id)}\""));
         assertEquals(3, occurrences(source, "name=\"selectorDraft\""));
         assertEquals(6, occurrences(source, "pt:data-screen-input=\"#{field.id}\""));
-        assertEquals(3, occurrences(source, "immediate=\"true\""));
-        assertEquals(3, occurrences(source,
+        assertEquals(5, occurrences(source, "immediate=\"true\""));
+        assertEquals(5, occurrences(source,
                 "onclick=\"LogixoneSelectorReturn.capture(this);\""));
+        assertEquals(6, occurrences(source,
+                "action=\"#{shellView.searchSelectorOptions}\""));
+        assertEquals(2, occurrences(source,
+                "name=\"selectorOption:#{field.id}\""));
+        assertTrue(source.contains(
+                "listener=\"#{shellView.selectRequestedSelectorOption}\""));
+        assertFalse(source.contains("selectSelectorOption(field.id"));
+        assertFalse(source.contains("requestedSelectorOption"));
         assertFalse(source.contains(
                 "value=\"#{shellView.activeInteraction.selectorSources[field.id].managementRoute}\""));
         assertTrue(source.contains("action=\"#{shellView.returnToSelectorOrigin}\""));
         assertTrue(source.contains("name=\"selectorContext\""));
         assertTrue(source.contains("name=\"selectorReturn\""));
         assertFalse(source.matches("(?s).*<f:param[^>]+inputValues.*"));
+
+        String normalized = source.replaceAll("\\s+", " ");
+        assertFalse(normalized.contains(
+                "value=\"#{shellView.selectorSearchValues[field.id]}\" immediate=\"true\""));
+        assertFalse(normalized.contains(
+                "action=\"#{shellView.searchSelectorOptions}\" immediate=\"true\""));
+        assertFalse(normalized.contains(
+                "name=\"selectorOption:#{field.id}\" immediate=\"true\""));
     }
 
     @Test

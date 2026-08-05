@@ -63,4 +63,46 @@ class ShellScreenInteractionViewTest {
         assertEquals("Agregar o administrar",
                 allowed.getSelectorSources().get("tax_profile").getManagementLabel());
     }
+
+    @Test
+    void exposesOnDemandLoadingAndBoundedTableNavigationToJsf() {
+        var result = new ScreenInteraction.Result(
+                Map.of(),
+                Map.of(),
+                Optional.of(new ScreenInteraction.Table(
+                        new ScreenElementId("results"),
+                        List.of(new ScreenInteraction.Column("code", "Código")),
+                        List.of(new ScreenInteraction.Row("COUNTRY:PY", List.of("PY"))),
+                        248,
+                        "Sin resultados",
+                        "Ajuste el filtro.",
+                        Optional.of(new ScreenInteraction.TablePage(50, 50)))),
+                Optional.empty(),
+                List.of(),
+                Optional.empty(),
+                Optional.empty());
+        var country = new ScreenElementId("country");
+        var source = new SelectorSourceDefinition(
+                new SelectorSourceId("reference_data.countries"),
+                new PluginId("reference_data"),
+                SelectorSourceKind.NORMATIVE_CATALOG,
+                SemanticVersion.parse("1.0.0"),
+                Optional.of("/reference-data"),
+                Optional.of(new ContributionId("reference_data.policy.manage")),
+                Set.of(SelectorManagementCapability.VIEW),
+                SelectorEmptyOptionPolicy.NOT_ALLOWED,
+                SelectorInactiveValuePolicy.EXCLUDE_FOR_NEW_KEEP_SELECTED,
+                SelectorLoadingStrategy.SEARCH_ON_DEMAND);
+
+        ShellScreenInteractionView view = ShellScreenInteractionView.from(
+                result, Map.of(country, source), Set.of());
+
+        assertTrue(view.getSelectorSources().get("country").isSearchOnDemand());
+        assertTrue(view.getTable().isPaged());
+        assertTrue(view.getTable().isHasPreviousPage());
+        assertTrue(view.getTable().isHasNextPage());
+        assertEquals(51, view.getTable().getFirstVisible());
+        assertEquals(51, view.getTable().getLastVisible());
+        assertEquals(50, view.getTable().getPageSize());
+    }
 }

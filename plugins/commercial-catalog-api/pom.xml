@@ -14,7 +14,7 @@
     <artifactId>commercial-catalog-api</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Commercial Catalog API</name>
+    <name>Smart ERP Commercial Catalog API</name>
     <description>Pure Java public contracts for the commercial catalog plugin</description>
 
     <dependencies>

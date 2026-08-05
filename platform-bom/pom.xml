@@ -13,7 +13,7 @@
     <artifactId>platform-bom</artifactId>
     <packaging>pom</packaging>
 
-    <name>Logixone Platform BOM</name>
+    <name>Smart ERP Platform BOM</name>
 
     <dependencyManagement>
         <dependencies>

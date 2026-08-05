@@ -49,6 +49,8 @@ class BusinessPartnerSelectorSourcesTest {
         assertEquals(java.util.Optional.of("/reference-data"), countrySource.managementRoute());
         assertEquals(Set.of(py.com.logixone.plugin.api.SelectorManagementCapability.VIEW),
                 countrySource.managementCapabilities());
+        assertEquals(py.com.logixone.plugin.api.SelectorLoadingStrategy.SEARCH_ON_DEMAND,
+                countrySource.loadingStrategy());
 
         Set<?> definitionSelectors = BusinessPartnersScreenContract.definitions().elements().stream()
                 .filter(element -> element.type() == ScreenElementType.SELECT)

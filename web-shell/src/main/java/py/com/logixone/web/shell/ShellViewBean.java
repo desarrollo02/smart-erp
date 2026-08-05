@@ -22,6 +22,7 @@ import java.util.Set;
 import py.com.logixone.plugin.api.ScreenElementId;
 import py.com.logixone.plugin.api.ScreenInteraction;
 import py.com.logixone.plugin.api.SelectorSourceDefinition;
+import py.com.logixone.plugin.api.SelectorLoadingStrategy;
 import py.com.logixone.kernel.application.company.screen.ComposedScreen;
 import py.com.logixone.kernel.application.security.access.TrustedCompanyAccess;
 import py.com.logixone.kernel.application.security.access.TrustedCompanyAccessStatus;
@@ -38,6 +39,7 @@ public class ShellViewBean {
 
     private static final Logger LOGGER = System.getLogger(ShellViewBean.class.getName());
     private static final int MAX_ROUTE_LENGTH = 160;
+    private static final String SELECTOR_OPTION_PARAMETER_PREFIX = "selectorOption:";
     private static final Set<String> SCREEN_MODES = Set.of("directory", "create", "detail");
 
     @Inject
@@ -86,6 +88,15 @@ public class ShellViewBean {
     private boolean selectorReturnRestored;
     private String selectorReturnLabel = "Volver al formulario anterior";
     private Map<String, String> inputValues = new HashMap<>();
+    private Map<String, String> selectorSearchValues = new HashMap<>();
+    private Map<String, Integer> selectorSearchOffsets = new HashMap<>();
+    private Map<String, ShellSelectorOptionPageView> selectorOptionPages = new HashMap<>();
+    private String requestedSelectorFieldId;
+    private int requestedSelectorPageDirection;
+    private boolean selectorSelectionProcessed;
+    private int tableOffset;
+    private int tablePageSize = 50;
+    private int requestedTablePageDirection;
     private List<ShellCompanyOptionView> companyOptions = List.of();
     private List<ShellMenuItemView> menuItems = List.of();
     private ShellScreenView activeScreen;
@@ -310,6 +321,167 @@ public class ShellViewBean {
         selectedResourceVersion = result.selectedResourceVersion().orElse(null);
         activeInteraction = ShellScreenInteractionView.from(
                 result, activeSelectorSources, authorizedSelectorManagement);
+        if (activeInteraction.isHasTable() && activeInteraction.getTable().isPaged()) {
+            tableOffset = activeInteraction.getTable().getOffset();
+            tablePageSize = activeInteraction.getTable().getPageSize();
+        } else {
+            tableOffset = 0;
+            tablePageSize = 50;
+        }
+    }
+
+    public String changeTablePage() {
+        Map<String, String> submittedInputs = new HashMap<>(inputValues);
+        String submittedResourceId = selectedResourceId;
+        Long submittedResourceVersion = selectedResourceVersion;
+        int submittedOffset = tableOffset;
+        int submittedPageSize = tablePageSize;
+        int direction = requestedTablePageDirection;
+        try {
+            prepared = false;
+            prepare();
+            inputValues.putAll(submittedInputs);
+            selectedResourceId = submittedResourceId;
+            selectedResourceVersion = submittedResourceVersion;
+            if (state != ShellState.READY
+                    || activeInteractionHandler == null
+                    || !activeInteraction.isHasTable()
+                    || !activeInteraction.getTable().isPaged()
+                    || (direction != -1 && direction != 1)) {
+                state = ShellState.DENIED;
+                return null;
+            }
+            int targetOffset = direction < 0
+                    ? Math.max(0, submittedOffset - submittedPageSize)
+                    : submittedOffset + submittedPageSize;
+            ScreenInteraction.Result result = activeInteractionHandler.interact(
+                    new ScreenInteraction.Request(
+                            Optional.empty(),
+                            typedInputs(),
+                            Optional.ofNullable(selectedResourceId),
+                            Optional.ofNullable(selectedResourceVersion),
+                            Optional.of(new ScreenInteraction.TablePageRequest(
+                                    targetOffset, submittedPageSize))));
+            applyInteraction(result);
+            return null;
+        } catch (TrustedWebAccessException | IllegalArgumentException denied) {
+            state = ShellState.DENIED;
+            return null;
+        } catch (RuntimeException unexpected) {
+            LOGGER.log(Level.ERROR,
+                    "event=shell_table_page_failed type={0}",
+                    unexpected.getClass().getName());
+            state = ShellState.ERROR;
+            return null;
+        }
+    }
+
+    public String searchSelectorOptions() {
+        Map<String, String> submittedInputs = new HashMap<>(inputValues);
+        Map<String, String> submittedSearches = new HashMap<>(selectorSearchValues);
+        Map<String, Integer> submittedOffsets = new HashMap<>(selectorSearchOffsets);
+        String fieldId = requestedSelectorFieldId;
+        int direction = requestedSelectorPageDirection;
+        try {
+            prepared = false;
+            prepare();
+            inputValues.putAll(submittedInputs);
+            selectorSearchValues.putAll(submittedSearches);
+            selectorSearchOffsets.putAll(submittedOffsets);
+            ScreenElementId elementId = new ScreenElementId(fieldId);
+            SelectorSourceDefinition source = activeSelectorSources.get(elementId);
+            if (state != ShellState.READY
+                    || activeInteractionHandler == null
+                    || source == null
+                    || source.loadingStrategy() != SelectorLoadingStrategy.SEARCH_ON_DEMAND
+                    || (direction < -1 || direction > 1)) {
+                state = ShellState.DENIED;
+                return null;
+            }
+            int currentOffset = selectorSearchOffsets.getOrDefault(fieldId, 0);
+            int offset = switch (direction) {
+                case -1 -> Math.max(0, currentOffset - 50);
+                case 1 -> currentOffset + 50;
+                default -> 0;
+            };
+            ScreenInteraction.SelectorOptionPage page = activeInteractionHandler.searchOptions(
+                    new ScreenInteraction.SelectorOptionRequest(
+                            elementId,
+                            selectorSearchValues.getOrDefault(fieldId, ""),
+                            offset,
+                            50));
+            selectorSearchOffsets.put(fieldId, page.offset());
+            selectorOptionPages.put(fieldId, new ShellSelectorOptionPageView(page));
+            return null;
+        } catch (TrustedWebAccessException | IllegalArgumentException denied) {
+            state = ShellState.DENIED;
+            return null;
+        } catch (RuntimeException unexpected) {
+            LOGGER.log(Level.ERROR,
+                    "event=shell_selector_search_failed type={0}",
+                    unexpected.getClass().getName());
+            state = ShellState.ERROR;
+            return null;
+        }
+    }
+
+    public void selectRequestedSelectorOption() {
+        if (selectorSelectionProcessed) {
+            return;
+        }
+        selectorSelectionProcessed = true;
+        var selections = request.getParameterMap().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(
+                        SELECTOR_OPTION_PARAMETER_PREFIX))
+                .toList();
+        if (selections.isEmpty()) {
+            return;
+        }
+        Map<String, String> submittedInputs = new HashMap<>(inputValues);
+        Map<String, String> submittedSearches = new HashMap<>(selectorSearchValues);
+        Map<String, Integer> submittedOffsets = new HashMap<>(selectorSearchOffsets);
+        try {
+            prepared = false;
+            prepare();
+            inputValues.putAll(submittedInputs);
+            selectorSearchValues.putAll(submittedSearches);
+            selectorSearchOffsets.putAll(submittedOffsets);
+            if (selections.size() != 1 || selections.getFirst().getValue().length != 1) {
+                throw new IllegalArgumentException("Exactly one selector option is required");
+            }
+            String fieldId = selections.getFirst().getKey().substring(
+                    SELECTOR_OPTION_PARAMETER_PREFIX.length());
+            String optionValue = selections.getFirst().getValue()[0];
+            ScreenElementId elementId = new ScreenElementId(fieldId);
+            SelectorSourceDefinition source = activeSelectorSources.get(elementId);
+            String selected = new ScreenInteraction.Option(
+                    optionValue, optionValue).value();
+            if (state != ShellState.READY
+                    || activeInteractionHandler == null
+                    || source == null
+                    || source.loadingStrategy() != SelectorLoadingStrategy.SEARCH_ON_DEMAND) {
+                state = ShellState.DENIED;
+                return;
+            }
+            ScreenInteraction.SelectorOptionPage verification =
+                    activeInteractionHandler.searchOptions(
+                            new ScreenInteraction.SelectorOptionRequest(
+                                    elementId, selected, 0, 50));
+            if (verification.options().stream()
+                    .noneMatch(option -> option.value().equals(selected))) {
+                state = ShellState.DENIED;
+                return;
+            }
+            inputValues.put(fieldId, selected);
+            selectorOptionPages.remove(fieldId);
+        } catch (TrustedWebAccessException | IllegalArgumentException denied) {
+            state = ShellState.DENIED;
+        } catch (RuntimeException unexpected) {
+            LOGGER.log(Level.ERROR,
+                    "event=shell_selector_selection_failed type={0}",
+                    unexpected.getClass().getName());
+            state = ShellState.ERROR;
+        }
     }
 
     private boolean loadSelectorSources() {
@@ -785,6 +957,58 @@ public class ShellViewBean {
 
     public Map<String, String> getInputValues() {
         return inputValues;
+    }
+
+    public Map<String, String> getSelectorSearchValues() {
+        return selectorSearchValues;
+    }
+
+    public Map<String, Integer> getSelectorSearchOffsets() {
+        return selectorSearchOffsets;
+    }
+
+    public Map<String, ShellSelectorOptionPageView> getSelectorOptionPages() {
+        return selectorOptionPages;
+    }
+
+    public String getRequestedSelectorFieldId() {
+        return requestedSelectorFieldId;
+    }
+
+    public void setRequestedSelectorFieldId(String requestedSelectorFieldId) {
+        this.requestedSelectorFieldId = requestedSelectorFieldId;
+    }
+
+    public int getRequestedSelectorPageDirection() {
+        return requestedSelectorPageDirection;
+    }
+
+    public void setRequestedSelectorPageDirection(int requestedSelectorPageDirection) {
+        this.requestedSelectorPageDirection = requestedSelectorPageDirection;
+    }
+
+    public int getTableOffset() {
+        return tableOffset;
+    }
+
+    public void setTableOffset(int tableOffset) {
+        this.tableOffset = tableOffset;
+    }
+
+    public int getTablePageSize() {
+        return tablePageSize;
+    }
+
+    public void setTablePageSize(int tablePageSize) {
+        this.tablePageSize = tablePageSize;
+    }
+
+    public int getRequestedTablePageDirection() {
+        return requestedTablePageDirection;
+    }
+
+    public void setRequestedTablePageDirection(int requestedTablePageDirection) {
+        this.requestedTablePageDirection = requestedTablePageDirection;
     }
 
     public ShellScreenInteractionView getActiveInteraction() {

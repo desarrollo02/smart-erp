@@ -31,6 +31,7 @@ class BusinessPartnersVisualIT {
     private static final String DEMO_ROLE_CODE = "demo_operator";
     private static final List<String> BUSINESS_PARTNER_PERMISSIONS = List.of(
             "reference_data.view",
+            "reference_data.policy.manage",
             "business_partners.view",
             "business_partners.manage",
             "business_partners.roles.manage",
@@ -89,26 +90,7 @@ class BusinessPartnersVisualIT {
             String addressPurposeCode = "collections_" + suffix.toLowerCase();
             String addressPurposeName = "Cobranzas " + suffix;
 
-            requireOne(page.getByRole(
-                    AriaRole.LINK, new Page.GetByRoleOptions().setName("Datos de referencia")),
-                    "reference data menu").click();
-            requireOne(page.getByRole(
-                    AriaRole.HEADING, new Page.GetByRoleOptions()
-                            .setName("Datos de referencia")
-                            .setExact(true)),
-                    "reference data heading").waitFor();
-            assertTrue(page.getByText("PY / PRY", new Page.GetByTextOptions().setExact(true)).count() >= 1,
-                    "the Paraguay country reference must be visible");
-            assertTrue(page.getByText("PYG", new Page.GetByTextOptions().setExact(true)).count() >= 1,
-                    "the Guarani currency reference must be visible");
-            assertTrue(page.getByText("USD", new Page.GetByTextOptions().setExact(true)).count() >= 1,
-                    "the US dollar currency reference must be visible");
-            assertTrue(page.getByText("BOOTSTRAP_SUBSET").count() >= 1,
-                    "the incomplete bootstrap scope must be visible");
-            assertResponsive(page, 1280, 900, "reference-data-expanded-1280.png");
-            assertResponsive(page, 720, 900, "reference-data-medium-720.png");
-            assertResponsive(page, 375, 900, "reference-data-compact-375.png");
-            page.setViewportSize(1280, 900);
+            exerciseReferenceData(page);
 
             requireOne(page.getByRole(
                     AriaRole.LINK, new Page.GetByRoleOptions().setName("Definiciones de socios")),
@@ -292,14 +274,13 @@ class BusinessPartnersVisualIT {
             requireOne(page.getByRole(
                     AriaRole.LINK, new Page.GetByRoleOptions().setName("Identificaciones")),
                     "identifications tab").click();
-            Locator identificationType = requireOne(page.getByLabel(
-                    "Tipo de identificación", new Page.GetByLabelOptions().setExact(true)),
+            Locator identificationType = requireOne(page.locator(
+                    "select[data-screen-input='identification_type']"),
                     "identification type");
             identificationType.selectOption(identificationTypeCode);
             assertEquals(identificationTypeName, identificationType.locator("option:checked").innerText(),
                     "the company-owned identification type must be selectable");
-            requireOne(page.getByLabel("País", new Page.GetByLabelOptions().setExact(true)),
-                    "identification country").selectOption("PY");
+            selectSearchOption(page, "País", "Paraguay", "Paraguay · PY", "PY");
             requireOne(page.getByLabel("Número presentado", new Page.GetByLabelOptions().setExact(true)),
                     "presented identification").fill("800" + suffix);
             requireOne(page.getByRole(
@@ -417,8 +398,187 @@ class BusinessPartnersVisualIT {
                 assertResponsiveLayout(page, boundary, "business-partners-boundary-" + boundary);
             }
 
+            verifyReferenceDataPermissionIsEnforcedAndRestore(page, companyId);
             verifyDisabledPluginIsDeniedAndRestore(page, companyId);
         }
+    }
+
+    private void exerciseReferenceData(Page page) {
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Datos de referencia")),
+                "reference data menu").click();
+        requireOne(page.getByRole(
+                AriaRole.HEADING, new Page.GetByRoleOptions()
+                        .setName("Datos de referencia")
+                        .setExact(true)),
+                "reference data heading").waitFor();
+        requireOne(page.getByText("248 encontrados", new Page.GetByTextOptions().setExact(true)),
+                "complete country publication count").waitFor();
+        requireOne(page.getByText(
+                "Mostrando 1–50 de 248", new Page.GetByTextOptions().setExact(true)),
+                "first country page summary").waitFor();
+        assertResponsive(page, 1280, 900, "reference-data-expanded-1280.png");
+        assertResponsive(page, 720, 900, "reference-data-medium-720.png");
+        assertResponsive(page, 375, 900, "reference-data-compact-375.png");
+        page.setViewportSize(1280, 900);
+
+        requireOne(page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Siguiente").setExact(true)),
+                "next reference-data page").click();
+        requireOne(page.getByText(
+                "Mostrando 51–100 de 248", new Page.GetByTextOptions().setExact(true)),
+                "second country page summary").waitFor();
+        requireOne(page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Anterior").setExact(true)),
+                "previous reference-data page").click();
+
+        Locator catalog = requireOne(page.getByLabel(
+                "Catálogo", new Page.GetByLabelOptions().setExact(true)),
+                "reference-data catalog filter");
+        Locator search = requireOne(page.getByLabel(
+                "Buscar referencia", new Page.GetByLabelOptions().setExact(true)),
+                "reference-data search filter");
+        catalog.selectOption("COUNTRY");
+        search.fill("Paraguay");
+        clickReferenceSearch(page);
+        requireOne(referenceDataTable(page).getByText(
+                "PY / PRY", new Locator.GetByTextOptions().setExact(true)),
+                "Paraguay country reference").waitFor();
+
+        catalog = requireOne(page.getByLabel(
+                "Catálogo", new Page.GetByLabelOptions().setExact(true)),
+                "reference-data catalog filter after country search");
+        search = requireOne(page.getByLabel(
+                "Buscar referencia", new Page.GetByLabelOptions().setExact(true)),
+                "reference-data search filter after country search");
+        catalog.selectOption("CURRENCY");
+        search.fill("");
+        clickReferenceSearch(page);
+        requireOne(page.getByText("178 encontrados", new Page.GetByTextOptions().setExact(true)),
+                "complete currency publication count").waitFor();
+
+        search = requireOne(page.getByLabel(
+                "Buscar referencia", new Page.GetByLabelOptions().setExact(true)),
+                "reference-data currency search filter");
+        search.fill("PYG");
+        clickReferenceSearch(page);
+        requireOne(referenceDataTable(page).getByText(
+                "PYG", new Locator.GetByTextOptions().setExact(true)),
+                "Guarani currency reference").waitFor();
+
+        search = requireOne(page.getByLabel(
+                "Buscar referencia", new Page.GetByLabelOptions().setExact(true)),
+                "reference-data N.A. search filter");
+        search.fill("XDR");
+        clickReferenceSearch(page);
+        requireOne(referenceDataTable(page).getByText(
+                "XDR", new Locator.GetByTextOptions().setExact(true)),
+                "special drawing rights reference").waitFor();
+        requireOne(referenceDataTable(page).getByText(
+                "960 · unidad menor N.A.", new Locator.GetByTextOptions().setExact(true)),
+                "explicit not-applicable minor unit").waitFor();
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Abrir XDR")),
+                "open special drawing rights reference").click();
+
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Estado").setExact(true)),
+                "reference-data lifecycle tab").click();
+        Locator restoreInterruptedPolicy = page.getByRole(
+                AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Habilitar referencia").setExact(true));
+        if (restoreInterruptedPolicy.count() == 1) {
+            restoreInterruptedPolicy.click();
+            requireOne(page.getByText(
+                    "Referencia habilitada", new Page.GetByTextOptions().setExact(true)),
+                    "interrupted reference policy restoration").waitFor();
+        }
+        requireOne(page.getByRole(
+                AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Inhabilitar referencia").setExact(true)),
+                "disable reference policy").click();
+        requireOne(page.getByText(
+                "Referencia inhabilitada", new Page.GetByTextOptions().setExact(true)),
+                "reference disabled confirmation").waitFor();
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Historial").setExact(true)),
+                "reference-data history tab after disable").click();
+        assertTrue(referenceDataTable(page).getByText(
+                        "Inhabilitada", new Locator.GetByTextOptions().setExact(true)).count() >= 1,
+                "append-only history must retain a disabled reference policy revision");
+        assertResponsive(page, 1280, 900, "reference-data-policy-history-expanded-1280.png");
+        assertResponsive(page, 720, 900, "reference-data-policy-history-medium-720.png");
+        assertResponsive(page, 375, 900, "reference-data-policy-history-compact-375.png");
+        page.setViewportSize(1280, 900);
+
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Estado").setExact(true)),
+                "reference-data lifecycle tab after history").click();
+        requireOne(page.getByRole(
+                AriaRole.BUTTON,
+                new Page.GetByRoleOptions().setName("Habilitar referencia").setExact(true)),
+                "restore reference policy").click();
+        requireOne(page.getByText(
+                "Referencia habilitada", new Page.GetByTextOptions().setExact(true)),
+                "reference restored confirmation").waitFor();
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Historial").setExact(true)),
+                "reference-data history tab after restore").click();
+        assertTrue(page.getByText(
+                        "Habilitada", new Page.GetByTextOptions().setExact(true)).count() >= 1,
+                "restored reference policy must remain in append-only history");
+    }
+
+    private static void clickReferenceSearch(Page page) {
+        requireOne(page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Buscar").setExact(true)),
+                "reference-data search action").click();
+    }
+
+    private static Locator referenceDataTable(Page page) {
+        return requireOne(page.locator("table.business-table"), "reference-data table");
+    }
+
+    private static void selectSearchOption(
+            Page page,
+            String fieldLabel,
+            String query,
+            String optionLabel,
+            String expectedValue) {
+        String searchLabel = "Buscar opciones de " + fieldLabel;
+        Locator search = requireOne(page.getByLabel(searchLabel),
+                "search-on-demand input for " + fieldLabel);
+        search.fill(query);
+        Locator field = search.locator(
+                "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '),"
+                        + " ' selector-search-field ')][1]");
+        requireOne(field.getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Buscar opciones").setExact(true)),
+                "search-on-demand action for " + fieldLabel).click();
+
+        Locator searchAfterQuery = page.getByLabel(searchLabel);
+        searchAfterQuery.waitFor();
+        search = requireOne(searchAfterQuery,
+                "search-on-demand input after search for " + fieldLabel);
+        field = search.locator(
+                "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '),"
+                        + " ' selector-search-field ')][1]");
+        requireOne(field.getByRole(
+                AriaRole.BUTTON, new Locator.GetByRoleOptions().setName(optionLabel)),
+                "search-on-demand option for " + fieldLabel).click();
+        Locator searchAfterSelection = page.getByLabel(searchLabel);
+        searchAfterSelection.waitFor();
+        search = requireOne(searchAfterSelection,
+                "search-on-demand input after selection for " + fieldLabel);
+        field = search.locator(
+                "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '),"
+                        + " ' selector-search-field ')][1]");
+        Locator currentValue = requireOne(
+                field.locator(".selector-current-value strong"),
+                "selected search-on-demand value for " + fieldLabel);
+        assertEquals(expectedValue, currentValue.innerText().strip(),
+                "the search-on-demand selection must update the screen input");
     }
 
     private static void registerDefinition(
@@ -566,6 +726,54 @@ class BusinessPartnersVisualIT {
         requireOne(page.locator(".admin-message"), "permission grant result").waitFor();
     }
 
+    private void verifyReferenceDataPermissionIsEnforcedAndRestore(
+            Page page, String companyId) {
+        String permission = "reference_data.policy.manage";
+        String securityUrl = adminUrl.replace("index.xhtml", "security.xhtml")
+                + "?company=" + companyId;
+        String referenceDataUrl = appUrl.replace(
+                "index.xhtml", "view.xhtml?route=%2Freference-data&mode=directory");
+        boolean revoked = false;
+        try {
+            page.navigate(securityUrl);
+            Locator roleCode = page.locator(".record-card-heading .eyebrow").filter(
+                    new Locator.FilterOptions().setHasText(DEMO_ROLE_CODE));
+            Locator roleCard = requireOne(page.locator("article.admin-record-card").filter(
+                    new Locator.FilterOptions().setHas(roleCode)),
+                    "demo operator role card");
+            Locator relation = requireOne(roleCard.locator(".relation-row").filter(
+                    new Locator.FilterOptions().setHasText(permission)),
+                    "reference-data policy permission relation");
+            page.onceDialog(dialog -> dialog.accept());
+            requireOne(relation.getByRole(
+                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Revocar")),
+                    "revoke reference-data policy permission").click();
+            revoked = true;
+            requireOne(page.locator(".admin-message"),
+                    "reference-data permission revocation result").waitFor();
+
+            page.navigate(appUrl);
+            requireOne(page.getByRole(
+                    AriaRole.HEADING, new Page.GetByRoleOptions().setName("Funciones disponibles")),
+                    "workspace after reference-data permission revocation").waitFor();
+            assertEquals(0, page.getByRole(
+                    AriaRole.LINK, new Page.GetByRoleOptions().setName("Datos de referencia")).count(),
+                    "reference-data menu must disappear without policy permission");
+
+            page.navigate(referenceDataUrl);
+            requireOne(page.getByRole(
+                    AriaRole.HEADING, new Page.GetByRoleOptions().setName(
+                            "Esta función no está disponible para tu contexto actual")),
+                    "reference-data direct route permission denial").waitFor();
+            assertResponsive(page, 375, 900,
+                    "reference-data-permission-denial-compact-375.png");
+        } finally {
+            if (revoked) {
+                grantPermissionIfAvailable(page, companyId, permission);
+            }
+        }
+    }
+
     private void verifyDisabledPluginIsDeniedAndRestore(Page page, String companyId) {
         String pluginsUrl = adminUrl.replace("index.xhtml", "plugins.xhtml") + "?company=" + companyId;
         String businessPartnersUrl = appUrl.replace(
@@ -617,6 +825,11 @@ class BusinessPartnersVisualIT {
             requireOne(card.getByRole(
                     AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Habilitar")),
                     "restore business partners").click();
+            Locator restoredMessage = page.locator(".admin-message").filter(
+                    new Locator.FilterOptions().setHasText(
+                            "El plugin quedó habilitado para la empresa."));
+            restoredMessage.waitFor();
+            requireOne(restoredMessage, "plugin restored confirmation");
             card = requireOne(page.locator("article.plugin-record-card").filter(
                     new Locator.FilterOptions().setHasText("business_partners")),
                     "restored business partners plugin card");
@@ -624,9 +837,6 @@ class BusinessPartnersVisualIT {
                     AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
                     "restored business partners state").waitFor();
             disabled = false;
-            requireOne(page.locator(".admin-message").filter(new Locator.FilterOptions().setHasText(
-                    "El plugin quedó habilitado para la empresa.")),
-                    "plugin restored confirmation").waitFor();
 
             page.navigate(businessPartnersUrl);
             requireOne(page.getByRole(

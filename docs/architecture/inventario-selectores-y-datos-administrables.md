@@ -1,8 +1,8 @@
 # Inventario de selectores y datos administrables
 
-- Versión: 18
-- Fecha: 2026-08-04
-- Baseline examinado: corte ejecutable J11-S8-C03 posterior a J11-S8-C02; Sprint 8 abierto
+- Versión: 19
+- Fecha: 2026-08-05
+- Baseline examinado: candidata local J11-S8-C07 posterior a J11-S8-C06; Sprint 8 abierto
 - Decisión: [ADR-0028](../adr/0028-gobierno-de-selectores-y-datos-administrables.md)
 - Alcance: código fuente ejecutable; no cuenta `target/` ni mocks de prueba
 
@@ -22,7 +22,7 @@ El baseline declara 91 selectores lógicos:
 pero no son tres fuentes adicionales: materializan los 73 campos declarados por
 los plugins.
 
-`plugin-api` 0.4.2 y el shell materializan un mismo patrón neutral sin fingir que
+`plugin-api` 0.4.3 y el shell materializan un mismo patrón neutral sin fingir que
 el kernel es un plugin. Los 73 selectores de plugins publican
 `SelectorSourceDefinition`; los 18 nativos publican
 `PlatformSelectorSourceDefinition`. El inventario lógico y la cobertura
@@ -66,13 +66,18 @@ descubribilidad y metadatos, no crear una tabla genérica de opciones.
 `reference_data` es un plugin funcional compartido, no una responsabilidad del
 kernel. Su API pública Java pura expone publicaciones, países y monedas por
 `CompanyId`; su esquema privado conserva procedencia, hash, completitud y políticas
-de habilitación. La ruta `/reference-data` es de sólo lectura y exige
-`reference_data.view`.
+de habilitación. J11-S8-C06 agrega V2 append-only, versión optimista y auditoría
+técnica para cambiar únicamente la disponibilidad empresarial de códigos vigentes.
+La ruta `/reference-data` y los enlaces **Administrar** exigen
+`reference_data.policy.manage`; el servidor vuelve a resolver empresa, permiso,
+código y versión en cada cambio.
 
-El corte inicial está marcado `BOOTSTRAP_SUBSET` y contiene `PY`, `PYG` y `USD`.
-No admite altas arbitrarias ni acceso a Internet en runtime. Las listas completas,
-reconciliación, retirados, administración de políticas y paginación siguen en la
-épica normativa.
+V4 conserva el `BOOTSTRAP_SUBSET` histórico y publica ediciones `FULL` corrientes
+con 248 países y 178 códigos únicos de moneda o fondo. Los 13 valores SIX cuya
+unidad menor es `N.A.` se representan como ausencia, no como cero. No admite altas
+arbitrarias ni acceso a Internet en runtime. Inhabilitar conserva documentos,
+referencias e historial y sólo impide usos nuevos. La pantalla propietaria y los
+consumidores filtran y paginan en servidor con un máximo de 50 filas por solicitud.
 
 ## `business_partners`
 
@@ -81,7 +86,7 @@ reconciliación, retirados, administración de políticas y paginación siguen e
 | `search_role` | cliente, proveedor | estado cerrado del rol | correcto |
 | `search_state` | activo, inactivo | estado cerrado | correcto |
 | `new_kind` | organización, persona física | tipo estructural cerrado | correcto |
-| `identification_country` | países habilitados de `reference-data-api` | catálogo normativo | selector; revalidación por empresa/código dentro de la transacción |
+| `identification_country` | países habilitados de `reference-data-api` | catálogo normativo | `SEARCH_ON_DEMAND`, máximo 50; revalidación por empresa/código dentro de la transacción |
 | `identification_type` | `business_partner_definition` y revisión, clase `IDENTIFICATION_TYPE` | catálogo empresarial | administrable en **Definiciones de socios**; sólo activos en identificaciones nuevas y referencia revalidada en servidor |
 | `address_type` | `business_partner_definition` y revisión, clase `ADDRESS_TYPE` | catálogo empresarial | administrable en **Definiciones de socios**; sólo activos en direcciones nuevas y referencia revalidada en servidor |
 | `address_purpose` | `business_partner_definition` y revisión, clase `ADDRESS_PURPOSE` | catálogo empresarial | administrable en **Definiciones de socios**; sólo activos en direcciones nuevas y referencia revalidada en servidor |
@@ -99,7 +104,7 @@ existentes. País permanece fuera de este maestro empresarial y pertenece a
 |---|---|---|---|---|
 | `item_search_type`, `item_new_type` | producto/servicio | estado cerrado | versión de dominio | correcto |
 | `item_search_state`, `price_search_state`, `tax_profile_search_state`, `definition_search_state` | activo/inactivo | estado cerrado | ciclo de vida propietario | correcto |
-| `price_currency` | monedas habilitadas de `reference-data-api` | catálogo normativo | selector; revalidación por empresa/código dentro de la transacción | correcto para `PYG/USD` del subconjunto inicial |
+| `price_currency` | monedas habilitadas de `reference-data-api` | catálogo normativo | `SEARCH_ON_DEMAND`, máximo 50; revalidación por empresa/código dentro de la transacción | publicación completa sin carga inline |
 | `item_new_scope`, `item_edit_scope`, `conversion_purpose` | compra/venta/ambos | estado cerrado | versión de dominio | correcto |
 | `item_new_base_unit`, `conversion_unit`, `price_entry_unit` | `unit_definition` y `unit_definition_revision` | catálogo empresarial | pantalla Definiciones permite consultar, registrar, revisar nombre/decimales, ver historial, inactivar/reactivar, reemplazar y retornar con borrador seguro | correcto para el alcance vigente |
 | `main_category` | `category_definition` y `category_definition_revision` | catálogo empresarial | pantalla Definiciones permite consultar, registrar, revisar nombre/padre, ver historial, inactivar/reactivar y reemplazar | correcto para el alcance vigente |
@@ -190,11 +195,9 @@ para cada caracterización.
 
 ## Brechas y orden recomendado
 
-1. importar y reconciliar publicaciones completas sin confundirlas con el
-   subconjunto `PY/PYG/USD`;
-2. completar casos de uso/auditoría de políticas por empresa;
-3. decidir el umbral de búsqueda/paginación para listas normativas y empresariales grandes;
-4. repetir Docker/Playwright, la demo acumulada y los gates de recongelación antes de iniciar
+1. validar V2–V4 y sus consultas paginadas sobre PostgreSQL;
+2. repetir Docker/Compose, health, seguridad negativa y Playwright responsive;
+3. ejecutar la demo acumulada y los gates de recongelación antes de iniciar
    `purchasing`.
 
 ## Criterio de salida

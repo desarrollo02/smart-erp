@@ -337,7 +337,7 @@ public final class TrustedAccessService {
                 actor, sessionReference.companyId());
         TrustedNavigationView view = new TrustedNavigationView(
                 context,
-                user.displayName().orElse("Usuario Logixone"),
+                user.displayName().orElse("Usuario de Smart ERP"),
                 companyOptions,
                 menuItems);
         record(

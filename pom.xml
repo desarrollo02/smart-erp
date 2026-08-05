@@ -9,7 +9,7 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Logixone Jakarta 11</name>
+    <name>Smart ERP Jakarta 11</name>
     <description>ERP modular basado en plugins sobre Jakarta EE 11</description>
 
     <properties>

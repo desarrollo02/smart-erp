@@ -13,7 +13,7 @@
     <artifactId>kernel-application</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Kernel Application</name>
+    <name>Smart ERP Kernel Application</name>
 
     <dependencies>
         <dependency>

@@ -7,11 +7,13 @@ import py.com.logixone.plugin.api.ContributionId;
 public final class ReferenceDataPermissions {
 
     public static final ContributionId VIEW = new ContributionId("reference_data.view");
+    public static final ContributionId POLICY_MANAGE =
+            new ContributionId("reference_data.policy.manage");
 
     private ReferenceDataPermissions() {
     }
 
     public static List<ContributionId> all() {
-        return List.of(VIEW);
+        return List.of(VIEW, POLICY_MANAGE);
     }
 }

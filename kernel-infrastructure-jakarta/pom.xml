@@ -13,7 +13,7 @@
     <artifactId>kernel-infrastructure-jakarta</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Kernel Infrastructure Jakarta</name>
+    <name>Smart ERP Kernel Infrastructure Jakarta</name>
 
     <dependencies>
         <dependency>

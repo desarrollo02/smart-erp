@@ -1,14 +1,14 @@
-# Manual de usuario de Logixone
+# Manual de usuario de Smart ERP
 
-- Edición: 0.1-rc24
-- Fecha: 2026-08-04
-- Baseline: J11-S8-C03 en ejecución con datos de referencia `PY/PYG/USD`, país y moneda normativos; J11-S8-C02 mantiene familias de variantes y definiciones de socios,
+- Edición: 0.1-rc28
+- Fecha: 2026-08-05
+- Baseline: J11-S8-C07 implementa publicaciones completas, búsqueda paginada y unidad menor opcional para datos de referencia; J11-S8-C06 mantiene la habilitación empresarial versionada; J11-S8-C02 mantiene familias de variantes y definiciones de socios,
   ciclo activo/inactivo de definiciones simples/perfiles/tipos de canal/familias y revisión explícita
   e historial visible tributarios, revisión/historial visible y reemplazo seguro de definiciones simples,
-  revisión de nombre e historial visible de definiciones de socios, revisión estructural/historial visible de familias y asignación versionada de familias a artículos, gobierno de 91/91 selectores y retorno seguro de selectores de plugins y de los 11 usos nativos administrables implementados; demo final
-  `J11-S8-07` e instalador interno
-  `0.8.0-internal.1` pertenecen a un baseline anterior; recongelación y decisión
-  sobre un instalador nuevo pendientes
+  revisión de nombre e historial visible de definiciones de socios, revisión estructural/historial visible de familias y asignación versionada de familias a artículos, gobierno de 91/91 selectores y retorno seguro de selectores de plugins y de los 11 usos nativos administrables implementados; C06/C07 quedó ejecutada y revisada en 375, 720 y 1280 px; la demo final
+  `J11-S8-07` y el instalador interno `0.8.0-internal.1` pertenecen a un baseline
+  anterior; el PDF del corte está verificado y producto decidió `NO` crear un
+  instalador hasta disponer de una versión comercializable útil para un negocio
 - Idioma: español
 - Estado: manual inicial; producto no autorizado aún para producción
 - Audiencia: operadores, responsables de maestros comerciales y administradores
@@ -16,11 +16,11 @@
 
 ## 1. Qué permite hacer esta edición
 
-Logixone es un ERP modular. La candidata actual permite:
+Smart ERP es un ERP modular. La candidata actual permite:
 
 - iniciar y cerrar sesión mediante el proveedor de identidad;
 - trabajar con una o varias empresas autorizadas;
-- consultar países, monedas, procedencia y alcance del subconjunto normativo;
+- consultar y buscar países, monedas, procedencia y alcance de publicaciones normativas;
 - administrar socios comerciales y registrar, revisar, consultar el historial e
   inactivar/reactivar los tipos de canal propios de cada empresa;
 - administrar artículos, servicios, unidades, categorías, marcas y etiquetas,
@@ -84,6 +84,11 @@ http://localhost:18080/logixone/faces/app/index.xhtml
 El usuario ficticio es `demo.empresas.ab`. Su contraseña se consulta localmente en
 el archivo de secreto; nunca debe copiarse a este manual, un chat o una captura.
 
+La marca visible vigente es **Smart ERP**. Por compatibilidad, la URL conserva el
+contexto técnico `/logixone`, y el instalador interno del baseline anterior aún
+conserva `Logixone` en su nombre de archivo y en algunos textos. Esos
+identificadores no cambian en este rebranding seguro.
+
 ### 4.1 Montar la demo con el instalador interno
 
 Este recorrido corresponde a un implementador o evaluador autorizado, no al
@@ -98,11 +103,13 @@ empresa.
 4. Compruebe componentes, versiones, licencias, descargas, rutas, puertos, UAC y
    reinicios propuestos.
 5. Marque el consentimiento sólo si entiende y acepta el plan completo.
-6. Pulse **Instalar Logixone** y siga el progreso. No abra ni copie los secretos.
+6. Pulse **Instalar Logixone** y siga el progreso. Es el texto legado del
+   instalador interno anterior; no cambia la identidad de Smart ERP. No abra ni
+   copie los secretos.
 7. Espere migración, liveness y readiness `UP` antes de abrir la URL inicial.
 
 **Resultado esperado:** verá la confirmación de instalación/reparación y el acceso
-a Logixone. Una reparación reutiliza secretos y volúmenes existentes; no debe
+a Smart ERP. Una reparación reutiliza secretos y volúmenes existentes; no debe
 vaciar los datos de la demo.
 
 **Si falla:** conserve el log indicado, anote la fase y el mensaje, y contacte al
@@ -151,7 +158,7 @@ plugins. En esta edición puede mostrar:
 - **Definiciones del catálogo** y **Perfiles tributarios**, con el permiso de
   definiciones;
 - **Listas de precios**;
-- **Datos de referencia**, con `reference_data.view`;
+- **Datos de referencia**, con `reference_data.policy.manage`;
 - **Existencias**, **Depósitos** y **Conteos**, cuando `inventory` esté activo y el
   usuario tenga `inventory.view`;
 - un panel técnico de referencia en ambientes de desarrollo;
@@ -211,9 +218,10 @@ Para cada alta:
 4. pulse la acción de guardar o agregar;
 5. espere el mensaje de confirmación y el dato actualizado.
 
-El país se elige de la publicación habilitada para la empresa. En este corte sólo
-está disponible **Paraguay (PY)**. Si falta un país, no escriba otro código ni use
-SQL: solicite la incorporación controlada de una publicación completa.
+El país se elige de la publicación habilitada para la empresa. Escriba código o
+nombre, pulse **Buscar** y seleccione uno de los resultados; el servidor muestra
+como máximo 50 por página. Si falta un país, no escriba otro código ni use SQL:
+revise su habilitación en **Datos de referencia** y comunique la incidencia.
 
 ### 7.4 Administrar definiciones de socios
 
@@ -548,22 +556,39 @@ y filtros de Auditoría explican que provienen del despliegue o de reglas cerrad
 no muestran un botón para inventar opciones. La ausencia del botón no concede ni
 deniega por sí sola: la pantalla de destino siempre revalida la autorización.
 
-### 8.8 Consultar datos de referencia
+### 8.8 Administrar datos de referencia
 
-**Permiso:** `reference_data.view`.
+**Permiso:** `reference_data.policy.manage`.
 
 1. Abra **Datos de referencia**.
 2. Compruebe la publicación de países y la de monedas.
-3. Revise código, nombre, número normativo, publicación y estado para la empresa.
-4. Confirme que el aviso indica `BOOTSTRAP_SUBSET` antes de usar el catálogo.
+3. Seleccione el catálogo, escriba parte del código o nombre y pulse **Buscar**.
+4. Recorra **Anterior**/**Siguiente** si hay más resultados; cada página contiene
+   como máximo 50 filas.
+5. Revise código, nombre, número normativo, publicación y estado para la empresa.
+6. Abra el código que desea administrar y revise **Estado empresarial** y
+   **Versión**.
+7. Use la pestaña **Estado** para **Inhabilitar referencia** o
+   **Habilitar referencia**.
+8. Abra **Historial** y confirme la nueva versión, el estado y la fecha.
 
-**Resultado esperado:** aparecen Paraguay (`PY`/`PRY`/`600`), guaraní
-(`PYG`/`600`, cero decimales) y dólar estadounidense (`USD`/`840`, dos
-decimales), junto con la procedencia y el SHA-256 de cada publicación.
+![Directorio de datos de referencia en ancho expandido](../evidence/screenshots/J11-S8-C07/e2e/reference-data-expanded-1280.png)
 
-La pantalla es de sólo lectura. No ofrece **Agregar** porque un código normativo
-no se inventa desde la interfaz. Si faltan datos o la publicación no aparece,
-detenga el alta afectada y comuníquelo por el canal de soporte.
+![Historial de una política en ancho compacto](../evidence/screenshots/J11-S8-C07/e2e/reference-data-policy-history-compact-375.png)
+
+**Resultado esperado:** la publicación corriente informa 248 países y 178 códigos
+únicos de moneda o fondo, junto con procedencia y SHA-256. Guaraní (`PYG`) muestra
+cero decimales y dólar estadounidense (`USD`) dos. Cuando SIX informa `N.A.`, la
+pantalla muestra **N.A.**: significa que la unidad menor no aplica y no equivale a
+cero. Cada cambio afecta sólo a la empresa activa y conserva una revisión; una
+referencia sin cambio explícito está habilitada con versión cero.
+
+La búsqueda sin coincidencias muestra un estado vacío: ajuste el texto o quite el
+filtro; no escriba un código libre. La pantalla no ofrece **Agregar** porque un código normativo no se inventa desde
+la interfaz. Inhabilitar afecta usos nuevos, no borra documentos ni referencias
+históricas. Si informa conflicto de versión, vuelva al directorio, abra otra vez
+el código y repita la decisión sobre la versión vigente. Si faltan datos o la
+publicación no aparece, detenga el alta afectada y comuníquelo por soporte.
 
 ## 9. Listas de precios
 
@@ -574,14 +599,15 @@ detenga el alta afectada y comuníquelo por el canal de soporte.
 1. Abra **Listas de precios**.
 2. Pulse **Nueva lista de precios**.
 3. Ingrese código y nombre.
-4. Seleccione una moneda habilitada y luego política de impuestos, escala y
-   redondeo.
+4. En moneda escriba código o nombre, pulse **Buscar**, recorra resultados si hace
+   falta y seleccione una opción habilitada; luego elija política de impuestos,
+   escala y redondeo.
 5. Revise vigencia y estado.
 6. Pulse **Registrar**.
 
-**Límite actual:** el selector normativo ofrece únicamente `PYG` y `USD`. Si la
-empresa necesita otra moneda, no escriba un código libre; falta incorporar y
-aprobar la publicación completa.
+El selector no carga las 178 opciones dentro del formulario: busca en servidor y
+muestra hasta 50 por página. Si una moneda no aparece, compruebe el texto, la
+publicación y su habilitación empresarial; no escriba un código libre.
 
 ### 9.2 Agregar un precio
 
@@ -622,7 +648,8 @@ Estas tareas no pertenecen a un operador normal.
 Para el perfil actual, habilite primero `reference_data`, luego
 `business_partners`, después `commercial_catalog` y finalmente `inventory`. El
 sistema rechazará un orden incompatible; no intente evitar la dependencia por
-SQL. Para consultar procedencia, conceda además `reference_data.view`.
+SQL. Para administrar disponibilidad y consultar procedencia desde la pantalla,
+conceda además `reference_data.policy.manage`.
 
 No use SQL directo. Una personalización empresarial es obligatoria y distinta por
 empresa; cambiarla requiere un flujo autorizado y compatible.
@@ -630,15 +657,15 @@ empresa; cambiarla requiere un flujo autorizado y compatible.
 ### 10.2 Crear un usuario y darle acceso a una empresa
 
 La cuenta se configura en dos sistemas. **Keycloak** conserva la identidad,
-contraseña y autenticación; **Logixone** conserva el usuario local, sus empresas,
+contraseña y autenticación; **Smart ERP** conserva el usuario local, sus empresas,
 roles y permisos. El flujo es:
 
 ```text
-Identidad Keycloak -> Usuario Logixone -> Membresía de empresa -> Rol -> Permisos
+Identidad Keycloak -> Usuario Smart ERP -> Membresía de empresa -> Rol -> Permisos
 ```
 
 **Requisito:** quien realiza estas tareas necesita acceso administrativo a
-Keycloak y el permiso global `kernel.security.manage` en Logixone. No comparta la
+Keycloak y el permiso global `kernel.security.manage` en Smart ERP. No comparta la
 contraseña administrativa ni la copie al manual, los logs o una captura.
 
 #### Paso A: crear la identidad que podrá iniciar sesión
@@ -653,14 +680,14 @@ contraseña administrativa ni la copie al manual, los logs o una captura.
 5. Abra **Credentials**, establezca una contraseña inicial y decida si será
    temporal. Una contraseña temporal obliga al usuario a cambiarla al entrar.
 6. Obtenga el identificador interno estable del usuario de Keycloak. Para un
-   usuario local de este realm, ese identificador es el `sub` que Logixone espera
+   usuario local de este realm, ese identificador es el `sub` que Smart ERP espera
    como **Subject OIDC**.
 
 Crear la identidad en Keycloak todavía no concede acceso a una empresa ni permisos
 funcionales. Tampoco deben usarse roles de Keycloak para sustituir los roles
-empresariales de Logixone.
+empresariales de Smart ERP.
 
-#### Paso B: registrar y autorizar al usuario en Logixone
+#### Paso B: registrar y autorizar al usuario en Smart ERP
 
 1. Entre en `Administración > Seguridad` o abra
    `/logixone/faces/admin/security.xhtml`.
@@ -680,7 +707,7 @@ empresariales de Logixone.
 
 Para autorizar al mismo usuario en otra empresa, conserve una sola identidad y un
 solo usuario local; cree otra membresía y asígnele roles propios de esa empresa.
-Logixone no crea ni cambia contraseñas, correo, MFA o recuperación de cuenta desde
+Smart ERP no crea ni cambia contraseñas, correo, MFA o recuperación de cuenta desde
 la pantalla **Seguridad**: esas tareas continúan en el proveedor OIDC.
 
 ### 10.3 Ver y otorgar los permisos de un usuario
@@ -832,7 +859,7 @@ el registro ya aparece en la búsqueda.
 
 1. Termine o cancele cualquier formulario abierto.
 2. Pulse **Cerrar sesión**.
-3. Espere la finalización en Logixone y el proveedor de identidad.
+3. Espere la finalización en Smart ERP y el proveedor de identidad.
 4. En un equipo compartido, cierre todas las pestañas del navegador.
 
 No deje una sesión empresarial abierta ni comparta credenciales.

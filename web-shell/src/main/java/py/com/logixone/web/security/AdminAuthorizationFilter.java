@@ -38,7 +38,7 @@ public class AdminAuthorizationFilter implements Filter {
                 p{margin:0;color:#3f4947;line-height:1.6}
               </style>
             </head>
-            <body><main><small>Logixone</small><h1>Acceso no disponible</h1>
+            <body><main><small>Smart ERP</small><h1>Acceso no disponible</h1>
             <p>No podemos abrir esta zona para la sesión actual.</p></main></body>
             </html>
             """;

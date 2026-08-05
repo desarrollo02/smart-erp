@@ -13,7 +13,7 @@
     <artifactId>migrator</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Migrator</name>
+    <name>Smart ERP Migrator</name>
 
     <dependencies>
         <dependency>

@@ -14,7 +14,7 @@
     <artifactId>e2e-tests</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone End-to-End Tests</name>
+    <name>Smart ERP End-to-End Tests</name>
 
     <dependencies>
         <dependency>
