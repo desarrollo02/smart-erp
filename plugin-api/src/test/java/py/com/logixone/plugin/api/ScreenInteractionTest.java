@@ -59,6 +59,37 @@ class ScreenInteractionTest {
                 "Ajusta los filtros."));
         assertThrows(IllegalArgumentException.class, () -> ScreenInteraction.Request.load(
                 Map.of(QUERY, "x".repeat(2049))));
+        assertThrows(IllegalArgumentException.class,
+                () -> new ScreenInteraction.TablePageRequest(0, 51));
+        assertThrows(IllegalArgumentException.class,
+                () -> new ScreenInteraction.SelectorOptionPage(List.of(), 0, 0, 51));
+    }
+
+    @Test
+    void carriesBoundedTableAndSelectorPagesWithoutBreakingExistingConstructors() {
+        var request = new ScreenInteraction.Request(
+                Optional.empty(),
+                Map.of(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(new ScreenInteraction.TablePageRequest(50, 50)));
+        var page = new ScreenInteraction.SelectorOptionPage(
+                List.of(new ScreenInteraction.Option("PY", "Paraguay")),
+                248,
+                0,
+                50);
+        var table = new ScreenInteraction.Table(
+                RESULTS,
+                List.of(new ScreenInteraction.Column("code", "Código")),
+                List.of(new ScreenInteraction.Row("COUNTRY:PY", List.of("PY"))),
+                248,
+                "Sin resultados",
+                "Ajusta los filtros.",
+                Optional.of(new ScreenInteraction.TablePage(0, 50)));
+
+        assertEquals(50, request.tablePage().orElseThrow().limit());
+        assertEquals(248, page.total());
+        assertEquals(50, table.page().orElseThrow().limit());
     }
 
     @Test

@@ -36,6 +36,20 @@ public class ShellTextCatalog {
         texts.put("reference_data.catalogs.results.label", "Países y monedas");
         texts.put("reference_data.catalogs.results.help",
                 "Consulta códigos normativos, publicación, procedencia y habilitación para la empresa activa.");
+        referenceDataElement(texts, "search_text", "Buscar referencia",
+                "Filtra por nombre o código dentro de la publicación corriente.");
+        referenceDataElement(texts, "search_catalog", "Catálogo",
+                "Elige países o monedas; cada página contiene hasta 50 referencias.");
+        referenceDataElement(texts, "search", "Buscar",
+                "Ejecuta el filtro en el servidor para la empresa activa.");
+        referenceDataElement(texts, "history", "Historial empresarial",
+                "Cambios de habilitación preservados para el código y la empresa activos.");
+        referenceDataElement(texts, "select_reference", "Abrir",
+                "Muestra procedencia, estado efectivo, versión e historial empresarial.");
+        referenceDataElement(texts, "enable_reference", "Habilitar referencia",
+                "Vuelve a ofrecer el código para nuevas operaciones de la empresa activa.");
+        referenceDataElement(texts, "disable_reference", "Inhabilitar referencia",
+                "Impide nuevas selecciones sin borrar documentos ni referencias históricas.");
         texts.put("business_partners.menu.directory", "Socios comerciales");
         texts.put("business_partners.menu.definitions", "Definiciones de socios");
         element(texts, "search_text", "Nombre, código o identificación", "Hasta 100 caracteres.");
@@ -365,6 +379,12 @@ public class ShellTextCatalog {
     private static void element(
             Map<String, String> texts, String elementId, String label, String help) {
         businessPartnerElement(texts, "directory", elementId, label, help);
+    }
+
+    private static void referenceDataElement(
+            Map<String, String> texts, String element, String label, String help) {
+        texts.put("reference_data.catalogs." + element + ".label", label);
+        texts.put("reference_data.catalogs." + element + ".help", help);
     }
 
     private static void businessPartnerElement(

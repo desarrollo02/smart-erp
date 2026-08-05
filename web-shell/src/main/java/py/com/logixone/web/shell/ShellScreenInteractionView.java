@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import py.com.logixone.plugin.api.ScreenElementId;
 import py.com.logixone.plugin.api.ScreenInteraction;
 import py.com.logixone.plugin.api.SelectorManagementCapability;
+import py.com.logixone.plugin.api.SelectorLoadingStrategy;
 import py.com.logixone.plugin.api.SelectorSourceDefinition;
 
 /** JSF-safe copy of neutral interactive data returned by one plugin handler. */
@@ -117,6 +118,7 @@ public final class ShellScreenInteractionView {
         private final boolean managementAvailable;
         private final String managementRoute;
         private final String managementLabel;
+        private final boolean searchOnDemand;
 
         private SelectorSourceView(SelectorSourceDefinition source, boolean authorized) {
             Objects.requireNonNull(source, "source");
@@ -128,6 +130,7 @@ public final class ShellScreenInteractionView {
                     .contains(SelectorManagementCapability.CREATE)
                     ? "Agregar o administrar"
                     : "Administrar";
+            searchOnDemand = source.loadingStrategy() == SelectorLoadingStrategy.SEARCH_ON_DEMAND;
         }
 
         public boolean isManagementAvailable() {
@@ -141,6 +144,10 @@ public final class ShellScreenInteractionView {
         public String getManagementLabel() {
             return managementLabel;
         }
+
+        public boolean isSearchOnDemand() {
+            return searchOnDemand;
+        }
     }
 
     public static final class TableView {
@@ -150,6 +157,9 @@ public final class ShellScreenInteractionView {
         private final long total;
         private final String emptyTitle;
         private final String emptyDescription;
+        private final boolean paged;
+        private final int offset;
+        private final int pageSize;
 
         private TableView(ScreenInteraction.Table table) {
             elementId = table.elementId().value();
@@ -158,6 +168,9 @@ public final class ShellScreenInteractionView {
             total = table.total();
             emptyTitle = table.emptyTitle();
             emptyDescription = table.emptyDescription();
+            paged = table.page().isPresent();
+            offset = table.page().map(ScreenInteraction.TablePage::offset).orElse(0);
+            pageSize = table.page().map(ScreenInteraction.TablePage::limit).orElse(0);
         }
 
         public String getElementId() {
@@ -186,6 +199,34 @@ public final class ShellScreenInteractionView {
 
         public boolean isRowsEmpty() {
             return rows.isEmpty();
+        }
+
+        public boolean isPaged() {
+            return paged;
+        }
+
+        public int getOffset() {
+            return offset;
+        }
+
+        public int getPageSize() {
+            return pageSize;
+        }
+
+        public boolean isHasPreviousPage() {
+            return paged && offset > 0;
+        }
+
+        public boolean isHasNextPage() {
+            return paged && offset + rows.size() < total;
+        }
+
+        public long getFirstVisible() {
+            return rows.isEmpty() ? 0 : offset + 1L;
+        }
+
+        public long getLastVisible() {
+            return offset + rows.size();
         }
     }
 

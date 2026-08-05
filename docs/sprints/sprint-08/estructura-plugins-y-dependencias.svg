@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1000" viewBox="0 0 1440 1000" role="img" aria-labelledby="title description">
-  <title id="title">Estructura de plugins y dependencias de Logixone en J11-S8-C03</title>
+  <title id="title">Estructura de plugins y dependencias de Smart ERP en J11-S8-C07</title>
   <desc id="description">Cuatro plugins productivos y tres fixtures se componen en un único plugin set. Business Partners y Commercial Catalog requieren Reference Data versión 1.x. Inventory requiere Commercial Catalog versión 1.x. WAR y migrador usan la misma selección de siete plugins.</desc>
   <defs>
     <marker id="blue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1565c0"/></marker>
@@ -18,21 +18,21 @@
     </style>
   </defs>
   <rect width="1440" height="1000" fill="#fff"/>
-  <text x="48" y="50" class="title">Plugins y dependencias — Sprint 8 / J11-S8-C03</text>
-  <text x="48" y="78" class="sub">with-inventory-demo · siete plugins físicos · corte normativo validado · recongelación pendiente</text>
+  <text x="48" y="50" class="title">Plugins y dependencias — Sprint 8 / J11-S8-C07</text>
+  <text x="48" y="78" class="sub">with-inventory-demo · siete plugins físicos · candidata estática validada · runtime y recongelación pendientes</text>
 
   <rect x="40" y="100" width="1360" height="145" rx="20" class="lane"/>
   <text x="62" y="130" class="laneTitle">CONTRATOS PÚBLICOS JAVA PUROS</text>
-  <rect x="55" y="155" width="205" height="62" rx="12" class="contract"/><text x="157" y="181" text-anchor="middle" class="nodeTitle">reference-data-api</text><text x="157" y="203" text-anchor="middle" class="body">1.0.0</text>
+  <rect x="55" y="155" width="205" height="62" rx="12" class="contract"/><text x="157" y="181" text-anchor="middle" class="nodeTitle">reference-data-api</text><text x="157" y="203" text-anchor="middle" class="body">1.1.0</text>
   <rect x="275" y="155" width="210" height="62" rx="12" class="contract"/><text x="380" y="181" text-anchor="middle" class="nodeTitle">business-partners-api</text><text x="380" y="203" text-anchor="middle" class="body">1.0.0</text>
   <rect x="500" y="155" width="220" height="62" rx="12" class="contract"/><text x="610" y="181" text-anchor="middle" class="nodeTitle">commercial-catalog-api</text><text x="610" y="203" text-anchor="middle" class="body">1.0.0</text>
   <rect x="735" y="155" width="185" height="62" rx="12" class="contract"/><text x="827" y="181" text-anchor="middle" class="nodeTitle">inventory-api</text><text x="827" y="203" text-anchor="middle" class="body">1.0.0</text>
   <rect x="935" y="155" width="195" height="62" rx="12" class="contract"/><text x="1032" y="181" text-anchor="middle" class="nodeTitle">kernel-api</text><text x="1032" y="203" text-anchor="middle" class="body">empresa y seguridad</text>
-  <rect x="1145" y="155" width="230" height="62" rx="12" class="contract"/><text x="1260" y="181" text-anchor="middle" class="nodeTitle">plugin-api 0.4.2</text><text x="1260" y="203" text-anchor="middle" class="body">descriptor, menú y UI</text>
+  <rect x="1145" y="155" width="230" height="62" rx="12" class="contract"/><text x="1260" y="181" text-anchor="middle" class="nodeTitle">plugin-api 0.4.3</text><text x="1260" y="203" text-anchor="middle" class="body">descriptor, menú y UI</text>
 
   <rect x="40" y="270" width="1360" height="440" rx="20" class="lane"/>
   <text x="62" y="301" class="laneTitle">SIETE PLUGINS FÍSICOS</text>
-  <rect x="55" y="340" width="235" height="98" rx="15" class="foundation"/><text x="172" y="371" text-anchor="middle" class="nodeTitle">reference_data 1.0.0</text><text x="172" y="395" text-anchor="middle" class="body">FUNCIONAL · fundación R0</text><text x="172" y="417" text-anchor="middle" class="body">plg_reference_data V1</text>
+  <rect x="55" y="340" width="235" height="98" rx="15" class="foundation"/><text x="172" y="371" text-anchor="middle" class="nodeTitle">reference_data 1.1.0</text><text x="172" y="395" text-anchor="middle" class="body">FUNCIONAL · fundación R0</text><text x="172" y="417" text-anchor="middle" class="body">plg_reference_data V1–V4</text>
   <rect x="315" y="340" width="250" height="98" rx="15" class="product"/><text x="440" y="371" text-anchor="middle" class="nodeTitle">business_partners 1.0.0</text><text x="440" y="395" text-anchor="middle" class="body">FUNCIONAL productivo</text><text x="440" y="417" text-anchor="middle" class="body">plg_business_partners V1–V4</text>
   <rect x="590" y="340" width="265" height="98" rx="15" class="product"/><text x="722" y="371" text-anchor="middle" class="nodeTitle">commercial_catalog 1.0.0</text><text x="722" y="395" text-anchor="middle" class="body">FUNCIONAL productivo</text><text x="722" y="417" text-anchor="middle" class="body">plg_commercial_catalog V1–V4</text>
   <rect x="880" y="340" width="225" height="98" rx="15" class="product"/><text x="992" y="371" text-anchor="middle" class="nodeTitle">inventory 1.0.0</text><text x="992" y="395" text-anchor="middle" class="body">FUNCIONAL productivo</text><text x="992" y="417" text-anchor="middle" class="body">plg_inventory V1–V2</text>

@@ -95,6 +95,16 @@ Esta limpieza detiene crecimiento futuro, pero no reduce el peso del historial y
 publicado. Cualquier compactación histórica exigiría otra decisión explícita y no
 forma parte de esta historia.
 
+## Aislamiento operativo aprobado
+
+Por decisión del responsable de producto del 2026-08-05, toda automatización
+posterior debe usar toolchains gobernadas bajo `.tools/` y materializaciones de
+prueba bajo `.tools/tmp/validation/`. No se utilizarán ni alterarán IntelliJ IDEA,
+su compilador, su servidor de build, el WildFly configurado por el usuario ni
+otros runtimes instalados globalmente para construir, probar o diagnosticar el
+proyecto. Los puentes inevitables de plataforma quedan limitados a Git,
+PowerShell, sistema operativo, Docker/Compose y navegador.
+
 ## Protecciones y políticas de Pull Request
 
 ### `main`

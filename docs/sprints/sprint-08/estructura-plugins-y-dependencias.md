@@ -1,8 +1,8 @@
 # Estructura de plugins y dependencias — Sprint 8
 
-- Fotografía del baseline candidato: `J11-S8-C03`, corte normativo
-- Fecha: 2026-08-04
-- Estado: baseline reabierto; corte validado, recongelación e instalador pendientes
+- Fotografía del baseline candidato: `J11-S8-C07`, publicaciones completas
+- Fecha: 2026-08-05
+- Estado: fotografía técnica recongelada desde código real; PDF verificado; instalador `NO`; G7 pendiente
 - Perfil demostrado: `with-inventory-demo`
 - Fuente de verdad: POM, `PluginDefinition`, migraciones y selección física de
   `distribution/logixone-plugin-set`
@@ -29,15 +29,15 @@ morado significa selección o empaquetado físico.
 flowchart LR
     subgraph contracts["Contratos públicos Java puros"]
         kernelApi["kernel-api"]
-        pluginApi["plugin-api 0.4.2"]
-        referenceDataApi["reference-data-api 1.0.0"]
+        pluginApi["plugin-api 0.4.3"]
+        referenceDataApi["reference-data-api 1.1.0"]
         bpApi["business-partners-api 1.0.0"]
         catalogApi["commercial-catalog-api 1.0.0"]
         inventoryApi["inventory-api 1.0.0"]
     end
 
     subgraph runtime["Plugins físicos del perfil Sprint 8"]
-        referenceData["reference_data 1.0.0\nFUNCIONAL productivo"]
+        referenceData["reference_data 1.1.0\nFUNCIONAL productivo"]
         bp["business_partners 1.0.0\nFUNCIONAL productivo"]
         catalog["commercial_catalog 1.0.0\nFUNCIONAL productivo"]
         inventory["inventory 1.0.0\nFUNCIONAL productivo"]
@@ -103,7 +103,7 @@ flowchart LR
 
 | Plugin | Clase/propietario | Versión | Contrato público | Esquema/migraciones | Menús/rutas | Permisos | Dependencias de plugin |
 |---|---|---:|---|---|---|---|---|
-| `reference_data` | Funcional productivo compartido | 1.0.0 | `reference-data-api` 1.0.0 | `plg_reference_data` V1, 5 tablas | Datos de referencia, `/reference-data` | `view` | ninguna |
+| `reference_data` | Funcional productivo compartido | 1.1.0 | `reference-data-api` 1.1.0 | `plg_reference_data` V1–V4, 6 tablas | Datos de referencia, `/reference-data` | `view`, `policy.manage` | ninguna |
 | `business_partners` | Funcional productivo | 1.0.0 | `business-partners-api` 1.0.0; consume `reference-data-api` | `plg_business_partners` V1–V4, 10 tablas | Socios comerciales, `/business-partners`; Definiciones de socios, `/business-partners/definitions` | `view`, `manage`, `roles.manage`, `lifecycle.manage` | `reference_data` requerido, `[1.0.0,2.0.0)` |
 | `commercial_catalog` | Funcional productivo | 1.0.0 | `commercial-catalog-api` 1.0.0; consume `reference-data-api` | `plg_commercial_catalog` V1–V4, 26 tablas | Artículos y servicios, `/catalog`; Listas de precios, `/catalog/price-lists`; Perfiles tributarios, `/catalog/tax-profiles`; Definiciones, `/catalog/definitions`; Variantes, `/catalog/variants` | `view`, `items.manage`, `prices.manage`, `definitions.manage` | `reference_data` requerido, `[1.0.0,2.0.0)` |
 | `inventory` | Funcional productivo | 1.0.0 | `inventory-api` 1.0.0 | `plg_inventory` V1–V2, 10 tablas | Existencias, `/inventory`; Depósitos, `/inventory/warehouses`; Conteos físicos, `/inventory/counts` | `view`, `storage.manage`, `items.manage`, `movements.post`, `reservations.manage`, `counts.manage`, `adjustments.post` | `commercial_catalog` requerido, `[1.0.0,2.0.0)` |
@@ -123,9 +123,9 @@ inventario.
 | `with-reference-data` | datos de referencia | fundación normativa aislada |
 | `with-reference-plugin` | referencia | descubrimiento mínimo |
 | `with-screen-customization-plugins` | referencia + A/B | overlays y aislamiento |
-| `with-business-partners-demo` | datos normativos + fixture A/B + socios | candidata Sprint 6 actualizada por C03 |
-| `with-commercial-catalog-demo` | datos normativos + fixture A/B + socios + catálogo | candidata Sprint 7 actualizada por C03 |
-| `with-inventory-demo` | datos normativos + fixture A/B + socios + catálogo + inventario | candidata técnica Sprint 8 actualizada por J11-S8-C03 |
+| `with-business-partners-demo` | datos normativos + fixture A/B + socios | candidata Sprint 6 actualizada por C07 |
+| `with-commercial-catalog-demo` | datos normativos + fixture A/B + socios + catálogo | candidata Sprint 7 actualizada por C07 |
+| `with-inventory-demo` | datos normativos + fixture A/B + socios + catálogo + inventario | candidata técnica Sprint 8 actualizada por J11-S8-C07 |
 
 Agregar o retirar físicamente un plugin exige rebuild/redeploy. La presencia del
 JAR no lo activa automáticamente: el kernel filtra empresa, compatibilidad,
@@ -201,17 +201,39 @@ dependencias, activación y permiso en cada operación.
   responsive están verdes; faltan publicación completa, recongelación, PDF e
   instalador.
 
+## Correcciones J11-S8-C04 a J11-S8-C07
+
+- C04 adopta gobierno Git por Sprint; no cambia módulos ni dependencias físicas;
+- C05 cambia la marca visible a Smart ERP y conserva identificadores técnicos
+  `logixone` compatibles; tampoco modifica la topología;
+- C06 agrega V2, una sexta tabla privada, políticas optimistas, historia append-only
+  y el permiso `reference_data.policy.manage`;
+- C07 eleva `plugin-api` a 0.4.3 y `reference-data-api`/`reference_data` a 1.1.0,
+  agrega V3–V4, publica 248 países y 178 códigos únicos de moneda o fondo y usa
+  búsqueda paginada máxima 50;
+- las dependencias funcionales continúan en el rango 1.x y la selección física
+  conserva exactamente siete JAR;
+- `clean verify` quedó verde en 26/26 módulos, 498 pruebas y 28 ArchUnit;
+- PostgreSQL/Testcontainers, migrator/Compose, health, OIDC, JTA aislado y
+  Playwright quedaron verdes; la demo dejó 30 capturas responsive;
+- la aplicación `j11-s8-c07-reference-data` quedó en
+  `sha256:52cf22451dc7ff89192a9b88d89e97b26b0e45f508654d67c52b6fd38b83d9fd`
+  y el migrador en
+  `sha256:1b598fb140659a04501a5890c2279c80545cf0115eba0711ef37a30cfdf19c77`.
+
 ## Riesgos y continuidad
 
-1. El instalador interno consume digests anteriores a J11-S8-C01 y quedó obsoleto;
-   debe regenerarse después de recongelar. Firma y matriz externa siguen pendientes.
+1. El instalador interno consume digests anteriores a J11-S8-C01 y quedó obsoleto.
+   Producto decidió `NO` regenerarlo: `current` permanece intacto y no representa
+   C07. Un instalador nuevo se evaluará con una versión comercializable útil para
+   al menos un tipo de negocio.
 2. Una futura valoración de inventario pertenece a contabilidad/costos, no debe
    agregarse como efecto secundario de este plugin.
 3. Compras y ventas usarán contratos públicos y snapshots; no crearán relaciones
    JPA hacia inventario o catálogo.
 4. Los fixtures A/B no sustituyen el plugin de personalización real de una empresa.
-5. `BOOTSTRAP_SUBSET` no autoriza operar fuera de `PY/PYG/USD`; publicación
-   completa e importador siguen pendientes.
+5. Las publicaciones `FULL` no sustituyen revisión de licencia, vigencia ni
+   certificación, aunque sus gates técnicos estén verdes.
 6. La siguiente fotografía debe reflejar el baseline realmente cerrado, no sólo lo
    planificado.
 

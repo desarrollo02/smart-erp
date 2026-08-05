@@ -89,5 +89,13 @@ sesión alternativa. No se reutilizaron ni extrajeron credenciales Git para llam
 la API de GitHub por otro canal. La rama publicada permanece recuperable y el
 enlace anterior deja la operación remota preparada.
 
+## Decisión posterior de aislamiento
+
+El responsable de producto indicó el 2026-08-05 que las automatizaciones futuras
+deben usar exclusivamente toolchains bajo `.tools/` y no volver a usar ni alterar
+los procesos, WildFly o herramientas instalados en IntelliJ IDEA. La regla quedó
+incorporada en `AGENTS.md` y en el manual técnico. Este cambio es documental; no
+modifica el resultado del reactor ya validado.
+
 Sprint 8 continúa abierto. Esta evidencia no autoriza crear Sprint 9, integrar el
 cierre en `main` ni crear el tag `sprint-08` antes de completar los demás gates.

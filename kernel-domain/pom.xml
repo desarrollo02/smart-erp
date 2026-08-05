@@ -13,7 +13,7 @@
     <artifactId>kernel-domain</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Kernel Domain</name>
+    <name>Smart ERP Kernel Domain</name>
 
     <dependencies>
         <dependency>

@@ -1,14 +1,14 @@
 # Construcción de la imagen Docker
 
-- Fecha: 2026-08-01
-- Estado: `J11-S8-06` validado; `J11-S8-C03` agrega `reference_data` y requiere repetir Docker/Compose
+- Fecha: 2026-08-05
+- Estado: `J11-S8-C07` validado con `reference_data` completo y Docker/Compose verde
 - Plataforma aprobada: `linux/amd64`
 
 ## Prerrequisitos
 
 - Docker Engine accesible mediante el contexto `desktop-linux`.
 - Docker Buildx y BuildKit operativos.
-- Ejecutar los comandos desde `C:\cosme\LogixoneJakarta11`.
+- Ejecutar los comandos desde `C:\cosme\smart-erp`.
 - Acceso a Docker Hub, Quay y Maven Central durante el primer build.
 - No se requiere Java ni Maven del host para construir la imagen.
 
@@ -163,6 +163,33 @@ docker build --platform linux/amd64 `
 
 La imagen de aplicación y la del migrador son una pareja inseparable de release:
 registrar ambos digests y no combinar imágenes construidas con perfiles distintos.
+
+La pareja final validada de J11-S8-C07 usa el mismo perfil y las etiquetas
+específicas siguientes:
+
+```powershell
+docker build --platform linux/amd64 `
+  --build-arg LOGIXONE_BUILD_MODE=verified `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo `
+  --tag logixone/app:j11-s8-c07-reference-data `
+  --file infra/docker/Dockerfile .
+
+docker build --platform linux/amd64 `
+  --build-arg LOGIXONE_BUILD_MODE=verified `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo `
+  --tag logixone/migrator:j11-s8-c07-reference-data `
+  --file infra/docker/Dockerfile.migrator .
+```
+
+Resultados inspeccionados para `linux/amd64`:
+
+- app: `sha256:52cf22451dc7ff89192a9b88d89e97b26b0e45f508654d67c52b6fd38b83d9fd`,
+  501.161.623 bytes, usuario `jboss`;
+- migrator: `sha256:1b598fb140659a04501a5890c2279c80545cf0115eba0711ef37a30cfdf19c77`,
+  105.478.277 bytes, usuario `10001:10001`.
+
+Son digests locales del baseline validado, no evidencia de publicación en un
+registro. No promover ni reconstruir bajo la misma etiqueta.
 
 El builder toma la versión de pgJDBC de `postgresql.jdbc.version` en el POM padre. El stage runtime instala ese JAR como módulo WildFly y ejecuta `infra/wildfly/configure-runtime.cli` al construir la imagen. El CLI guarda expresiones externas, no valores de entorno ni secretos.
 

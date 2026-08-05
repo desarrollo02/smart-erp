@@ -94,7 +94,7 @@ class BusinessPartnerScreenHandlerTest {
                 .get(BusinessPartnersScreenContract.IDENTIFICATION_TYPE).stream()
                 .map(ScreenInteraction.Option::value)
                 .toList());
-        assertEquals(List.of("PY"), result.options()
+        assertEquals(List.of(), result.options()
                 .get(BusinessPartnersScreenContract.IDENTIFICATION_COUNTRY).stream()
                 .map(ScreenInteraction.Option::value)
                 .toList());
@@ -106,6 +106,21 @@ class BusinessPartnerScreenHandlerTest {
                 .get(BusinessPartnersScreenContract.ADDRESS_PURPOSE).stream()
                 .map(ScreenInteraction.Option::value)
                 .toList());
+    }
+
+    @Test
+    void searchesCountryOptionsOnDemandWithA50OptionCeiling() {
+        ScreenInteraction.SelectorOptionPage page = handler.searchOptions(
+                new ScreenInteraction.SelectorOptionRequest(
+                        BusinessPartnersScreenContract.IDENTIFICATION_COUNTRY,
+                        "para",
+                        0,
+                        50));
+
+        assertEquals(List.of("PY"), page.options().stream()
+                .map(ScreenInteraction.Option::value).toList());
+        assertEquals(1, page.total());
+        assertEquals(List.of(BusinessPartnerPermissions.VIEW.value()), authorization.permissions);
     }
 
     @Test

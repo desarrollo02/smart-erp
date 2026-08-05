@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Estas instrucciones aplican a todo el repositorio `LogixoneJakarta11`. Un archivo `AGENTS.md` ubicado en un subdirectorio puede agregar reglas más específicas para ese módulo, sin contradecir las decisiones arquitectónicas globales.
+Estas instrucciones aplican a todo el repositorio `smart-erp`. Un archivo `AGENTS.md` ubicado en un subdirectorio puede agregar reglas más específicas para ese módulo, sin contradecir las decisiones arquitectónicas globales.
 
 ## Propósito del proyecto
 
@@ -117,15 +117,52 @@ La lógica propia de ventas, inventario, transporte, facturación u otros domini
 - Probar la configuración Compose, la construcción limpia, las migraciones, el arranque, la salud y la recreación de contenedores.
 - No depender de recursos creados manualmente que no estén declarados como código o documentados como prerrequisito.
 
-## Descargas y cachés del proyecto
+## Descargas, herramientas y aislamiento del proyecto
 
-- Todo archivo descargado para construir, probar, ejecutar o diagnosticar este proyecto debe almacenarse dentro de `C:\cosme\LogixoneJakarta11\.tools\`.
+- Todo archivo descargado para construir, probar, ejecutar o diagnosticar este
+  proyecto debe almacenarse dentro de `.tools/` en la raíz de este repositorio.
 - Usar `.tools/downloads/` para archivos originales, `.tools/jdk/` para JDK extraídos, `.tools/maven-wrapper-home/` para distribuciones del Wrapper y `.tools/maven-repository/` para dependencias Maven.
 - Las descargas parciales deben usar `.tools/tmp/`; no dejar descargas del proyecto en `C:\tmp`, el perfil del usuario u otras carpetas externas.
 - Verificar tamaño y checksum publicados antes de usar un binario descargado.
 - Documentar origen, versión, checksum, ubicación y resultado de validación.
 - `.tools/` es local y no se versiona. Tampoco debe copiarse a imágenes Docker ni artefactos de distribución.
 - No descargar nuevamente un artefacto ya validado si existe en `.tools/`; reutilizarlo por checksum.
+
+### Aislamiento obligatorio respecto del equipo del usuario
+
+- Toda automatización ejecutada en el equipo compartido con el usuario debe usar
+  las herramientas aprovisionadas y validadas bajo `.tools/`. No utilizar JDK,
+  Maven, Python, Node.js, Playwright, WildFly u otras toolchains encontradas en
+  `PATH`, `Program Files`, el perfil del usuario, la caché de Codex o una
+  instalación del IDE como sustituto de una dependencia del proyecto.
+- No inspeccionar, detener, reiniciar ni reutilizar procesos de IntelliJ IDEA, su
+  compilador, su servidor de build o el WildFly configurado por el usuario para
+  conseguir que una prueba pase. La automatización no despliega en ese servidor.
+- Antes de ejecutar una prueba automatizada, materializar el corte coherente que
+  se validará dentro de `.tools/tmp/validation/<historia>/`. Ejecutar el Wrapper
+  canónico de la raíz con `-f` apuntando al `pom.xml` de esa materialización, de
+  modo que fuentes, `target/` y artefactos de prueba no se compartan con el IDE.
+- La materialización debe provenir del índice Git preparado para la historia o de
+  otro mecanismo reproducible que incluya exactamente el cambio bajo prueba. No
+  copiar `.git`, `.tools`, `target/`, `tmp/` ni archivos ajenos sin seguimiento.
+- Los servicios requeridos por una prueba deben levantarse mediante Docker y la
+  infraestructura versionada del proyecto, usando configuración y secretos bajo
+  `.tools/`; nunca deben conectarse al WildFly, PostgreSQL u otros servicios que
+  el usuario haya configurado manualmente en su IDE.
+- Git, PowerShell, el sistema operativo, el motor Docker/Compose y el navegador
+  son puentes de plataforma inevitables. Pueden usarse sólo como prerrequisitos
+  declarados; no autorizan consumir sus SDK, runtimes o servidores instalados en
+  lugar de los artefactos gobernados bajo `.tools/`.
+- Un runner CI efímero puede aprovisionar una toolchain mediante una acción fijada
+  por SHA y versión; no es una instalación del equipo del usuario. Sus cachés,
+  descargas y temporales del proyecto permanecen bajo `.tools/` dentro del
+  workspace del job.
+- Si falta una herramienta local, detener el gate correspondiente y
+  aprovisionarla bajo `.tools/` con origen, versión, licencia y checksum
+  verificados. No recurrir silenciosamente a una instalación global.
+- Al terminar, eliminar únicamente la materialización generada después de
+  resolver su ruta absoluta y comprobar que permanece dentro de `.tools/tmp/`.
+  No borrar ni modificar los artefactos del usuario o del IDE.
 
 ### Bootstrap reproducible de Maven en Windows
 
@@ -154,11 +191,18 @@ Trabajar mediante cambios pequeños y coherentes. Después de cada cambio de có
 Secuencia mínima:
 
 1. Implementar un único cambio coherente.
-2. Ejecutar las pruebas del módulo con Maven Wrapper, por ejemplo `mvnw.cmd -pl <modulo> -am test` en Windows o `./mvnw -pl <modulo> -am test` en Linux.
-3. Ejecutar `mvnw.cmd verify` o `./mvnw verify` al completar un corte coherente.
-4. Si se afectan arquitectura o plugins, ejecutar las pruebas ArchUnit y construir la distribución con el plugin de referencia presente y ausente.
-5. Si se afectan Docker, configuración, persistencia o despliegue, construir la imagen y ejecutar las pruebas Compose, migraciones, health checks y smoke tests.
-6. Registrar el resultado y la evidencia relevante en la historia o documento del Sprint.
+2. Preparar el índice de ese cambio y materializarlo bajo
+   `.tools/tmp/validation/<historia>/`.
+3. Ejecutar las pruebas del módulo con el Maven Wrapper raíz contra esa
+   materialización, por ejemplo
+   `mvnw.cmd -f .tools/tmp/validation/<historia>/pom.xml -pl <modulo> -am test`
+   en Windows.
+4. Ejecutar
+   `mvnw.cmd -f .tools/tmp/validation/<historia>/pom.xml verify` al completar un
+   corte coherente.
+5. Si se afectan arquitectura o plugins, ejecutar las pruebas ArchUnit y construir la distribución con el plugin de referencia presente y ausente.
+6. Si se afectan Docker, configuración, persistencia o despliegue, construir la imagen y ejecutar las pruebas Compose, migraciones, health checks y smoke tests.
+7. Registrar el resultado y la evidencia relevante en la historia o documento del Sprint.
 
 No omitir, desactivar ni relajar una prueba para conseguir un build verde. Corregir la causa o documentar el bloqueo antes de continuar.
 

@@ -14,7 +14,7 @@ import py.com.logixone.plugins.referencedata.ReferenceDataScreenContract;
 class ReferenceDataScreenRendererTest {
 
     @Test
-    void rendersTheNormativeDirectoryAsAReadOnlyJourney() {
+    void rendersTheNormativeDirectoryAndGovernedPolicyJourney() {
         ShellScreenRegistry registry = new ShellScreenRegistry();
 
         assertEquals(
@@ -32,8 +32,15 @@ class ReferenceDataScreenRendererTest {
         assertEquals("Datos de referencia", view.getTitle());
         assertEquals("Países y monedas", view.getTableElement().getLabel());
         assertFalse(view.acceptsAction("register"));
-        assertEquals(0, view.getDirectorySections().size());
-        assertEquals(0, view.getDetailSections().size());
+        assertEquals("Abrir", view.getRowAction().getLabel());
+        assertEquals(2, view.getDetailTabs().size());
+        assertEquals(1, view.getDirectorySections().size());
+        assertEquals("search", view.getDirectorySections().getFirst().getId());
+        assertEquals(2, view.getDirectorySections().getFirst().getFields().size());
+        assertEquals(2, view.getDetailSections().size());
+        assertEquals("Historial empresarial", view.getDetailSections().getFirst().getTitle());
+        assertEquals("Disponibilidad para nuevas operaciones",
+                view.getDetailSections().getLast().getTitle());
     }
 
     private static ComposedScreen composed(ScreenDefinition definition) {

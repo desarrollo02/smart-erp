@@ -1,17 +1,20 @@
 # Guía de implementación del ERP por empresa
 
-- Estado: Edición candidata; J11-S8-C03 incorpora `reference_data`, metadatos 91/91, procedencia y subconjunto `PY/PYG/USD`; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
-  ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo de perfiles tributarios y familias, revisión explícita e historial visible tributario, las cuatro clases empresariales de socios y asignación versionada de familias a artículos validadas; publicación completa y paginación pendientes; Docker/Playwright de C03, recongelación, PDF, decisión de instalador, matriz externa,
-  Authenticode y G7 pendientes
-- Edición: 1.0-rc87
-- Fecha: 2026-08-04
-- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.2`; contratos `reference-data-api = 1.0.0`, `business-partners-api = 1.0.0`, `commercial-catalog-api = 1.0.0` e `inventory-api = 1.0.0`; Flyway `core` V1–V6, `plg_reference_data` V1, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2 y fixture `plg_reference_plugin` V1 validados sobre PostgreSQL 18.4; unidades JPA en modo `validate`; JTA del último baseline probado; Keycloak 26.7.0; WildFly 41 OIDC con logout preview y Jakarta Faces 4.1; composición WAR/migrador `with-inventory-demo`; contrato/renderer/metadatos 91/91, país/moneda normativos y retorno seguro de plugins/nativos administrables; baseline congelado e instalador Windows `0.8.0-internal.1` obsoletos para promoción; publicación completa, paginación, Docker/Playwright C03, recongelación y PDF pendientes; el instalador nuevo se decide al cierre
+- Estado: Edición candidata; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
+  ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo de perfiles tributarios y familias, revisión explícita e historial visible tributario, las cuatro clases empresariales de socios y asignación versionada de familias a artículos validadas; gates técnicos C06/C07 y PDF verdes; producto decidió `NO` crear instalador para este baseline; G7 pendiente
+- Edición: 1.0-rc91
+- Fecha: 2026-08-05
+- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.3`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.0.0`, `commercial-catalog-api = 1.0.0` e `inventory-api = 1.0.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4 implementada con publicaciones `FULL` de 248 países y 178 códigos únicos de moneda/fondo, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2 y fixture `plg_reference_plugin` V1; unidades JPA en modo `validate`; JTA del baseline probado; Keycloak 26.7.0; WildFly 41 OIDC con logout preview y Jakarta Faces 4.1; composición WAR/migrador `with-inventory-demo`; contrato/renderer/metadatos 91/91, país/moneda normativos bajo demanda y retorno seguro de plugins/nativos administrables; instalador Windows `0.8.0-internal.1` obsoleto para promoción y conservado intacto; PostgreSQL, Docker, JTA/OIDC, Playwright y PDF C06/C07 verdes; decisión del instalador registrada como `NO`
 - Audiencia: implementadores funcionales, desarrolladores de plugins, responsables de infraestructura y soporte de puesta en marcha
 - Fuente canónica: este documento versionado junto al código
 
 ## Propósito
 
-Enseñar, de forma progresiva y reproducible, cómo llevar Logixone desde una distribución validada hasta una implementación operativa para una empresa concreta. La guía debe permitir que un implementador comprenda el modelo antes de ejecutar comandos, tome decisiones dentro de los límites arquitectónicos y pueda verificar objetivamente el resultado.
+Enseñar, de forma progresiva y reproducible, cómo llevar Smart ERP desde una distribución validada hasta una implementación operativa para una empresa concreta. La guía debe permitir que un implementador comprenda el modelo antes de ejecutar comandos, tome decisiones dentro de los límites arquitectónicos y pueda verificar objetivamente el resultado.
+
+La marca visible es **Smart ERP**. Las coordenadas, rutas, variables y recursos
+que contienen `logixone` son identificadores técnicos heredados preservados por
+compatibilidad; no deben renombrarse durante una instalación o actualización.
 
 No es únicamente un runbook de instalación ni una referencia de API. Combina explicación conceptual, procedimiento paso a paso, ejemplos, controles de seguridad, pruebas, diagnóstico y criterios de entrega a la empresa.
 
@@ -37,7 +40,7 @@ La guía no reemplaza los [ADR](../adr/README.md), la [arquitectura vigente](../
 
 ## Recorrido de aprendizaje
 
-1. Qué es Logixone y cómo se divide en kernel, plugins funcionales y plugin de personalización empresarial.
+1. Qué es Smart ERP y cómo se divide en kernel, plugins funcionales y plugin de personalización empresarial.
 2. Qué puede configurar o extender un implementador y qué requiere cambiar contratos públicos o el producto base.
 3. Relevamiento inicial de la empresa: procesos, módulos, usuarios futuros, datos, integraciones, pantallas y requisitos no funcionales.
 4. Clasificación de cada necesidad como configuración, plugin funcional reutilizable o personalización exclusiva de la empresa.
@@ -51,9 +54,9 @@ La guía no reemplaza los [ADR](../adr/README.md), la [arquitectura vigente](../
 12. Diagnóstico de empresa no disponible, plugin ausente o incompatible, dependencia inválida, migración pendiente y personalización rechazada.
 13. Checklist de aceptación, evidencias, capacitación, traspaso y soporte posterior a la puesta en marcha.
 
-## Capítulo 1 — Qué es Logixone y qué se implementa para una empresa
+## Capítulo 1 — Qué es Smart ERP y qué se implementa para una empresa
 
-Logixone es un ERP construido como monolito modular: una única aplicación WildFly y un único WAR contienen un kernel transversal y los JAR de plugins seleccionados. La separación modular impide que el kernel se convierta en un controlador central con lógica de ventas, inventario o facturación.
+Smart ERP es un ERP construido como monolito modular: una única aplicación WildFly y un único WAR contienen un kernel transversal y los JAR de plugins seleccionados. La separación modular impide que el kernel se convierta en un controlador central con lógica de ventas, inventario o facturación.
 
 | Pieza | Responsabilidad | Quién la mantiene |
 |---|---|---|
@@ -103,11 +106,12 @@ Crear una ficha sin secretos ni datos personales innecesarios:
 10. estrategia de despliegue, reversión y soporte.
 
 Desde J11-S8-C03, documente además qué publicación de `reference_data` cubre los
-países y monedas de la empresa. El subconjunto inicial sólo habilita Paraguay,
-guaraní y dólar estadounidense; no configure una operación multinacional sobre
-`BOOTSTRAP_SUBSET`. Active `reference_data` antes de `business_partners` y
-`commercial_catalog` y conceda `reference_data.view` sólo a quienes deban revisar
-procedencia y estado.
+países y monedas de la empresa. J11-S8-C07 agrega publicaciones `FULL`, pero su
+presencia no sustituye la revisión de licencia, vigencia y necesidades de la
+empresa ni constituye certificación. Active `reference_data` antes de `business_partners` y
+`commercial_catalog`. Conceda `reference_data.policy.manage` sólo a quienes deban
+administrar disponibilidad y revisar procedencia; una inhabilitación se aplica a
+usos nuevos de la empresa y nunca reemplaza una corrección de la publicación.
 
 Matriz mínima de requisitos:
 
@@ -553,7 +557,7 @@ escribiendo directamente en tablas `core`.
 
 ## Capítulo 8 — Crear el plugin de personalización exclusivo
 
-Desde `J11-S2-07`, una personalización empresarial es un módulo Maven JAR normal incluido físicamente en la distribución. No es un archivo que se sube en ejecución. Su descriptor debe declarar `PluginKind.CUSTOMIZATION`, una identidad propia, compatibilidad con `PluginApiVersion.CURRENT = 0.4.2` y dependencias requeridas sobre cada plugin funcional cuya pantalla modifica.
+Desde `J11-S2-07`, una personalización empresarial es un módulo Maven JAR normal incluido físicamente en la distribución. No es un archivo que se sube en ejecución. Su descriptor debe declarar `PluginKind.CUSTOMIZATION`, una identidad propia, compatibilidad con `PluginApiVersion.CURRENT = 0.4.3` y dependencias requeridas sobre cada plugin funcional cuya pantalla modifica.
 
 El recorrido técnico para una empresa nueva es:
 
@@ -827,9 +831,10 @@ seguridad, retrospectiva y PDF obligatorio.
 
 ### Decisión de instalador Windows al cerrar el Sprint
 
-- [ ] se preguntó explícitamente `¿Crearemos un nuevo instalador Windows para este Sprint?`;
-- [ ] se registraron respuesta `SÍ`/`NO`, fecha, responsable y razón;
-- [ ] con `NO`, `current` quedó intacto y marcado como no representativo del
+- [x] se preguntó explícitamente `¿Crearemos un nuevo instalador Windows para este Sprint?`;
+- [x] se registraron respuesta `NO`, fecha 2026-08-05, responsable de producto y
+  razón: esperar una versión comercializable útil para al menos un tipo de negocio;
+- [x] con `NO`, `current` quedó intacto y marcado como no representativo del
   baseline nuevo;
 
 Si la respuesta es `SÍ`, completar además:
@@ -1508,7 +1513,7 @@ Reglas para una implementación empresarial:
 7. Playwright cubre alta, retorno, actualización, permiso negativo, vacío,
    inactivo, teclado y 375/720/1280 px.
 
-El baseline actual tiene 91 selectores lógicos. `plugin-api` 0.4.2 y los renderers
+El baseline actual tiene 91 selectores lógicos. `plugin-api` 0.4.3 y los renderers
 autorizados cubren 73 selectores de plugins y 18 del kernel/shell, incluidos los
 cuatro tipos de `business_partners` mediante **Definiciones de socios**. Los nativos declaran
 propietario `PLATFORM`, muestran origen/clase y sólo exponen rutas administrativas
@@ -1517,8 +1522,11 @@ cuando la autoridad global contiene el permiso declarado. La
 confirma el reemplazo seguro de unidades, categorías, marcas y etiquetas, la
 revisión/historial de familias, su asignación versionada a artículos y las
 definiciones de identificación/dirección como resueltos. País y moneda pertenecen
-a `reference_data`; los consumidores usan `reference-data-api`, ofrecen sólo
-valores habilitados y vuelven a validarlos dentro de la transacción.
+a `reference_data`; los consumidores usan `reference-data-api` 1.1.0, buscan sólo
+valores habilitados en servidor, limitan cada página a 50 y vuelven a validarlos
+dentro de la transacción. La pantalla
+propietaria exige `reference_data.policy.manage`, utiliza versión optimista y
+conserva historia append-only por empresa; no admite altas de códigos.
 Los selectores renderizados por plugins ya navegan al propietario con un contexto
 efímero de un uso, conservan por POST sólo el borrador permitido y refrescan las
 opciones al volver. Los 11 usos nativos administrables ofrecen la misma vuelta
@@ -1528,8 +1536,10 @@ El detalle de gobierno permanece en la
 [épica transversal](../backlog/epica-gobierno-selectores-datos-administrables.md)
 y el trabajo normativo en la
 [épica de datos de referencia](../backlog/epica-datos-referencia-normativos.md).
-No presente el subconjunto inicial como catálogo mundial: importación completa,
-políticas administrables y paginación siguen pendientes.
+El seed `BOOTSTRAP_SUBSET` continúa visible sólo como publicación histórica. V4
+publica 248 países y 178 códigos únicos de moneda o fondo; los 13 valores `N.A.`
+no se convierten en cero. La implementación local todavía debe superar PostgreSQL,
+Docker/Compose y Playwright antes de considerarse cerrada.
 
 ## Capacidades y límites de esta edición
 
@@ -1537,8 +1547,8 @@ políticas administrables y paginación siguen pendientes.
 |---|---|
 | empresas, activación y personalización persistidas; V4–V6, autoridad global y auditoría append-only para kernel/plugins | validación independiente de la guía candidata |
 | actor/empresa OIDC, shell y paneles administrativos validados con OIDC/Servlet/Playwright | administración productiva y operación real de una empresa futura |
-| contrato neutral 0.4.2, fuentes de plugin/plataforma tipadas 91/91, renderers JSF Material 3, interacción cerrada y retorno seguro de plugins y nativos administrables validados | tipos visuales futuros que requieran nueva versión |
-| `reference_data` con API `1.0.0`, V1 privada, procedencia, pantalla de consulta, políticas por empresa y subconjunto `PY/PYG/USD` | publicación completa, importador/reconciliación, administración de políticas, paginación y Playwright final |
+| contrato neutral 0.4.3, fuentes de plugin/plataforma tipadas 91/91, búsqueda bajo demanda y página máxima 50, renderers JSF Material 3, interacción cerrada y retorno seguro de plugins y nativos administrables validados | tipos visuales futuros que requieran nueva versión |
+| `reference_data` con API `1.1.0`, V1–V4 privadas, procedencia, políticas optimistas, publicaciones `FULL` 248/178, unidad menor opcional, importador determinista y paginación en servidor | gate PostgreSQL/Compose/Playwright de políticas, publicación y responsive |
 | JPA/JTA, PostgreSQL, dominio/API, aplicación, seguridad, UI responsive, composición, gate integral, demo oficial y PDF de `business_partners` verdes | dieciocho plugins productivos posteriores |
 | `business_partners` con API `1.0.0`, V1–V4 privadas, participantes y cuatro clases de definiciones por empresa, país resuelto por `reference-data-api`, ciclo activo/inactivo, revisión de nombre e historial append-only versionados, permisos y UI responsive | operaciones futuras sobre datos históricos |
 | `commercial_catalog` con API `1.0.0`, V1–V4 privadas, repositorios, permisos, casos de uso, auditoría, alta/consulta visual y ciclo activo/inactivo de unidades, categorías, marcas, etiquetas, perfiles tributarios y familias de variantes; revisión/historial append-only y reemplazo seguro de definiciones simples, revisión explícita/historial de perfiles, revisión estructural/historial de familias y asignación versionada a artículos | diecisiete plugins productivos posteriores |
@@ -1666,11 +1676,12 @@ decimonoveno expone la asignación neutral y vuelve a validar familia activa,
 revisión y estructura dentro de la transacción. El vigésimo amplía
 `business_partners` a cuatro clases empresariales, aplica V4 con backfill y
 revalida las referencias activas de identificación/dirección antes de persistir.
-J11-S8-C03 agrega `reference_data`, lleva el inventario a 91 selectores, registra
-fuente/hash/completitud del subconjunto `PY/PYG/USD`, convierte país y moneda en
-selectores y los revalida transaccionalmente mediante la API pública. El Sprint
-continúa abierto por publicación completa, estrategia de listas grandes,
-Docker/Playwright del corte y recongelación formal.
+J11-S8-C03 agrega `reference_data`, lleva el inventario a 91 selectores y registra
+el subconjunto `PY/PYG/USD`. J11-S8-C07 conserva ese historial, incorpora
+publicaciones `FULL` 248/178, representa `N.A.` como ausencia y convierte país y
+moneda en búsquedas paginadas con revalidación transaccional mediante la API
+pública. Los gates PostgreSQL, Docker/Compose, JTA/OIDC y Playwright del corte
+están verdes; el Sprint continúa abierto por los gates formales de cierre.
 La edición no se etiqueta como `1.0` hasta
 completar el recorrido independiente y resolver cualquier hallazgo que produzca.
 Como Sprint 8 continúa formalmente abierto, el PDF estable verificado en el corte
@@ -1717,7 +1728,7 @@ interno deberá regenerarse si la matriz o G7 modifica el baseline final de cier
 | 1.0-rc34 | 2026-07-29 | Corrección visual J11-S6-06: ADR-0018, navegación ERP, directorio/alta/ficha separados, pestañas y adaptación tabla/lista por rango |
 | 1.0-rc35 | 2026-07-30 | J11-S6-07: gates integrales, imagen final, demo responsive, conservación de datos, PDF de Sprint 6 y planificación de `commercial_catalog` |
 | 1.0-rc36 | 2026-07-30 | J11-S7-01: caracterización del catálogo legado, fronteras, casos, invariantes, snapshots y recomendaciones CC-D01 a CC-D10 |
-| 1.0-rc37 | 2026-07-30 | Guía reproducible para abrir, construir, levantar y diagnosticar Logixone con IntelliJ IDEA Ultimate 2026.2 |
+| 1.0-rc37 | 2026-07-30 | Guía reproducible para abrir, construir, levantar y diagnosticar Smart ERP con IntelliJ IDEA Ultimate 2026.2 |
 | 1.0-rc38 | 2026-07-30 | J11-S7-02: ADR-0019, API pública, dominio neutral y separación física de `commercial_catalog`; persistencia/UI pendientes |
 | 1.0-rc39 | 2026-07-30 | J11-S7-03: ADR-0020, V1 privada con veinte tablas, JPA/repositorios empresariales y secuencia atómica; aplicación/UI pendientes |
 | 1.0-rc40 | 2026-07-30 | J11-S7-04: ADR-0021, cuatro permisos, aplicación autorizada, definiciones, consultas, contratos CDI/JTA y auditoría; UI/composición pendientes |
@@ -1768,3 +1779,7 @@ interno deberá regenerarse si la matriz o G7 modifica el baseline final de cier
 | 1.0-rc85 | 2026-08-04 | J11-S8-C02 decimonoveno corte: asignación neutral y versionada de familias a artículos, selector gobernado 84/84, revalidación empresarial/estructural, PostgreSQL, reactor, imagen, health y Playwright responsive verdes |
 | 1.0-rc86 | 2026-08-04 | J11-S8-C02 vigésimo corte: definiciones empresariales de identificación/dirección, `business_partners` V4, selectores 89/89, PostgreSQL, reactor, imágenes, migración idempotente, health y Playwright responsive verdes |
 | 1.0-rc87 | 2026-08-04 | J11-S8-C03: fundación `reference_data`, API 1.0.0, V1 privada, procedencia `PY/PYG/USD`, selectores 91/91 y revalidación transaccional; Docker/Playwright y recongelación pendientes |
+| 1.0-rc88 | 2026-08-05 | J11-S8-C05: Smart ERP como marca visible; identificadores técnicos compatibles conservados y Playwright pendiente por Docker no disponible |
+| 1.0-rc89 | 2026-08-05 | J11-S8-C06: políticas de `reference_data` con permiso dedicado, versión optimista, V2 append-only, auditoría y UI neutral; gates runtime pendientes |
+| 1.0-rc90 | 2026-08-05 | J11-S8-C07: `reference-data-api` 1.1.0, `plugin-api` 0.4.3, V3–V4, publicaciones completas 248/178, `N.A.` opcional y búsqueda paginada; gates runtime pendientes |
+| 1.0-rc91 | 2026-08-05 | J11-S8-C06/C07: PostgreSQL, `clean verify`, Compose, health, JTA/OIDC y Playwright verdes; 30 capturas responsive y PDF de 98 páginas verificado; instalador `NO` hasta una versión comercializable útil; G7 pendiente |

@@ -354,7 +354,12 @@ public class ShellScreenRegistry {
 
     private static List<SectionSpec> directorySpecs(ScreenId screenId) {
         if (REFERENCE_DATA_CATALOGS.equals(screenId)) {
-            return List.of();
+            return List.of(sectionSpec(
+                    "search",
+                    "search_actions",
+                    "search",
+                    "Buscar datos de referencia",
+                    "Filtra una publicación corriente por nombre o código, con hasta 50 filas por página."));
         }
         if (BUSINESS_PARTNERS_SCREEN.equals(screenId)) {
             return List.of(
@@ -431,7 +436,13 @@ public class ShellScreenRegistry {
 
     private static List<SectionSpec> detailSpecs(ScreenId screenId) {
         if (REFERENCE_DATA_CATALOGS.equals(screenId)) {
-            return List.of();
+            return List.of(
+                    sectionSpec("history", "history_actions", "history",
+                            "Historial empresarial",
+                            "Consulta cambios preservados sin alterar la publicación normativa."),
+                    sectionSpec("policy", "policy_actions", "lifecycle",
+                            "Disponibilidad para nuevas operaciones",
+                            "Habilitar o inhabilitar conserva documentos y referencias históricas."));
         }
         if (BUSINESS_PARTNERS_SCREEN.equals(screenId)) {
             return List.of(
@@ -583,10 +594,12 @@ public class ShellScreenRegistry {
                         "Sin altas manuales",
                         "Volver a datos de referencia",
                         "Consulta códigos, versión de publicación y habilitación para la empresa activa.",
-                        "El corte inicial contiene sólo PY, PYG y USD y se identifica como subconjunto."),
-                Set.of(),
-                Set.of(),
-                List.of());
+                        "La publicación corriente contiene 248 países y 178 códigos de moneda o fondo; las listas se buscan y paginan en servidor."),
+                Set.of("search", "history"),
+                Set.of("search_actions", "policy_actions"),
+                List.of(
+                        new DetailTabSpec("history", "Historial"),
+                        new DetailTabSpec("lifecycle", "Estado")));
     }
 
     private static EntityScreenSpec businessPartnersSpec() {

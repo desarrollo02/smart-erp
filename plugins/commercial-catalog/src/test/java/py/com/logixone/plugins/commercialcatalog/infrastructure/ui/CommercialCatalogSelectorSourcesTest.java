@@ -53,6 +53,11 @@ class CommercialCatalogSelectorSourcesTest {
                         .get(CommercialCatalogScreenContract.PRICE_CURRENCY)
                         .ownerPluginId().value());
         assertEquals(
+                py.com.logixone.plugin.api.SelectorLoadingStrategy.SEARCH_ON_DEMAND,
+                CommercialCatalogSelectorSources.PRICE_LISTS
+                        .get(CommercialCatalogScreenContract.PRICE_CURRENCY)
+                        .loadingStrategy());
+        assertEquals(
                 CommercialCatalogScreenContract.DEFINITIONS_ROUTE,
                 CommercialCatalogSelectorSources.PRICE_LISTS
                         .get(CommercialCatalogScreenContract.PRICE_ENTRY_UNIT)

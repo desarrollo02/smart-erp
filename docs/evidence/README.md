@@ -6,6 +6,7 @@ No versionar secretos ni volcados completos que contengan información sensible.
 
 ## Índice
 
+- [J11-S8-C05 — Cambio de marca seguro a Smart ERP](J11-S8-C05-marca-smart-erp.md)
 - [J11-S8-C04 — Gobierno Git y ramas por Sprint](J11-S8-C04-gobierno-git-ramas.md)
 - [J11-S1-01 — Validación documental y arquitectónica](J11-S1-01-validacion-documental.md)
 - [J11-S1-02 — Validación del esqueleto Maven](J11-S1-02-validacion-build.md)
@@ -91,3 +92,5 @@ No versionar secretos ni volcados completos que contengan información sensible.
 - [J11-S8-08 — Instalador Windows interno, reparación y demo](J11-S8-08-instalador-windows-cierre.md)
 - [J11-S8-C01 — Administración visual de perfiles tributarios](J11-S8-C01-administracion-perfiles-tributarios.md)
 - [ADR-0028/0029 — Gobierno de selectores y confirmación del instalador](ADR-0028-0029-selectores-confirmacion-instalador.md)
+- [J11-S8-C06 — Políticas empresariales de datos de referencia](J11-S8-C06-politicas-reference-data.md)
+- [J11-S8-C07 — Publicaciones completas de datos de referencia](J11-S8-C07-publicaciones-completas-reference-data.md)

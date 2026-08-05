@@ -13,7 +13,7 @@
     <artifactId>plugin-api</artifactId>
     <packaging>jar</packaging>
 
-    <name>Logixone Plugin API</name>
+    <name>Smart ERP Plugin API</name>
 
     <dependencies>
         <dependency>

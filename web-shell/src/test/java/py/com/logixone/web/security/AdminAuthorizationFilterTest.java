@@ -73,6 +73,8 @@ class AdminAuthorizationFilterTest {
         assertEquals(HttpServletResponse.SC_FORBIDDEN, response.status);
         assertEquals("UTF-8", response.characterEncoding);
         assertEquals("text/html", response.contentType);
+        assertTrue(response.body.toString().contains("<small>Smart ERP</small>"));
+        assertFalse(response.body.toString().contains("<small>Logixone</small>"));
         assertTrue(response.body.toString().contains("Acceso no disponible"));
         assertFalse(response.body.toString().contains("forbidden"));
         assertSecurityHeaders(response.headers);
