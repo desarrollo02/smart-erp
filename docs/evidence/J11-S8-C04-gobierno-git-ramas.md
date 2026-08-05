@@ -4,7 +4,7 @@
 - Rama de trabajo: `chore/J11-S8-C04-adopcion-git`
 - Rama de integración: `sprint/08-cierre`
 - Baseline de adopción: `166c5e1bd6b86c34998cab3e7d9338d2873ab0a9`
-- Estado: validación local verde; PR, checks remotos y protecciones pendientes
+- Estado: rama publicada y validación local verde; PR, checks remotos y protecciones pendientes
 
 ## Resultado local
 
@@ -12,7 +12,8 @@
 - `sprint/08-cierre` se creó exactamente desde ese commit, se publicó y sigue a
   `origin/sprint/08-cierre`.
 - La adopción se implementó en la rama corta
-  `chore/J11-S8-C04-adopcion-git`.
+  `chore/J11-S8-C04-adopcion-git`, publicada en `origin` con el commit inicial de
+  adopción `0af3ade`.
 - No existe ni se creó una rama de Sprint 9.
 
 ## Higiene no destructiva
@@ -36,7 +37,7 @@ evidencias canónicos de `docs/` siguen versionados; no se reescribió historia.
    dentro de `.tools/`.
 
 Las acciones están fijadas por SHA completo y el workflow sólo concede
-`contents: read`. La ejecución remota se registrará después de publicar el PR.
+`contents: read`. La ejecución remota se registrará después de abrir el PR.
 
 ## Hallazgos corregidos durante la validación
 
@@ -73,13 +74,20 @@ del proyecto. Se utilizó porque IntelliJ mantenía abiertos directorios `target
 del árbol principal; el resultado verifica exactamente el contenido preparado en
 el índice sin depender de esos artefactos locales.
 
-## Pendiente remoto
+## Publicación y pendiente remoto
 
-- publicar `chore/J11-S8-C04-adopcion-git`;
-- abrir PR hacia `sprint/08-cierre`;
+- `chore/J11-S8-C04-adopcion-git` quedó publicada y sigue su rama homónima de
+  `origin`;
+- abrir el [PR hacia `sprint/08-cierre`](https://github.com/desarrollo02/smart-erp/compare/sprint%2F08-cierre...chore%2FJ11-S8-C04-adopcion-git?expand=1);
 - comprobar los dos jobs del workflow en GitHub;
 - proteger `main` y `sprint/*` sin force push ni borrado, con PR obligatorio;
 - registrar URL, resultado de checks y configuración observada.
+
+La automatización intentó abrir la comparación mediante el único navegador
+integrado disponible, pero su webview no llegó a adjuntarse y no existía una
+sesión alternativa. No se reutilizaron ni extrajeron credenciales Git para llamar
+la API de GitHub por otro canal. La rama publicada permanece recuperable y el
+enlace anterior deja la operación remota preparada.
 
 Sprint 8 continúa abierto. Esta evidencia no autoriza crear Sprint 9, integrar el
 cierre en `main` ni crear el tag `sprint-08` antes de completar los demás gates.
