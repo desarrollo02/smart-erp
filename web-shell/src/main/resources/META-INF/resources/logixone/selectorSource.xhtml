@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:cc="jakarta.faces.composite"
+      xmlns:h="jakarta.faces.html"
+      xmlns:pt="jakarta.faces.passthrough">
+<cc:interface>
+    <cc:attribute name="source"
+                  type="py.com.logixone.web.selector.NativeSelectorSourceView"
+                  required="true"/>
+</cc:interface>
+<cc:implementation>
+    <h:panelGroup layout="block" styleClass="native-selector-source">
+        <small>#{cc.attrs.source.helpText}</small>
+        <h:commandLink rendered="#{cc.attrs.source.managementAvailable}"
+                       action="#{nativeSelectorReturn.open(cc.attrs.source.usageId)}"
+                       immediate="true"
+                       styleClass="selector-management-link"
+                       pt:data-native-selector-return="true"
+                       aria-label="#{cc.attrs.source.managementLabel} la fuente #{cc.attrs.source.sourceId}">
+            #{cc.attrs.source.managementLabel}
+        </h:commandLink>
+    </h:panelGroup>
+</cc:implementation>
+</html>

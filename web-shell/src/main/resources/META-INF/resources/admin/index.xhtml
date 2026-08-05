@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ui="jakarta.faces.facelets">
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · Administración</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/admin.css?ln=logixone"/>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#admin-content">Saltar al contenido</a>
+
+    <div class="app-frame">
+        <header class="topbar admin-topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml" styleClass="brand"
+                    aria-label="Ir al inicio de administración">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy">
+                    <strong>Logixone</strong>
+                    <small>Administración del kernel</small>
+                </span>
+            </h:outputLink>
+            <nav class="admin-actions" aria-label="Acciones de sesión">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                              styleClass="button button-ghost">Espacio de trabajo</h:outputLink>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/app/logout"
+                              styleClass="button button-ghost">Cerrar sesión</h:outputLink>
+            </nav>
+        </header>
+
+        <main id="admin-content" class="main-content admin-workspace" tabindex="-1">
+            <section class="admin-hero" aria-labelledby="admin-title">
+                <div>
+                    <span class="eyebrow">Contexto global verificado</span>
+                    <h1 id="admin-title">Administración segura del kernel</h1>
+                    <p>Las áreas visibles se calcularon con permisos globales actuales. No dependen de la empresa seleccionada ni de roles del proveedor OIDC.</p>
+                </div>
+                <div class="context-badge">
+                    <span aria-hidden="true">●</span>
+                    Autorización vigente
+                </div>
+            </section>
+
+            <section aria-labelledby="admin-areas-title">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">Navegación autorizada</span>
+                        <h2 id="admin-areas-title">Áreas habilitadas</h2>
+                    </div>
+                    <span class="item-count">#{adminView.sections.size()} disponibles</span>
+                </div>
+
+                <div class="admin-grid">
+                    <ui:repeat value="#{adminView.sections}" var="section">
+                        <ui:fragment rendered="#{section.available}">
+                            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces#{section.outcome}"
+                                          styleClass="admin-card admin-card-link">
+                                <span class="admin-card-icon" aria-hidden="true">#{section.icon}</span>
+                                <div>
+                                    <h3>#{section.title}</h3>
+                                    <p>#{section.description}</p>
+                                </div>
+                                <span class="admin-status">Abrir administración →</span>
+                            </h:outputLink>
+                        </ui:fragment>
+                        <ui:fragment rendered="#{not section.available}">
+                            <article class="admin-card">
+                                <span class="admin-card-icon" aria-hidden="true">#{section.icon}</span>
+                                <div>
+                                    <h3>#{section.title}</h3>
+                                    <p>#{section.description}</p>
+                                </div>
+                                <span class="admin-status">Próximo incremento</span>
+                            </article>
+                        </ui:fragment>
+                    </ui:repeat>
+                </div>
+            </section>
+
+            <aside class="admin-notice" aria-label="Alcance de la candidata">
+                <strong>Frontera administrativa activa</strong>
+                <span>Empresas y plugins ya tienen operación tipada. Cada comando vuelve a autorizarse y conserva las reglas del kernel.</span>
+            </aside>
+        </main>
+
+        <footer class="app-footer">
+            <span>Logixone · Candidata administrativa de Sprint 4</span>
+            <span>Sin API administrativa pública</span>
+        </footer>
+    </div>
+</h:body>
+</html>

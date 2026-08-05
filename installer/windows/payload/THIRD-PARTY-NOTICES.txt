@@ -1,0 +1,34 @@
+LOGIXONE WINDOWS INSTALLER - THIRD-PARTY NOTICES
+Edition: 0.8.0-internal.1
+Channel: INTERNAL_UNSIGNED
+
+This internal bootstrapper does not grant a Docker Desktop license. Before an
+installation, the user must review and accept the Docker Subscription Service
+Agreement:
+https://www.docker.com/legal/docker-subscription-service-agreement/
+
+Docker Desktop 4.84.0
+Purpose: WSL2 container runtime used by the local demo.
+Origin: https://desktop.docker.com/win/main/amd64/234817/Docker%20Desktop%20Installer.exe
+SHA-256: fe54164c1ceb9e2004137e22e4013826baccf2352c1cedb27e8daa8e56230dd7
+License: Docker Subscription Service Agreement. Commercial use can require a
+paid subscription depending on organization size and use.
+
+Microsoft Windows 11, WSL and .NET Framework
+Purpose: host platform and native bootstrapper runtime.
+License: governed by the Microsoft license applicable to the installed Windows
+edition. Logixone does not redistribute Windows, WSL or .NET Framework.
+
+Container images acquired by the Logixone Docker build:
+- Eclipse Temurin 21: GPLv2 with Classpath Exception.
+- WildFly 41: Apache License 2.0.
+- PostgreSQL 18: PostgreSQL License.
+- Keycloak 26.7.0: Apache License 2.0.
+
+Java libraries used by the application keep their own licenses. The canonical
+versions are declared by the parent POM and platform BOM. This notice is a
+distribution aid and does not replace the complete license text of a third party.
+
+Logixone source licensing is not declared by this notice. External delivery is
+blocked until product licensing and Authenticode signing are formally completed.
+

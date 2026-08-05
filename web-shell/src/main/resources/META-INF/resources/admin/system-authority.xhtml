@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:pt="jakarta.faces.passthrough"
+      xmlns:lx="jakarta.faces.composite/logixone">
+<f:metadata>
+    <f:viewParam name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+</f:metadata>
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · Autoridad global</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/admin.css?ln=logixone"/>
+    <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/selector-return.js?ln=logixone" defer="defer"></script>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#admin-content">Saltar al contenido</a>
+    <div class="app-frame">
+        <header class="topbar admin-topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml" styleClass="brand"
+                    aria-label="Ir al inicio de administración">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy"><strong>Logixone</strong><small>Autoridad global</small></span>
+            </h:outputLink>
+            <nav class="admin-actions" aria-label="Navegación administrativa">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/security.xhtml"
+                              rendered="#{systemAuthorityAdminView.canManageBusinessSecurity}"
+                              styleClass="button button-ghost">Seguridad empresarial</h:outputLink>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml"
+                              styleClass="button button-ghost">Panel</h:outputLink>
+            </nav>
+        </header>
+
+        <main id="admin-content" class="main-content admin-workspace" tabindex="-1">
+            <nav class="breadcrumb" aria-label="Ruta de navegación">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml">Administración</h:outputLink>
+                <span aria-hidden="true">/</span><span>Autoridad global</span>
+            </nav>
+
+            <section class="admin-page-heading" aria-labelledby="authority-title">
+                <div>
+                    <span class="eyebrow">Autoridad global · SYSTEM_ADMINISTRATION_MANAGE</span>
+                    <h1 id="authority-title">Roles y permisos de la instancia</h1>
+                    <p>Estos roles no pertenecen a una empresa. Gobiernan exclusivamente la administración transversal del kernel.</p>
+                </div>
+                <span class="metric-chip">#{systemAuthorityAdminView.roles.size()} roles globales</span>
+            </section>
+
+            <h:messages globalOnly="true" infoClass="admin-message admin-message-info"
+                        errorClass="admin-message admin-message-error" layout="list"/>
+            <lx:selectorReturnStatus/>
+
+            <aside class="diagnostic-panel" aria-label="Protección contra bloqueo administrativo">
+                <strong>Protección obligatoria contra autobloqueo</strong>
+                <ul>
+                    <li>El kernel rechaza inactivar o desasignar al último administrador global efectivo.</li>
+                    <li>También rechaza revocar el permiso que dejaría la instancia sin administración.</li>
+                    <li>Cada reducción de autoridad requiere confirmación y se vuelve a autorizar en el servidor.</li>
+                </ul>
+            </aside>
+
+            <section class="admin-dual-grid" aria-label="Alta y asignación global">
+                <article class="admin-form-card">
+                    <div class="section-heading compact-heading">
+                        <div><span class="eyebrow">Rol de instancia</span><h2>Registrar rol global</h2></div>
+                        <span class="readonly-chip">Inicial: inactivo</span>
+                    </div>
+                    <h:form id="system-role-form" styleClass="admin-form-grid" includeViewParams="true">
+                        <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                        <div class="admin-field">
+                            <h:outputLabel for="system-role-code" value="Código"/>
+                            <h:inputText id="system-role-code" value="#{systemAuthorityAdminView.roleCode}"
+                                         required="true" requiredMessage="Ingrese el código del rol."
+                                         maxlength="80" styleClass="text-control"/>
+                            <h:message for="system-role-code" styleClass="field-message"/>
+                        </div>
+                        <div class="admin-field">
+                            <h:outputLabel for="system-role-name" value="Nombre"/>
+                            <h:inputText id="system-role-name" value="#{systemAuthorityAdminView.roleDisplayName}"
+                                         required="true" requiredMessage="Ingrese el nombre del rol."
+                                         maxlength="160" styleClass="text-control"/>
+                            <h:message for="system-role-name" styleClass="field-message"/>
+                        </div>
+                        <h:commandButton value="Registrar rol global" action="#{systemAuthorityAdminView.registerRole}"
+                                         styleClass="button button-primary form-span-full"/>
+                    </h:form>
+                </article>
+
+                <article class="admin-form-card">
+                    <div class="section-heading compact-heading">
+                        <div><span class="eyebrow">Asignación transversal</span><h2>Asignar rol global</h2></div>
+                    </div>
+                    <h:form id="system-assignment-form" styleClass="admin-form-grid system-assignment-grid" includeViewParams="true">
+                        <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                        <input type="hidden" name="selectorDraft" value=""/>
+                        <div class="admin-field">
+                            <h:outputLabel for="system-user" value="Usuario"/>
+                            <h:selectOneMenu id="system-user" value="#{systemAuthorityAdminView.assignmentUserId}"
+                                             pt:data-selector-draft="assignment_user_id"
+                                             required="true" requiredMessage="Seleccione un usuario."
+                                             styleClass="select-control">
+                                <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                                <f:selectItems value="#{systemAuthorityAdminView.userOptions}" var="option"
+                                               itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                            </h:selectOneMenu>
+                            <lx:selectorSource source="#{nativeSelectorSources.sources['admin.system_authority.assignment_user']}"/>
+                        </div>
+                        <div class="admin-field">
+                            <h:outputLabel for="system-assignment-role" value="Rol global"/>
+                            <h:selectOneMenu id="system-assignment-role" value="#{systemAuthorityAdminView.assignmentRoleId}"
+                                             pt:data-selector-draft="assignment_role_id"
+                                             required="true" requiredMessage="Seleccione un rol."
+                                             styleClass="select-control">
+                                <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                                <f:selectItems value="#{systemAuthorityAdminView.roleOptions}" var="option"
+                                               itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                            </h:selectOneMenu>
+                            <lx:selectorSource source="#{nativeSelectorSources.sources['admin.system_authority.assignment_role']}"/>
+                        </div>
+                        <h:commandButton value="Asignar rol global" action="#{systemAuthorityAdminView.assignRole}"
+                                         styleClass="button button-primary form-span-full"/>
+                    </h:form>
+                </article>
+            </section>
+
+            <section class="admin-form-card" aria-labelledby="grant-system-permission-title">
+                <div class="section-heading compact-heading">
+                    <div><span class="eyebrow">Autoridad conocida por el kernel</span><h2 id="grant-system-permission-title">Conceder permiso global</h2></div>
+                </div>
+                <h:form id="system-grant-form" styleClass="admin-form-grid admin-form-grid-wide" includeViewParams="true">
+                    <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                    <input type="hidden" name="selectorDraft" value=""/>
+                    <div class="admin-field">
+                        <h:outputLabel for="grant-system-role" value="Rol global"/>
+                        <h:selectOneMenu id="grant-system-role" value="#{systemAuthorityAdminView.grantRoleId}"
+                                         pt:data-selector-draft="grant_role_id"
+                                         required="true" requiredMessage="Seleccione un rol."
+                                         styleClass="select-control">
+                            <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                            <f:selectItems value="#{systemAuthorityAdminView.roleOptions}" var="option"
+                                           itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['admin.system_authority.grant_role']}"/>
+                    </div>
+                    <div class="admin-field">
+                        <h:outputLabel for="grant-system-permission" value="Permiso global"/>
+                        <h:selectOneMenu id="grant-system-permission" value="#{systemAuthorityAdminView.grantPermission}"
+                                         pt:data-selector-draft="grant_permission_id"
+                                         required="true" requiredMessage="Seleccione un permiso."
+                                         styleClass="select-control">
+                            <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                            <f:selectItems value="#{systemAuthorityAdminView.permissionOptions}" var="option"
+                                           itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['admin.system_authority.grant_permission']}"/>
+                    </div>
+                    <h:commandButton value="Conceder permiso global" action="#{systemAuthorityAdminView.grantPermission}"
+                                     styleClass="button button-primary"/>
+                </h:form>
+            </section>
+
+            <section aria-labelledby="system-roles-title">
+                <div class="section-heading">
+                    <div><span class="eyebrow">Autoridad persistida</span><h2 id="system-roles-title">Roles globales</h2></div>
+                    <span class="item-count">Sin CompanyId</span>
+                </div>
+                <div class="admin-record-grid">
+                    <ui:repeat value="#{systemAuthorityAdminView.roles}" var="role">
+                        <article class="admin-record-card">
+                            <div class="record-card-heading">
+                                <div><span class="eyebrow">#{role.code}</span><h3>#{role.displayName}</h3></div>
+                                <span class="state-chip #{role.active ? 'state-chip-active' : 'state-chip-inactive'}">#{role.statusLabel}</span>
+                            </div>
+                            <span class="technical-id">#{role.roleId}</span>
+
+                            <div class="admin-subsection">
+                                <strong>Usuarios asignados</strong>
+                                <ui:fragment rendered="#{empty role.assignedUsers}">
+                                    <p class="admin-empty-hint">Sin usuarios asignados.</p>
+                                </ui:fragment>
+                                <ui:repeat value="#{role.assignedUsers}" var="assignedUser">
+                                    <div class="relation-row">
+                                        <span>#{assignedUser.label}</span>
+                                        <h:form styleClass="inline-action-form" includeViewParams="true">
+                                            <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                            <h:commandButton value="Desasignar"
+                                                             action="#{systemAuthorityAdminView.unassignRole(assignedUser.value, role.roleId)}"
+                                                             onclick="return confirm('Se retirará este rol global al usuario. El kernel rechazará dejar la instancia sin administrador. ¿Desea continuar?');"
+                                                             styleClass="button button-quiet button-small"/>
+                                        </h:form>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+
+                            <div class="admin-subsection">
+                                <strong>Permisos globales</strong>
+                                <ui:fragment rendered="#{empty role.grantedPermissions}">
+                                    <p class="admin-empty-hint">Sin permisos concedidos.</p>
+                                </ui:fragment>
+                                <ui:repeat value="#{role.grantedPermissions}" var="permission">
+                                    <div class="relation-row">
+                                        <span class="permission-chip">#{permission.value}</span>
+                                        <h:form styleClass="inline-action-form" includeViewParams="true">
+                                            <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                            <h:commandButton value="Revocar"
+                                                             action="#{systemAuthorityAdminView.revokePermission(role.roleId, permission.value)}"
+                                                             onclick="return confirm('Se revocará este permiso global. El kernel rechazará dejar la instancia sin administrador. ¿Desea continuar?');"
+                                                             styleClass="button button-quiet button-small"/>
+                                        </h:form>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+
+                            <div class="record-actions">
+                                <h:form styleClass="inline-action-form" includeViewParams="true">
+                                    <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                    <h:commandButton rendered="#{not role.active}" value="Activar"
+                                                     action="#{systemAuthorityAdminView.activateRole(role.roleId, role.version)}"
+                                                     styleClass="button button-primary"/>
+                                    <h:commandButton rendered="#{role.active}" value="Inactivar"
+                                                     action="#{systemAuthorityAdminView.inactivateRole(role.roleId, role.version)}"
+                                                     onclick="return confirm('El rol global dejará de aportar autoridad. El kernel rechazará dejar la instancia sin administrador. ¿Desea continuar?');"
+                                                     styleClass="button button-danger"/>
+                                </h:form>
+                            </div>
+                        </article>
+                    </ui:repeat>
+                </div>
+            </section>
+
+            <aside class="admin-notice" aria-label="Límite de autoridad global">
+                <strong>No es seguridad empresarial</strong>
+                <span>Los roles globales no tienen empresa y no conceden acceso funcional a ventas, facturación u otros plugins. Tampoco administran contraseñas, MFA, realms o clientes OIDC.</span>
+            </aside>
+        </main>
+
+        <footer class="app-footer">
+            <span>Logixone · Autoridad global</span>
+            <span>Protección de último administrador · auditoría correlacionada</span>
+        </footer>
+    </div>
+</h:body>
+</html>

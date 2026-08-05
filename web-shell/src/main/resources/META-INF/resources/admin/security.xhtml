@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:pt="jakarta.faces.passthrough"
+      xmlns:lx="jakarta.faces.composite/logixone">
+<f:metadata>
+    <f:viewParam name="company" value="#{businessSecurityAdminView.companyId}"/>
+    <f:viewParam name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+    <f:viewAction action="#{businessSecurityAdminView.loadCompany}" onPostback="false"/>
+</f:metadata>
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · Seguridad empresarial</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/admin.css?ln=logixone"/>
+    <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/selector-return.js?ln=logixone" defer="defer"></script>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#admin-content">Saltar al contenido</a>
+
+    <div class="app-frame">
+        <header class="topbar admin-topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml" styleClass="brand"
+                    aria-label="Ir al inicio de administración">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy">
+                    <strong>Logixone</strong>
+                    <small>Seguridad empresarial</small>
+                </span>
+            </h:outputLink>
+            <nav class="admin-actions" aria-label="Navegación administrativa">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/system-authority.xhtml"
+                              rendered="#{businessSecurityAdminView.canManageSystemAuthority}"
+                              styleClass="button button-ghost">Autoridad global</h:outputLink>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml"
+                              styleClass="button button-ghost">Panel</h:outputLink>
+            </nav>
+        </header>
+
+        <main id="admin-content" class="main-content admin-workspace" tabindex="-1">
+            <nav class="breadcrumb" aria-label="Ruta de navegación">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml">Administración</h:outputLink>
+                <span aria-hidden="true">/</span>
+                <span>Seguridad empresarial</span>
+            </nav>
+
+            <section class="admin-page-heading" aria-labelledby="security-title">
+                <div>
+                    <span class="eyebrow">Autoridad global · SECURITY_MANAGE</span>
+                    <h1 id="security-title">Usuarios y acceso por empresa</h1>
+                    <p>La identidad proviene del proveedor OIDC configurado. Las membresías, roles y permisos funcionales son propios de cada empresa.</p>
+                </div>
+                <span class="metric-chip">#{businessSecurityAdminView.users.size()} usuarios</span>
+            </section>
+
+            <h:messages globalOnly="true" infoClass="admin-message admin-message-info"
+                        errorClass="admin-message admin-message-error" layout="list"/>
+            <lx:selectorReturnStatus/>
+
+            <section class="admin-dual-grid" aria-label="Registro y usuarios">
+                <article class="admin-form-card">
+                    <div class="section-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">Identidad autenticada</span>
+                            <h2>Registrar usuario local</h2>
+                        </div>
+                        <span class="readonly-chip">Inicial: inactivo</span>
+                    </div>
+                    <h:form id="register-user-form" styleClass="admin-form-grid" includeViewParams="true">
+                        <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                        <div class="admin-field form-span-full">
+                            <h:outputLabel for="issuer" value="Emisor OIDC configurado"/>
+                            <h:inputText id="issuer" value="#{businessSecurityAdminView.configuredIssuer}"
+                                         readonly="true" styleClass="text-control"/>
+                            <small>No se acepta un emisor enviado libremente desde el navegador.</small>
+                        </div>
+                        <div class="admin-field">
+                            <h:outputLabel for="subject" value="Subject OIDC"/>
+                            <h:inputText id="subject" value="#{businessSecurityAdminView.subject}"
+                                         required="true" requiredMessage="Ingrese el subject OIDC."
+                                         maxlength="255" styleClass="text-control"/>
+                            <h:message for="subject" styleClass="field-message"/>
+                        </div>
+                        <div class="admin-field">
+                            <h:outputLabel for="display-name" value="Nombre de presentación"/>
+                            <h:inputText id="display-name" value="#{businessSecurityAdminView.displayName}"
+                                         maxlength="160" styleClass="text-control"/>
+                            <small>Opcional; no reemplaza la identidad externa.</small>
+                        </div>
+                        <h:commandButton value="Registrar usuario"
+                                         action="#{businessSecurityAdminView.registerUser}"
+                                         styleClass="button button-primary form-span-full"/>
+                    </h:form>
+                </article>
+
+                <article class="admin-form-card">
+                    <div class="section-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">Contexto aislado</span>
+                            <h2>Seleccionar empresa</h2>
+                        </div>
+                        <span class="readonly-chip">Sin rol global</span>
+                    </div>
+                    <h:form id="select-company-form" styleClass="admin-form-grid" includeViewParams="true">
+                        <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                        <input type="hidden" name="selectorDraft" value=""/>
+                        <div class="admin-field form-span-full">
+                            <h:outputLabel for="company" value="Empresa"/>
+                            <h:selectOneMenu id="company" value="#{businessSecurityAdminView.companyId}"
+                                             pt:data-selector-draft="company_id"
+                                             required="true" requiredMessage="Seleccione una empresa."
+                                             styleClass="select-control select-large">
+                                <f:selectItem itemValue="" itemLabel="Seleccione una empresa" noSelectionOption="true"/>
+                                <f:selectItems value="#{businessSecurityAdminView.companies}" var="company"
+                                               itemValue="#{company.companyId}"
+                                               itemLabel="#{company.companyId} · #{company.statusLabel}"/>
+                            </h:selectOneMenu>
+                            <lx:selectorSource source="#{nativeSelectorSources.sources['admin.security.company']}"/>
+                            <h:message for="company" styleClass="field-message"/>
+                            <small>Los roles que verá pertenecen exclusivamente a esta empresa.</small>
+                        </div>
+                        <h:commandButton value="Abrir seguridad de la empresa"
+                                         action="#{businessSecurityAdminView.openCompany}"
+                                         styleClass="button button-primary form-span-full"/>
+                    </h:form>
+                </article>
+            </section>
+
+            <section aria-labelledby="users-title">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">Registro local</span>
+                        <h2 id="users-title">Usuarios conocidos</h2>
+                    </div>
+                    <span class="item-count">Estado con control de versión</span>
+                </div>
+                <div class="admin-record-grid">
+                    <ui:repeat value="#{businessSecurityAdminView.users}" var="user">
+                        <article class="admin-record-card">
+                            <div class="record-card-heading">
+                                <div><span class="eyebrow">Usuario</span><h3>#{user.displayName}</h3></div>
+                                <span class="state-chip #{user.active ? 'state-chip-active' : 'state-chip-inactive'}">#{user.statusLabel}</span>
+                            </div>
+                            <dl class="admin-data-list">
+                                <div><dt>Subject</dt><dd>#{user.subject}</dd></div>
+                                <div><dt>ID local</dt><dd>#{user.userId}</dd></div>
+                            </dl>
+                            <div class="record-actions">
+                                <h:form styleClass="inline-action-form" includeViewParams="true">
+                                    <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                    <h:commandButton rendered="#{not user.active}" value="Activar"
+                                                     action="#{businessSecurityAdminView.activateUser(user.userId, user.version)}"
+                                                     styleClass="button button-primary"/>
+                                    <h:commandButton rendered="#{user.active}" value="Inactivar"
+                                                     action="#{businessSecurityAdminView.inactivateUser(user.userId, user.version)}"
+                                                     onclick="return confirm('El usuario dejará de acceder a todas sus empresas y autoridades globales. ¿Desea continuar?');"
+                                                     styleClass="button button-danger"/>
+                                </h:form>
+                            </div>
+                        </article>
+                    </ui:repeat>
+                </div>
+            </section>
+
+            <ui:fragment rendered="#{businessSecurityAdminView.companySelected}">
+                <section class="admin-company-context" aria-labelledby="company-security-title">
+                    <div>
+                        <span class="eyebrow">Empresa seleccionada</span>
+                        <h2 id="company-security-title">#{businessSecurityAdminView.selectedCompany.companyId}</h2>
+                        <p>Las operaciones siguientes siempre incluyen este identificador de empresa en el comando.</p>
+                    </div>
+                    <span class="state-chip #{businessSecurityAdminView.operational ? 'state-chip-active' : 'state-chip-warning'}">
+                        #{businessSecurityAdminView.operational ? 'Composición operativa' : 'Composición no operativa'}
+                    </span>
+                </section>
+
+                <section class="admin-dual-grid" aria-label="Altas empresariales">
+                    <article class="admin-form-card">
+                        <div class="section-heading compact-heading">
+                            <div><span class="eyebrow">Pertenencia</span><h2>Registrar membresía</h2></div>
+                            <span class="readonly-chip">Inicial: inactiva</span>
+                        </div>
+                        <h:form id="membership-form" styleClass="admin-form-grid" includeViewParams="true">
+                            <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                            <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"
+                                   data-selector-draft="company_id"/>
+                            <input type="hidden" name="selectorDraft" value=""/>
+                            <div class="admin-field form-span-full">
+                                <h:outputLabel for="membership-user" value="Usuario sin membresía"/>
+                                <h:selectOneMenu id="membership-user" value="#{businessSecurityAdminView.membershipUserId}"
+                                                 pt:data-selector-draft="membership_user_id"
+                                                 required="true" requiredMessage="Seleccione un usuario."
+                                                 styleClass="select-control select-large">
+                                    <f:selectItem itemValue="" itemLabel="Seleccione un usuario" noSelectionOption="true"/>
+                                    <f:selectItems value="#{businessSecurityAdminView.membershipUserOptions}" var="option"
+                                                   itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                                </h:selectOneMenu>
+                                <lx:selectorSource source="#{nativeSelectorSources.sources['admin.security.membership_user']}"/>
+                                <h:message for="membership-user" styleClass="field-message"/>
+                            </div>
+                            <h:commandButton value="Registrar membresía"
+                                             action="#{businessSecurityAdminView.registerMembership}"
+                                             styleClass="button button-primary form-span-full"/>
+                        </h:form>
+                    </article>
+
+                    <article class="admin-form-card">
+                        <div class="section-heading compact-heading">
+                            <div><span class="eyebrow">Autorización empresarial</span><h2>Registrar rol</h2></div>
+                            <span class="readonly-chip">Inicial: inactivo</span>
+                        </div>
+                        <h:form id="company-role-form" styleClass="admin-form-grid" includeViewParams="true">
+                            <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                            <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"/>
+                            <div class="admin-field">
+                                <h:outputLabel for="role-code" value="Código"/>
+                                <h:inputText id="role-code" value="#{businessSecurityAdminView.roleCode}"
+                                             required="true" requiredMessage="Ingrese el código del rol."
+                                             maxlength="80" styleClass="text-control"/>
+                                <h:message for="role-code" styleClass="field-message"/>
+                            </div>
+                            <div class="admin-field">
+                                <h:outputLabel for="role-name" value="Nombre"/>
+                                <h:inputText id="role-name" value="#{businessSecurityAdminView.roleDisplayName}"
+                                             required="true" requiredMessage="Ingrese el nombre del rol."
+                                             maxlength="160" styleClass="text-control"/>
+                                <h:message for="role-name" styleClass="field-message"/>
+                            </div>
+                            <h:commandButton value="Registrar rol empresarial"
+                                             action="#{businessSecurityAdminView.registerRole}"
+                                             styleClass="button button-primary form-span-full"/>
+                        </h:form>
+                    </article>
+                </section>
+
+                <section class="admin-dual-grid" aria-label="Asignaciones y permisos">
+                    <article class="admin-form-card">
+                        <div class="section-heading compact-heading">
+                            <div><span class="eyebrow">Relación explícita</span><h2>Asignar rol a membresía</h2></div>
+                        </div>
+                        <h:form id="assign-role-form" styleClass="admin-form-grid" includeViewParams="true">
+                            <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                            <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"
+                                   data-selector-draft="company_id"/>
+                            <input type="hidden" name="selectorDraft" value=""/>
+                            <div class="admin-field">
+                                <h:outputLabel for="assignment-user" value="Membresía"/>
+                                <h:selectOneMenu id="assignment-user" value="#{businessSecurityAdminView.assignmentUserId}"
+                                                 pt:data-selector-draft="assignment_user_id"
+                                                 required="true" requiredMessage="Seleccione una membresía."
+                                                 styleClass="select-control">
+                                    <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                                    <f:selectItems value="#{businessSecurityAdminView.membershipOptions}" var="option"
+                                                   itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                                </h:selectOneMenu>
+                                <lx:selectorSource source="#{nativeSelectorSources.sources['admin.security.assignment_user']}"/>
+                            </div>
+                            <div class="admin-field">
+                                <h:outputLabel for="assignment-role" value="Rol empresarial"/>
+                                <h:selectOneMenu id="assignment-role" value="#{businessSecurityAdminView.assignmentRoleId}"
+                                                 pt:data-selector-draft="assignment_role_id"
+                                                 required="true" requiredMessage="Seleccione un rol."
+                                                 styleClass="select-control">
+                                    <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                                    <f:selectItems value="#{businessSecurityAdminView.roleOptions}" var="option"
+                                                   itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                                </h:selectOneMenu>
+                                <lx:selectorSource source="#{nativeSelectorSources.sources['admin.security.assignment_role']}"/>
+                            </div>
+                            <h:commandButton value="Asignar rol" action="#{businessSecurityAdminView.assignRole}"
+                                             styleClass="button button-primary form-span-full"/>
+                        </h:form>
+                    </article>
+
+                    <article class="admin-form-card">
+                        <div class="section-heading compact-heading">
+                            <div><span class="eyebrow">Contribución efectiva</span><h2>Conceder permiso funcional</h2></div>
+                        </div>
+                        <h:form id="grant-permission-form" styleClass="admin-form-grid" includeViewParams="true">
+                            <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                            <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"
+                                   data-selector-draft="company_id"/>
+                            <input type="hidden" name="selectorDraft" value=""/>
+                            <div class="admin-field">
+                                <h:outputLabel for="grant-role" value="Rol empresarial"/>
+                                <h:selectOneMenu id="grant-role" value="#{businessSecurityAdminView.grantRoleId}"
+                                                 pt:data-selector-draft="grant_role_id"
+                                                 required="true" requiredMessage="Seleccione un rol."
+                                                 styleClass="select-control">
+                                    <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                                    <f:selectItems value="#{businessSecurityAdminView.roleOptions}" var="option"
+                                                   itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                                </h:selectOneMenu>
+                                <lx:selectorSource source="#{nativeSelectorSources.sources['admin.security.grant_role']}"/>
+                            </div>
+                            <div class="admin-field">
+                                <h:outputLabel for="grant-permission" value="Permiso disponible"/>
+                                <h:selectOneMenu id="grant-permission" value="#{businessSecurityAdminView.grantPermissionId}"
+                                                 pt:data-selector-draft="grant_permission_id"
+                                                 required="true" requiredMessage="Seleccione un permiso."
+                                                 styleClass="select-control">
+                                    <f:selectItem itemValue="" itemLabel="Seleccione" noSelectionOption="true"/>
+                                    <f:selectItems value="#{businessSecurityAdminView.permissionOptions}" var="option"
+                                                   itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                                </h:selectOneMenu>
+                                <lx:selectorSource source="#{nativeSelectorSources.sources['admin.security.grant_permission']}"/>
+                            </div>
+                            <h:commandButton value="Conceder permiso" action="#{businessSecurityAdminView.grantPermission}"
+                                             styleClass="button button-primary form-span-full"/>
+                        </h:form>
+                    </article>
+                </section>
+
+                <section aria-labelledby="memberships-title">
+                    <div class="section-heading">
+                        <div><span class="eyebrow">Acceso a empresa</span><h2 id="memberships-title">Membresías</h2></div>
+                        <span class="item-count">#{businessSecurityAdminView.memberships.size()} registradas</span>
+                    </div>
+                    <div class="admin-record-grid">
+                        <ui:repeat value="#{businessSecurityAdminView.memberships}" var="membership">
+                            <article class="admin-record-card">
+                                <div class="record-card-heading">
+                                    <div><span class="eyebrow">Membresía</span><h3>#{membership.userLabel}</h3></div>
+                                    <span class="state-chip #{membership.active ? 'state-chip-active' : 'state-chip-inactive'}">#{membership.statusLabel}</span>
+                                </div>
+                                <span class="technical-id">#{membership.userId}</span>
+                                <div class="admin-subsection">
+                                    <strong>Roles asignados</strong>
+                                    <ui:fragment rendered="#{empty membership.assignedRoles}">
+                                        <p class="admin-empty-hint">Sin roles asignados.</p>
+                                    </ui:fragment>
+                                    <ui:repeat value="#{membership.assignedRoles}" var="assignedRole">
+                                        <div class="relation-row">
+                                            <span>#{assignedRole.label}</span>
+                                            <h:form styleClass="inline-action-form" includeViewParams="true">
+                                                <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                                <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"/>
+                                                <h:commandButton value="Desasignar"
+                                                                 action="#{businessSecurityAdminView.unassignRole(membership.userId, assignedRole.value)}"
+                                                                 onclick="return confirm('Se retirará este rol empresarial de la membresía. ¿Desea continuar?');"
+                                                                 styleClass="button button-quiet button-small"/>
+                                            </h:form>
+                                        </div>
+                                    </ui:repeat>
+                                </div>
+                                <div class="record-actions">
+                                    <h:form styleClass="inline-action-form" includeViewParams="true">
+                                        <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                        <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"/>
+                                        <h:commandButton rendered="#{not membership.active}" value="Activar"
+                                                         action="#{businessSecurityAdminView.activateMembership(membership.userId, membership.version)}"
+                                                         styleClass="button button-primary"/>
+                                        <h:commandButton rendered="#{membership.active}" value="Inactivar"
+                                                         action="#{businessSecurityAdminView.inactivateMembership(membership.userId, membership.version)}"
+                                                         onclick="return confirm('La membresía dejará de autorizar acceso a esta empresa. ¿Desea continuar?');"
+                                                         styleClass="button button-danger"/>
+                                    </h:form>
+                                </div>
+                            </article>
+                        </ui:repeat>
+                    </div>
+                </section>
+
+                <section aria-labelledby="roles-title">
+                    <div class="section-heading">
+                        <div><span class="eyebrow">Autorización funcional</span><h2 id="roles-title">Roles empresariales</h2></div>
+                        <span class="item-count">#{businessSecurityAdminView.roles.size()} registrados</span>
+                    </div>
+                    <div class="admin-record-grid">
+                        <ui:repeat value="#{businessSecurityAdminView.roles}" var="role">
+                            <article class="admin-record-card">
+                                <div class="record-card-heading">
+                                    <div><span class="eyebrow">#{role.code}</span><h3>#{role.displayName}</h3></div>
+                                    <span class="state-chip #{role.active ? 'state-chip-active' : 'state-chip-inactive'}">#{role.statusLabel}</span>
+                                </div>
+                                <span class="technical-id">#{role.roleId}</span>
+                                <div class="admin-subsection">
+                                    <strong>Permisos concedidos</strong>
+                                    <ui:fragment rendered="#{empty role.grantedPermissions}">
+                                        <p class="admin-empty-hint">Sin permisos concedidos.</p>
+                                    </ui:fragment>
+                                    <ui:repeat value="#{role.grantedPermissions}" var="permission">
+                                        <div class="relation-row">
+                                            <span class="permission-chip #{permission.effective ? '' : 'permission-chip-stale'}">
+                                                #{permission.value}#{permission.effective ? '' : ' · no efectivo'}
+                                            </span>
+                                            <h:form styleClass="inline-action-form" includeViewParams="true">
+                                                <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                                <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"/>
+                                                <h:commandButton value="Revocar"
+                                                                 action="#{businessSecurityAdminView.revokePermission(role.roleId, permission.value)}"
+                                                                 onclick="return confirm('Se revocará este permiso funcional del rol. ¿Desea continuar?');"
+                                                                 styleClass="button button-quiet button-small"/>
+                                            </h:form>
+                                        </div>
+                                    </ui:repeat>
+                                </div>
+                                <div class="record-actions">
+                                    <h:form styleClass="inline-action-form" includeViewParams="true">
+                                        <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                        <input type="hidden" name="company" value="#{businessSecurityAdminView.companyId}"/>
+                                        <h:commandButton rendered="#{not role.active}" value="Activar"
+                                                         action="#{businessSecurityAdminView.activateRole(role.roleId, role.version)}"
+                                                         styleClass="button button-primary"/>
+                                        <h:commandButton rendered="#{role.active}" value="Inactivar"
+                                                         action="#{businessSecurityAdminView.inactivateRole(role.roleId, role.version)}"
+                                                         onclick="return confirm('Este rol dejará de aportar permisos en la empresa. ¿Desea continuar?');"
+                                                         styleClass="button button-danger"/>
+                                    </h:form>
+                                </div>
+                            </article>
+                        </ui:repeat>
+                    </div>
+                </section>
+            </ui:fragment>
+
+            <aside class="admin-notice" aria-label="Límite de seguridad empresarial">
+                <strong>Separación estricta</strong>
+                <span>Un rol empresarial siempre pertenece a una empresa. No concede permisos globales ni administra credenciales, contraseñas, MFA, realms o clientes del proveedor OIDC.</span>
+            </aside>
+        </main>
+
+        <footer class="app-footer">
+            <span>Logixone · Seguridad empresarial</span>
+            <span>Comandos tipados · auditoría correlacionada</span>
+        </footer>
+    </div>
+</h:body>
+</html>

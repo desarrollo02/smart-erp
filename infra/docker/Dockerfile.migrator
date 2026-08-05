@@ -1,0 +1,63 @@
+FROM docker.io/library/eclipse-temurin:21.0.11_10-jdk-noble@sha256:15ec53e5373fbede42fb2c1ec5b7e3ccbe1b0c9ad232ed67a16ed1b8b47070b6 AS builder
+
+WORKDIR /workspace
+
+COPY --chmod=0755 mvnw ./mvnw
+COPY .mvn/ ./.mvn/
+COPY infra/docker/Dockerfile infra/docker/Dockerfile.migrator ./infra/docker/
+COPY --chmod=0755 infra/docker/unzip-with-jar /usr/local/bin/unzip
+COPY pom.xml ./pom.xml
+COPY platform-bom/ ./platform-bom/
+COPY plugin-api/ ./plugin-api/
+COPY tools/plugin-scaffold/ ./tools/plugin-scaffold/
+COPY kernel-api/ ./kernel-api/
+COPY kernel-domain/ ./kernel-domain/
+COPY kernel-application/ ./kernel-application/
+COPY kernel-infrastructure-jakarta/ ./kernel-infrastructure-jakarta/
+COPY web-shell/ ./web-shell/
+COPY migrator/ ./migrator/
+COPY plugins/ ./plugins/
+COPY distribution/ ./distribution/
+COPY tests/ ./tests/
+
+ARG LOGIXONE_BUILD_MODE=verified
+ARG LOGIXONE_MAVEN_PROFILE=none
+
+RUN --mount=type=cache,id=logixone-maven-tools-3.9.16,target=/workspace/.tools,sharing=locked \
+    find . -path './.tools' -prune -o -type f -exec chmod 0644 {} + \
+    && chmod 0755 ./mvnw \
+    && if [ -d .tools/maven-wrapper-home/wrapper/dists ]; then \
+        find .tools/maven-wrapper-home/wrapper/dists -type f -path '*/bin/mvn' -exec chmod 0755 {} +; \
+    fi \
+    && case "$LOGIXONE_BUILD_MODE:$LOGIXONE_MAVEN_PROFILE" in \
+        verified:none) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -pl migrator -am package ;; \
+        verified:with-reference-plugin) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-reference-plugin -pl migrator -am package ;; \
+        verified:with-screen-customization-plugins) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-screen-customization-plugins -pl migrator -am package ;; \
+        verified:with-business-partners-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-business-partners-demo -pl migrator -am package ;; \
+        verified:with-commercial-catalog-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-commercial-catalog-demo -pl migrator -am package ;; \
+        verified:with-inventory-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-inventory-demo -pl migrator -am package ;; \
+        visual-candidate:none) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -pl migrator -am package ;; \
+        visual-candidate:with-reference-plugin) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-reference-plugin -pl migrator -am package ;; \
+        visual-candidate:with-screen-customization-plugins) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-screen-customization-plugins -pl migrator -am package ;; \
+        visual-candidate:with-business-partners-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-business-partners-demo -pl migrator -am package ;; \
+        visual-candidate:with-commercial-catalog-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-commercial-catalog-demo -pl migrator -am package ;; \
+        visual-candidate:with-inventory-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-inventory-demo -pl migrator -am package ;; \
+        *) echo "Unsupported LOGIXONE_BUILD_MODE or LOGIXONE_MAVEN_PROFILE" >&2; exit 64 ;; \
+    esac \
+    && test -s migrator/target/migrator-0.1.0-SNAPSHOT-executable.jar
+
+FROM docker.io/library/eclipse-temurin:21.0.11_10-jre-noble@sha256:c978ac6dd6aa90ec21935eb6c848f50ebf9b783160eefdd6accd8d2fd9ebeef1 AS runtime
+
+LABEL org.opencontainers.image.title="Logixone Migrator" \
+      org.opencontainers.image.description="Migrador one-shot de esquemas Logixone mediante Flyway" \
+      org.opencontainers.image.version="0.1.0-SNAPSHOT"
+
+WORKDIR /opt/logixone
+
+COPY --from=builder --chown=10001:10001 \
+    /workspace/migrator/target/migrator-0.1.0-SNAPSHOT-executable.jar \
+    /opt/logixone/migrator.jar
+
+USER 10001:10001
+
+ENTRYPOINT ["java", "-jar", "/opt/logixone/migrator.jar"]

@@ -1,0 +1,192 @@
+name: ${COMPOSE_PROJECT_NAME:-logixone}
+
+services:
+  postgres:
+    image: docker.io/library/postgres:18.4-bookworm@sha256:16fa100a3a6e92c0556632870455e7f8c6f3df5cefddd67d6b95292732bd7ff0
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: ${LOGIXONE_DB_NAME:-logixone}
+      POSTGRES_USER: ${LOGIXONE_DB_USER:-logixone}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - source: postgres_password
+        target: postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - backend
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+    restart: unless-stopped
+
+  migrator:
+    image: ${LOGIXONE_MIGRATOR_IMAGE:-logixone/migrator:j11-s2-04}
+    platform: linux/amd64
+    environment:
+      LOGIXONE_DB_URL: jdbc:postgresql://postgres:5432/${LOGIXONE_DB_NAME:-logixone}
+      LOGIXONE_DB_USER: ${LOGIXONE_DB_USER:-logixone}
+      LOGIXONE_DB_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - source: postgres_password
+        target: postgres_password
+    networks:
+      - backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.7.0@sha256:26939e1318d6f008fc2ee6e10cec1cf8f1ba8a21846c1bc81b91ed0506bc2a7a
+    platform: linux/amd64
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${LOGIXONE_KEYCLOAK_ADMIN_USER:-logixone-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/keycloak_admin_password
+      KC_DB: dev-file
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HTTP_PORT: ${LOGIXONE_KEYCLOAK_PORT:-8180}
+      KC_HOSTNAME: ${LOGIXONE_KEYCLOAK_PUBLIC_URL:-http://keycloak.localhost:8180}
+      KC_PROXY_HEADERS: ${LOGIXONE_KEYCLOAK_PROXY_HEADERS:-xforwarded}
+      LOGIXONE_OIDC_CLIENT_ID: ${LOGIXONE_OIDC_CLIENT_ID:-logixone-web}
+      LOGIXONE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+      LOGIXONE_DEMO_USER_PASSWORD_FILE: /run/secrets/demo_user_password
+      LOGIXONE_OIDC_REDIRECT_URI: ${LOGIXONE_OIDC_REDIRECT_URI:-http://localhost:8080/logixone/*}
+      LOGIXONE_OIDC_WEB_ORIGIN: ${LOGIXONE_OIDC_WEB_ORIGIN:-http://localhost:8080}
+      LOGIXONE_OIDC_POST_LOGOUT_REDIRECT_URI: ${LOGIXONE_OIDC_POST_LOGOUT_REDIRECT_URI:-http://localhost:8080/logixone/}
+    secrets:
+      - source: keycloak_admin_password
+        target: keycloak_admin_password
+      - source: oidc_client_secret
+        target: oidc_client_secret
+      - source: demo_user_password
+        target: demo_user_password
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ../keycloak/import:/opt/keycloak/data/import:ro
+      - ../keycloak/keycloak-entrypoint.sh:/opt/keycloak/bin/logixone-keycloak-entrypoint.sh:ro
+    ports:
+      - ${LOGIXONE_KEYCLOAK_BIND:-127.0.0.1}:${LOGIXONE_KEYCLOAK_PORT:-8180}:${LOGIXONE_KEYCLOAK_PORT:-8180}
+    networks:
+      identity:
+        aliases:
+          - keycloak.localhost
+      edge:
+    entrypoint:
+      - /bin/bash
+      - /opt/keycloak/bin/logixone-keycloak-entrypoint.sh
+    command:
+      - start-dev
+      - --import-realm
+    healthcheck:
+      test:
+        - CMD
+        - /bin/bash
+        - -ec
+        - >-
+          exec 3<>/dev/tcp/127.0.0.1/9000;
+          printf 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3;
+          grep -q '200 OK' <&3
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  app:
+    image: ${LOGIXONE_APP_IMAGE:-logixone/app:j11-s2-04}
+    platform: linux/amd64
+    environment:
+      LOGIXONE_DB_URL: jdbc:postgresql://postgres:5432/${LOGIXONE_DB_NAME:-logixone}
+      LOGIXONE_DB_USER: ${LOGIXONE_DB_USER:-logixone}
+      LOGIXONE_DB_PASSWORD_FILE: /run/secrets/postgres_password
+      LOGIXONE_TX_NODE_ID: ${LOGIXONE_TX_NODE_ID:-logixone-local-1}
+      LOGIXONE_OIDC_PROVIDER_URL: ${LOGIXONE_OIDC_PROVIDER_URL:-http://keycloak.localhost:8180/realms/logixone}
+      LOGIXONE_OIDC_CLIENT_ID: ${LOGIXONE_OIDC_CLIENT_ID:-logixone-web}
+      LOGIXONE_OIDC_CLIENT_SECRET_FILE: /run/secrets/oidc_client_secret
+      LOGIXONE_OIDC_POST_LOGOUT_REDIRECT_URI: ${LOGIXONE_OIDC_POST_LOGOUT_REDIRECT_URI:-http://localhost:8080/logixone/}
+      LOGIXONE_PROXY_ADDRESS_FORWARDING: ${LOGIXONE_PROXY_ADDRESS_FORWARDING:-false}
+      LOGIXONE_SECURITY_BOOTSTRAP_ENABLED: ${LOGIXONE_SECURITY_BOOTSTRAP_ENABLED:-false}
+      LOGIXONE_SECURITY_BOOTSTRAP_SUBJECT: ${LOGIXONE_SECURITY_BOOTSTRAP_SUBJECT:-}
+      LOGIXONE_SECURITY_BOOTSTRAP_DISPLAY_NAME: ${LOGIXONE_SECURITY_BOOTSTRAP_DISPLAY_NAME:-}
+      LOGIXONE_SECURITY_BOOTSTRAP_COMPANY_ID: ${LOGIXONE_SECURITY_BOOTSTRAP_COMPANY_ID:-}
+      LOGIXONE_SECURITY_BOOTSTRAP_CUSTOMIZATION_PLUGIN: ${LOGIXONE_SECURITY_BOOTSTRAP_CUSTOMIZATION_PLUGIN:-}
+      LOGIXONE_SECURITY_BOOTSTRAP_ROLE_CODE: ${LOGIXONE_SECURITY_BOOTSTRAP_ROLE_CODE:-}
+      LOGIXONE_SECURITY_BOOTSTRAP_ROLE_NAME: ${LOGIXONE_SECURITY_BOOTSTRAP_ROLE_NAME:-}
+      LOGIXONE_SECURITY_BOOTSTRAP_PERMISSIONS: ${LOGIXONE_SECURITY_BOOTSTRAP_PERMISSIONS:-}
+      LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_ENABLED: ${LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_ENABLED:-false}
+      LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_SUBJECT: ${LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_SUBJECT:-}
+      LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_DISPLAY_NAME: ${LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_DISPLAY_NAME:-}
+      LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_ROLE_CODE: ${LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_ROLE_CODE:-}
+      LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_ROLE_NAME: ${LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_ROLE_NAME:-}
+      LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_PERMISSIONS: ${LOGIXONE_SYSTEM_AUTHORITY_BOOTSTRAP_PERMISSIONS:-}
+      LOGIXONE_DEMO_PROVISIONING_ENABLED: ${LOGIXONE_DEMO_PROVISIONING_ENABLED:-false}
+      LOGIXONE_DEMO_SUBJECT_NO_COMPANY: ${LOGIXONE_DEMO_SUBJECT_NO_COMPANY:-}
+      LOGIXONE_DEMO_SUBJECT_SINGLE_COMPANY: ${LOGIXONE_DEMO_SUBJECT_SINGLE_COMPANY:-}
+      LOGIXONE_DEMO_SUBJECT_MULTIPLE_COMPANIES: ${LOGIXONE_DEMO_SUBJECT_MULTIPLE_COMPANIES:-}
+    secrets:
+      - source: postgres_password
+        target: postgres_password
+      - source: oidc_client_secret
+        target: oidc_client_secret
+    ports:
+      - ${LOGIXONE_HTTP_BIND:-127.0.0.1}:${LOGIXONE_HTTP_PORT:-8080}:8080
+    networks:
+      - backend
+      - identity
+      - edge
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - curl --fail --silent --show-error --output /dev/null http://127.0.0.1:8080/logixone/health/ready
+      interval: 10s
+      timeout: 8s
+      retries: 12
+      start_period: 30s
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    stop_grace_period: 30s
+
+secrets:
+  postgres_password:
+    file: ${LOGIXONE_POSTGRES_PASSWORD_FILE:-../../.tools/secrets/postgres-password.txt}
+  keycloak_admin_password:
+    file: ${LOGIXONE_KEYCLOAK_ADMIN_PASSWORD_FILE:-../../.tools/secrets/keycloak-admin-password.txt}
+  oidc_client_secret:
+    file: ${LOGIXONE_OIDC_CLIENT_SECRET_FILE:-../../.tools/secrets/oidc-client-secret.txt}
+  demo_user_password:
+    file: ${LOGIXONE_DEMO_USER_PASSWORD_FILE:-../../.tools/secrets/demo-user-password.txt}
+
+volumes:
+  postgres-data:
+  keycloak-data:
+
+networks:
+  backend:
+    internal: true
+  identity:
+    internal: true
+  edge:
+    driver: bridge

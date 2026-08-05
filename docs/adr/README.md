@@ -1,0 +1,46 @@
+# Decisiones arquitectónicas
+
+Contiene los Architecture Decision Records (ADR). Cada ADR debe describir contexto, decisión, alternativas, consecuencias, estado y fecha.
+
+Las primeras decisiones previstas cubrirán el baseline Jakarta EE 11, el modelo de plugins, persistencia, migraciones y Docker/IaC.
+
+## Índice
+
+- [ADR-0001 — Baseline de plataforma](0001-baseline-plataforma.md)
+- [ADR-0002 — Arquitectura de plugins](0002-arquitectura-plugins.md)
+- [ADR-0003 — Persistencia y migraciones](0003-persistencia-migraciones.md)
+- [ADR-0004 — Docker, IaC y promoción por digest](0004-docker-iac-promocion-digest.md)
+- [ADR-0005 — Contexto empresarial, activación y personalización obligatoria](0005-contexto-empresarial-activacion-personalizacion.md)
+- [ADR-0006 — Identidad OIDC, membresía empresarial y autorización](0006-identidad-oidc-membresia-autorizacion.md)
+- [ADR-0007 — Material Design 3 y pantallas responsive sobre Jakarta Faces](0007-material-design-responsive-sobre-jsf.md)
+- [ADR-0008 — Logout OIDC y estabilidad preview de WildFly](0008-logout-oidc-estabilidad-preview-wildfly.md)
+- [ADR-0009 — Autoridad administrativa global y panel operativo del kernel](0009-autoridad-administrativa-global-kernel.md)
+- [ADR-0010 — Modelo canónico de documentos y SIFEN como referencia estructural](0010-modelo-canonico-documentos-referencia-sifen.md)
+- [ADR-0011 — Roadmap y dirección de dependencias de plugins productivos](0011-roadmap-dependencias-plugins-productivos.md)
+- [ADR-0012 — Composición física única y migraciones de plugins](0012-composicion-unica-y-migraciones-de-plugins.md)
+- [ADR-0013 — Eventos de integración y outbox por plugin](0013-eventos-integracion-outbox-por-plugin.md)
+- [ADR-0014 — Modelo de participante comercial y contrato público](0014-modelo-participante-comercial-y-contrato-publico.md)
+- [ADR-0015 — Persistencia privada de participantes comerciales](0015-persistencia-privada-business-partners.md)
+- [ADR-0016 — Autorización y auditoría de operaciones de plugins](0016-autorizacion-y-auditoria-operaciones-plugin.md)
+- [ADR-0017 — Interacción visual neutral de plugins](0017-interaccion-visual-neutral-de-plugins.md)
+- [ADR-0018 — Floorplan ERP de directorio, alta y ficha](0018-floorplan-erp-directorio-alta-ficha.md)
+- [ADR-0019 — Modelo de catálogo comercial y contratos públicos](0019-modelo-catalogo-comercial-y-contratos-publicos.md)
+- [ADR-0020 — Persistencia privada de `commercial_catalog`](0020-persistencia-privada-commercial-catalog.md)
+- [ADR-0021 — Aplicación, autorización y auditoría de `commercial_catalog`](0021-aplicacion-autorizacion-auditoria-commercial-catalog.md)
+- [ADR-0022 — Recorridos visuales de `commercial_catalog`](0022-recorridos-visuales-commercial-catalog.md)
+- [ADR-0023 — Modelo de `inventory` y contratos públicos](0023-modelo-inventory-y-contratos-publicos.md)
+- [ADR-0024 — Persistencia privada de `inventory`](0024-persistencia-privada-inventory.md)
+- [ADR-0025 — Recorridos visuales de `inventory`](0025-recorridos-visuales-inventory.md)
+- [ADR-0026 — Bootstrapper Windows nativo, manifiesto y entrega interna](0026-instalador-windows-bootstrapper-nativo.md)
+- [ADR-0027 — Terminal de punto de venta y ampliación del roadmap](0027-terminal-punto-venta-y-ampliacion-roadmap.md)
+- [ADR-0028 — Gobierno de selectores y datos administrables](0028-gobierno-de-selectores-y-datos-administrables.md)
+- [ADR-0029 — Confirmación del instalador en cada cierre de Sprint](0029-confirmacion-instalador-por-cierre-sprint.md)
+- [ADR-0030 — Familia de recursos humanos, nómina y cumplimiento paraguayo](0030-familia-recursos-humanos-nomina-paraguay.md)
+- [ADR-0031 — Facturación masiva dentro de documentos comerciales](0031-facturacion-masiva-en-documentos-comerciales.md)
+- [ADR-0032 — Plugin para estaciones de servicio de combustible](0032-plugin-estaciones-servicio-combustible.md)
+- [ADR-0033 — Dominio independiente de facturación recurrente](0033-dominio-facturacion-recurrente.md)
+- [ADR-0034 — Plugin de telemetría vehicular y seguimiento GPS](0034-plugin-telemetria-vehicular.md)
+- [ADR-0035 — Operación offline obligatoria en la terminal de punto de venta](0035-operacion-offline-terminal-punto-venta.md)
+- [ADR-0036 — Operaciones del proveedor, soporte y conector seguro](0036-operaciones-proveedor-soporte-lanzamientos-conector.md)
+- [ADR-0037 — Familia para cooperativas de ahorro y crédito de Paraguay](0037-familia-cooperativa-ahorro-credito-paraguay.md)
+- [ADR-0038 — Plugin de datos de referencia normativos compartidos](0038-plugin-datos-referencia-normativos.md)

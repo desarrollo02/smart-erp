@@ -1,0 +1,22 @@
+# Herramientas, descargas y caches locales
+.tools/
+
+# Salidas de Maven
+target/
+**/target/
+
+# Control de versiones e IDE
+.git/
+.gitignore
+.idea/
+.vscode/
+
+# Documentacion y evidencia no necesarias en la imagen
+docs/
+*.md
+
+# Configuracion local y secretos
+.env
+.env.*
+secrets/
+

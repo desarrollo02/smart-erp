@@ -1,0 +1,19 @@
+embed-server --server-config=standalone.xml --std-out=echo --stability=preview
+
+/subsystem=datasources/jdbc-driver=postgresql:add(driver-name=postgresql,driver-module-name=org.postgresql,driver-class-name=org.postgresql.Driver,driver-xa-datasource-class-name=org.postgresql.xa.PGXADataSource)
+
+/subsystem=datasources/data-source=LogixoneCoreDS:add(jndi-name=java:/jdbc/LogixoneCoreDS,enabled=true,jta=true,use-java-context=true,connection-url="${env.LOGIXONE_DB_URL}",driver-name=postgresql,user-name="${env.LOGIXONE_DB_USER}",credential-reference={clear-text="${env.LOGIXONE_DB_PASSWORD}"},min-pool-size=2,initial-pool-size=2,max-pool-size=20,pool-prefill=false,validate-on-match=true,background-validation=false,check-valid-connection-sql="SELECT 1",exception-sorter-class-name=org.jboss.jca.adapters.jdbc.extensions.postgres.PostgreSQLExceptionSorter,transaction-isolation=TRANSACTION_READ_COMMITTED)
+
+/subsystem=transactions:write-attribute(name=node-identifier,value="${env.LOGIXONE_TX_NODE_ID:logixone-node-1}")
+
+/subsystem=undertow/server=default-server/http-listener=default:write-attribute(name=proxy-address-forwarding,value="${env.LOGIXONE_PROXY_ADDRESS_FORWARDING:false}")
+
+/subsystem=elytron-oidc-client/secure-deployment=logixone.war:add(client-id="${env.LOGIXONE_OIDC_CLIENT_ID}",provider-url="${env.LOGIXONE_OIDC_PROVIDER_URL}",ssl-required=EXTERNAL,public-client=false,autodetect-bearer-only=true,verify-token-audience=true,token-signature-algorithm=RS256,principal-attribute=sub,use-resource-role-mappings=false,expose-token=false,disable-trust-manager=false,allow-any-hostname=false,turn-off-change-session-id-on-login=false,logout-session-required=true)
+
+/subsystem=elytron-oidc-client/secure-deployment=logixone.war:write-attribute(name=logout-path,value=/app/logout)
+
+/subsystem=elytron-oidc-client/secure-deployment=logixone.war:write-attribute(name=post-logout-redirect-uri,value="${env.LOGIXONE_OIDC_POST_LOGOUT_REDIRECT_URI}")
+
+/subsystem=elytron-oidc-client/secure-deployment=logixone.war/credential=secret:add(secret="${env.LOGIXONE_OIDC_CLIENT_SECRET}")
+
+stop-embedded-server

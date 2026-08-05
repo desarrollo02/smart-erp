@@ -1,0 +1,39 @@
+# Maven
+target/
+**/target/
+.flattened-pom.xml
+
+# Toolchain y descargas locales del proyecto
+.tools/
+
+# IDE y sistema operativo
+.idea/
+.vscode/
+*.iml
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+
+# Configuración local y secretos
+.env
+.env.*
+!.env.example
+*.local
+*.secret
+secrets/
+
+# Logs y temporales
+*.log
+*.tmp
+*.swp
+
+# Evidencia generada pesada
+test-results/
+playwright-report/
+
+# Artefactos derivados del instalador Windows
+installer/windows/bin/
+installer/windows/build/
+installer/windows/current/

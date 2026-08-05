@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:lx="jakarta.faces.composite/logixone">
+<f:metadata>
+    <f:viewParam name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+</f:metadata>
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · Empresas</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/admin.css?ln=logixone"/>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#admin-content">Saltar al contenido</a>
+
+    <div class="app-frame">
+        <header class="topbar admin-topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml" styleClass="brand"
+                    aria-label="Ir al inicio de administración">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy">
+                    <strong>Logixone</strong>
+                    <small>Administración de empresas</small>
+                </span>
+            </h:outputLink>
+            <nav class="admin-actions" aria-label="Navegación administrativa">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/plugins.xhtml"
+                              styleClass="button button-ghost"
+                              rendered="#{companyAdminView.canManagePlugins}">Plugins</h:outputLink>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml"
+                              styleClass="button button-ghost">Panel</h:outputLink>
+            </nav>
+        </header>
+
+        <main id="admin-content" class="main-content admin-workspace" tabindex="-1">
+            <nav class="breadcrumb" aria-label="Ruta de navegación">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml">Administración</h:outputLink>
+                <span aria-hidden="true">/</span>
+                <span>Empresas</span>
+            </nav>
+
+            <section class="admin-page-heading" aria-labelledby="companies-title">
+                <div>
+                    <span class="eyebrow">Autoridad global · COMPANY_MANAGE</span>
+                    <h1 id="companies-title">Empresas y personalización obligatoria</h1>
+                    <p>Cada empresa nace inactiva y debe reservar una personalización física exclusiva antes de poder configurarse.</p>
+                </div>
+                <span class="metric-chip">#{companyAdminView.companies.size()} empresas</span>
+            </section>
+
+            <h:messages globalOnly="true" infoClass="admin-message admin-message-info"
+                        errorClass="admin-message admin-message-error" layout="list"/>
+            <lx:selectorReturnStatus/>
+
+            <section class="admin-form-card" aria-labelledby="register-company-title">
+                <div class="section-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Alta controlada</span>
+                        <h2 id="register-company-title">Registrar empresa</h2>
+                    </div>
+                    <span class="readonly-chip">Estado inicial: inactiva</span>
+                </div>
+                <h:form id="register-company-form" styleClass="admin-inline-form" includeViewParams="true">
+                    <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                    <div class="admin-field">
+                        <h:outputLabel for="customization" value="Personalización exclusiva"/>
+                        <h:selectOneMenu id="customization"
+                                         value="#{companyAdminView.customizationPluginId}"
+                                         required="true"
+                                         requiredMessage="Seleccione una personalización disponible."
+                                         disabled="#{not companyAdminView.customizationAvailable}"
+                                         styleClass="select-control select-large">
+                            <f:selectItem itemValue="" itemLabel="Seleccione una personalización" noSelectionOption="true"/>
+                            <f:selectItems value="#{companyAdminView.availableCustomizations}"
+                                           var="option"
+                                           itemValue="#{option.pluginId}"
+                                           itemLabel="#{option.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['admin.companies.customization']}"/>
+                        <h:message for="customization" styleClass="field-message"/>
+                        <small>La asignación es obligatoria, física y no puede compartirse con otra empresa.</small>
+                    </div>
+                    <h:commandButton value="Registrar empresa"
+                                     action="#{companyAdminView.register}"
+                                     disabled="#{not companyAdminView.customizationAvailable}"
+                                     styleClass="button button-primary"/>
+                </h:form>
+                <ui:fragment rendered="#{not companyAdminView.customizationAvailable}">
+                    <p class="admin-empty-hint">No hay una personalización física libre. Agregar otra requiere reconstruir y redesplegar la distribución.</p>
+                </ui:fragment>
+            </section>
+
+            <section aria-labelledby="company-list-title">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">Estado persistido</span>
+                        <h2 id="company-list-title">Empresas registradas</h2>
+                    </div>
+                    <span class="item-count">Concurrencia por versión</span>
+                </div>
+
+                <ui:fragment rendered="#{empty companyAdminView.companies}">
+                    <article class="empty-card">
+                        <h3>Aún no hay empresas</h3>
+                        <p>Registre la primera usando una personalización disponible.</p>
+                    </article>
+                </ui:fragment>
+
+                <div class="admin-record-grid">
+                    <ui:repeat value="#{companyAdminView.companies}" var="company">
+                        <article class="admin-record-card">
+                            <div class="record-card-heading">
+                                <div>
+                                    <span class="eyebrow">Empresa</span>
+                                    <h3>#{company.companyId}</h3>
+                                </div>
+                                <span class="state-chip #{company.active ? 'state-chip-active' : 'state-chip-inactive'}">
+                                    #{company.statusLabel}
+                                </span>
+                            </div>
+                            <dl class="admin-data-list">
+                                <div>
+                                    <dt>Personalización</dt>
+                                    <dd>#{company.customizationName}<small>#{company.customizationPluginId}</small></dd>
+                                </div>
+                                <div>
+                                    <dt>Versión</dt>
+                                    <dd>#{company.version}</dd>
+                                </div>
+                            </dl>
+                            <div class="record-actions">
+                                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/plugins.xhtml"
+                                        styleClass="button button-quiet"
+                                        rendered="#{companyAdminView.canManagePlugins}">
+                                    <f:param name="company" value="#{company.companyId}"/>
+                                    Configurar plugins
+                                </h:outputLink>
+                                <h:form styleClass="inline-action-form" includeViewParams="true">
+                                    <input type="hidden" name="selectorContext" value="#{nativeSelectorReturn.selectorContextId}"/>
+                                    <h:commandButton rendered="#{not company.active}"
+                                                     value="Activar"
+                                                     action="#{companyAdminView.activate(company.companyId, company.version)}"
+                                                     styleClass="button button-primary"/>
+                                    <h:commandButton rendered="#{company.active}"
+                                                     value="Inactivar"
+                                                     action="#{companyAdminView.inactivate(company.companyId, company.version)}"
+                                                     onclick="return confirm('La empresa dejará de operar, pero sus plugins y datos se conservarán. ¿Desea continuar?');"
+                                                     styleClass="button button-danger"/>
+                                </h:form>
+                            </div>
+                        </article>
+                    </ui:repeat>
+                </div>
+            </section>
+
+            <aside class="admin-notice" aria-label="Límite de administración">
+                <strong>Sin borrado ni SQL manual</strong>
+                <span>Inactivar una empresa no elimina tablas, migraciones, activaciones ni datos. La reactivación vuelve a validar toda la composición.</span>
+            </aside>
+        </main>
+
+        <footer class="app-footer">
+            <span>Logixone · Administración de empresas</span>
+            <span>Comandos tipados · auditoría correlacionada</span>
+        </footer>
+    </div>
+</h:body>
+</html>

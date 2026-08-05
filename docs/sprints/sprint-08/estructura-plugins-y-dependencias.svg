@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1000" viewBox="0 0 1440 1000" role="img" aria-labelledby="title description">
+  <title id="title">Estructura de plugins y dependencias de Logixone en J11-S8-C03</title>
+  <desc id="description">Cuatro plugins productivos y tres fixtures se componen en un único plugin set. Business Partners y Commercial Catalog requieren Reference Data versión 1.x. Inventory requiere Commercial Catalog versión 1.x. WAR y migrador usan la misma selección de siete plugins.</desc>
+  <defs>
+    <marker id="blue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#1565c0"/></marker>
+    <marker id="green" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#00796b"/></marker>
+    <marker id="purple" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#6a1b9a"/></marker>
+    <style>
+      .title{font:700 30px system-ui,sans-serif;fill:#102027}.sub{font:400 16px system-ui,sans-serif;fill:#455a64}
+      .lane{fill:#f7f9fa;stroke:#b0bec5;stroke-width:1.5}.laneTitle{font:700 16px system-ui,sans-serif;fill:#37474f;letter-spacing:.4px}
+      .nodeTitle{font:700 15px system-ui,sans-serif;fill:#102027}.body{font:400 12px system-ui,sans-serif;fill:#37474f}
+      .contract{fill:#fff;stroke:#607d8b;stroke-width:1.8}.product{fill:#e3f2fd;stroke:#1565c0;stroke-width:2}
+      .foundation{fill:#e8f5e9;stroke:#2e7d32;stroke-width:2.4}.fixture{fill:#e0f2f1;stroke:#00796b;stroke-width:2}.custom{fill:#f3e5f5;stroke:#7b1fa2;stroke-width:2}
+      .delivery{fill:#ede7f6;stroke:#6a1b9a;stroke-width:2}.maven{fill:none;stroke:#1565c0;stroke-width:2.2;marker-end:url(#blue)}
+      .required{fill:none;stroke:#00796b;stroke-width:3;marker-end:url(#green)}.package{fill:none;stroke:#6a1b9a;stroke-width:3;marker-end:url(#purple)}
+      .label{font:600 11px system-ui,sans-serif;fill:#455a64}.legend{font:500 13px system-ui,sans-serif;fill:#37474f}
+    </style>
+  </defs>
+  <rect width="1440" height="1000" fill="#fff"/>
+  <text x="48" y="50" class="title">Plugins y dependencias — Sprint 8 / J11-S8-C03</text>
+  <text x="48" y="78" class="sub">with-inventory-demo · siete plugins físicos · corte normativo validado · recongelación pendiente</text>
+
+  <rect x="40" y="100" width="1360" height="145" rx="20" class="lane"/>
+  <text x="62" y="130" class="laneTitle">CONTRATOS PÚBLICOS JAVA PUROS</text>
+  <rect x="55" y="155" width="205" height="62" rx="12" class="contract"/><text x="157" y="181" text-anchor="middle" class="nodeTitle">reference-data-api</text><text x="157" y="203" text-anchor="middle" class="body">1.0.0</text>
+  <rect x="275" y="155" width="210" height="62" rx="12" class="contract"/><text x="380" y="181" text-anchor="middle" class="nodeTitle">business-partners-api</text><text x="380" y="203" text-anchor="middle" class="body">1.0.0</text>
+  <rect x="500" y="155" width="220" height="62" rx="12" class="contract"/><text x="610" y="181" text-anchor="middle" class="nodeTitle">commercial-catalog-api</text><text x="610" y="203" text-anchor="middle" class="body">1.0.0</text>
+  <rect x="735" y="155" width="185" height="62" rx="12" class="contract"/><text x="827" y="181" text-anchor="middle" class="nodeTitle">inventory-api</text><text x="827" y="203" text-anchor="middle" class="body">1.0.0</text>
+  <rect x="935" y="155" width="195" height="62" rx="12" class="contract"/><text x="1032" y="181" text-anchor="middle" class="nodeTitle">kernel-api</text><text x="1032" y="203" text-anchor="middle" class="body">empresa y seguridad</text>
+  <rect x="1145" y="155" width="230" height="62" rx="12" class="contract"/><text x="1260" y="181" text-anchor="middle" class="nodeTitle">plugin-api 0.4.2</text><text x="1260" y="203" text-anchor="middle" class="body">descriptor, menú y UI</text>
+
+  <rect x="40" y="270" width="1360" height="440" rx="20" class="lane"/>
+  <text x="62" y="301" class="laneTitle">SIETE PLUGINS FÍSICOS</text>
+  <rect x="55" y="340" width="235" height="98" rx="15" class="foundation"/><text x="172" y="371" text-anchor="middle" class="nodeTitle">reference_data 1.0.0</text><text x="172" y="395" text-anchor="middle" class="body">FUNCIONAL · fundación R0</text><text x="172" y="417" text-anchor="middle" class="body">plg_reference_data V1</text>
+  <rect x="315" y="340" width="250" height="98" rx="15" class="product"/><text x="440" y="371" text-anchor="middle" class="nodeTitle">business_partners 1.0.0</text><text x="440" y="395" text-anchor="middle" class="body">FUNCIONAL productivo</text><text x="440" y="417" text-anchor="middle" class="body">plg_business_partners V1–V4</text>
+  <rect x="590" y="340" width="265" height="98" rx="15" class="product"/><text x="722" y="371" text-anchor="middle" class="nodeTitle">commercial_catalog 1.0.0</text><text x="722" y="395" text-anchor="middle" class="body">FUNCIONAL productivo</text><text x="722" y="417" text-anchor="middle" class="body">plg_commercial_catalog V1–V4</text>
+  <rect x="880" y="340" width="225" height="98" rx="15" class="product"/><text x="992" y="371" text-anchor="middle" class="nodeTitle">inventory 1.0.0</text><text x="992" y="395" text-anchor="middle" class="body">FUNCIONAL productivo</text><text x="992" y="417" text-anchor="middle" class="body">plg_inventory V1–V2</text>
+
+  <rect x="480" y="555" width="245" height="88" rx="14" class="fixture"/><text x="602" y="586" text-anchor="middle" class="nodeTitle">reference_plugin 1.0.0</text><text x="602" y="610" text-anchor="middle" class="body">FUNCIONAL fixture · V1</text>
+  <rect x="760" y="535" width="195" height="78" rx="14" class="custom"/><text x="857" y="565" text-anchor="middle" class="nodeTitle">custom A 1.0.0</text><text x="857" y="589" text-anchor="middle" class="body">CUSTOMIZATION fixture</text>
+  <rect x="760" y="625" width="195" height="62" rx="14" class="custom"/><text x="857" y="653" text-anchor="middle" class="nodeTitle">custom B 1.0.0</text><text x="857" y="675" text-anchor="middle" class="body">CUSTOMIZATION fixture</text>
+
+  <path d="M172 340 L172 222" class="maven"/><path d="M440 340 L380 222" class="maven"/><path d="M722 340 L610 222" class="maven"/><path d="M992 340 L827 222" class="maven"/>
+  <path d="M400 438 C365 490 240 490 205 440" class="required"/><text x="300" y="510" text-anchor="middle" class="label">REQUIRED reference_data 1.x</text>
+  <path d="M680 438 C620 530 280 530 230 440" class="required"/><text x="470" y="545" text-anchor="middle" class="label">REQUIRED reference_data 1.x</text>
+  <path d="M945 438 C910 500 820 500 770 440" class="required"/><text x="865" y="520" text-anchor="middle" class="label">REQUIRED commercial_catalog 1.x</text>
+  <path d="M760 574 C742 574 735 591 725 596" class="required"/><path d="M760 656 C742 656 735 618 725 610" class="required"/><text x="1040" y="595" class="label">A/B requieren reference_plugin 1.x</text>
+  <text x="65" y="685" class="body">Sin relaciones JPA ni SQL cruzado: los consumidores usan reference-data-api y commercial-catalog-api.</text>
+
+  <rect x="40" y="735" width="1360" height="180" rx="20" class="lane"/>
+  <text x="62" y="766" class="laneTitle">COMPOSICIÓN ÚNICA Y ENTREGA</text>
+  <rect x="500" y="795" width="440" height="82" rx="17" class="delivery"/><text x="720" y="826" text-anchor="middle" class="nodeTitle">logixone-plugin-set</text><text x="720" y="851" text-anchor="middle" class="body">siete JAR · with-inventory-demo</text>
+  <rect x="90" y="800" width="275" height="72" rx="15" class="delivery"/><text x="227" y="830" text-anchor="middle" class="nodeTitle">logixone-war</text><text x="227" y="854" text-anchor="middle" class="body">WildFly 41 · WEB-INF/lib</text>
+  <rect x="1075" y="800" width="275" height="72" rx="15" class="delivery"/><text x="1212" y="830" text-anchor="middle" class="nodeTitle">migrator</text><text x="1212" y="854" text-anchor="middle" class="body">ServiceLoader · Flyway</text>
+  <path d="M720 710 L720 791" class="package"/><path d="M500 836 L370 836" class="package"/><path d="M940 836 L1070 836" class="package"/>
+
+  <line x1="70" y1="955" x2="115" y2="955" class="maven"/><text x="128" y="960" class="legend">dependencia Maven</text>
+  <line x1="385" y1="955" x2="430" y2="955" class="required"/><text x="443" y="960" class="legend">REQUIRED del descriptor</text>
+  <line x1="790" y1="955" x2="835" y2="955" class="package"/><text x="848" y="960" class="legend">selección y empaquetado</text>
+</svg>

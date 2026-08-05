@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:pt="jakarta.faces.passthrough"
+      xmlns:lx="jakarta.faces.composite/logixone">
+<f:metadata>
+    <f:viewParam name="company" value="#{pluginAdminView.companyId}"/>
+</f:metadata>
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · Plugins</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/admin.css?ln=logixone"/>
+    <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/selector-return.js?ln=logixone" defer="defer"></script>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#admin-content">Saltar al contenido</a>
+
+    <div class="app-frame">
+        <header class="topbar admin-topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml" styleClass="brand"
+                    aria-label="Ir al inicio de administración">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy">
+                    <strong>Logixone</strong>
+                    <small>Administración de plugins</small>
+                </span>
+            </h:outputLink>
+            <nav class="admin-actions" aria-label="Navegación administrativa">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/companies.xhtml"
+                              styleClass="button button-ghost"
+                              rendered="#{pluginAdminView.canManageCompanies}">Empresas</h:outputLink>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml"
+                              styleClass="button button-ghost">Panel</h:outputLink>
+            </nav>
+        </header>
+
+        <main id="admin-content" class="main-content admin-workspace" tabindex="-1">
+            <nav class="breadcrumb" aria-label="Ruta de navegación">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml">Administración</h:outputLink>
+                <span aria-hidden="true">/</span>
+                <span>Plugins</span>
+            </nav>
+
+            <section class="admin-page-heading" aria-labelledby="plugins-title">
+                <div>
+                    <span class="eyebrow">Catálogo físico · PLUGIN_MANAGE</span>
+                    <h1 id="plugins-title">Plugins por empresa</h1>
+                    <p>El catálogo proviene de la distribución desplegada. Aquí sólo se cambia el estado deseado de plugins funcionales.</p>
+                </div>
+                <span class="metric-chip">#{pluginAdminView.physicalPlugins.size()} físicos</span>
+            </section>
+
+            <h:messages globalOnly="true" showSummary="true" showDetail="true"
+                        infoClass="admin-message admin-message-info"
+                        errorClass="admin-message admin-message-error" layout="list"/>
+            <lx:selectorReturnStatus/>
+
+            <section class="admin-form-card" aria-labelledby="company-selector-title">
+                <div class="section-heading compact-heading">
+                    <div>
+                        <span class="eyebrow">Contexto objetivo</span>
+                        <h2 id="company-selector-title">Seleccionar empresa</h2>
+                    </div>
+                    <span class="readonly-chip">Identificador técnico</span>
+                </div>
+                <h:form id="company-selector" styleClass="admin-inline-form">
+                    <input type="hidden" name="selectorDraft" value=""/>
+                    <div class="admin-field">
+                        <h:outputLabel for="company" value="Empresa"/>
+                        <h:selectOneMenu id="company" value="#{pluginAdminView.companyId}"
+                                         pt:data-selector-draft="company_id"
+                                         required="true"
+                                         requiredMessage="Seleccione una empresa."
+                                         styleClass="select-control select-large">
+                            <f:selectItem itemValue="" itemLabel="Seleccione una empresa" noSelectionOption="true"/>
+                            <f:selectItems value="#{pluginAdminView.companies}"
+                                           var="companyOption"
+                                           itemValue="#{companyOption.companyId}"
+                                           itemLabel="#{companyOption.companyId} · #{companyOption.statusLabel}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['admin.plugins.company']}"/>
+                        <h:message for="company" styleClass="field-message"/>
+                    </div>
+                    <h:commandButton value="Abrir configuración"
+                                     action="#{pluginAdminView.openCompany}"
+                                     styleClass="button button-primary"/>
+                </h:form>
+            </section>
+
+            <ui:fragment rendered="#{pluginAdminView.companySelected}">
+                <section class="admin-company-context" aria-labelledby="selected-company-title">
+                    <div>
+                        <span class="eyebrow">Empresa seleccionada</span>
+                        <h2 id="selected-company-title">#{pluginAdminView.selectedCompany.companyId}</h2>
+                        <p>Personalización actual: <strong>#{pluginAdminView.selectedCompany.customizationName}</strong>
+                           <span class="technical-id">#{pluginAdminView.selectedCompany.customizationPluginId}</span></p>
+                    </div>
+                    <span class="state-chip #{pluginAdminView.operational ? 'state-chip-active' : 'state-chip-warning'}">
+                        #{pluginAdminView.operational ? 'Composición operativa' : 'Composición no operativa'}
+                    </span>
+                </section>
+
+                <ui:fragment rendered="#{not empty pluginAdminView.diagnostics}">
+                    <aside class="diagnostic-panel" aria-labelledby="diagnostics-title">
+                        <strong id="diagnostics-title">Revisión requerida</strong>
+                        <ul>
+                            <ui:repeat value="#{pluginAdminView.diagnostics}" var="diagnostic">
+                                <li>#{diagnostic}</li>
+                            </ui:repeat>
+                        </ul>
+                    </aside>
+                </ui:fragment>
+
+                <section aria-labelledby="functional-plugins-title">
+                    <div class="section-heading">
+                        <div>
+                            <span class="eyebrow">Decisión por empresa</span>
+                            <h2 id="functional-plugins-title">Plugins funcionales</h2>
+                        </div>
+                        <span class="item-count">Los datos se conservan al deshabilitar</span>
+                    </div>
+                    <ui:fragment rendered="#{empty pluginAdminView.functionalPlugins}">
+                        <article class="empty-card">
+                            <h3>No hay plugins funcionales físicos</h3>
+                            <p>La distribución debe reconstruirse para incorporar uno.</p>
+                        </article>
+                    </ui:fragment>
+                    <div class="admin-record-grid">
+                        <ui:repeat value="#{pluginAdminView.functionalPlugins}" var="plugin">
+                            <article class="admin-record-card plugin-record-card">
+                                <div class="record-card-heading">
+                                    <div>
+                                        <span class="eyebrow">Plugin funcional · v#{plugin.version}</span>
+                                        <h3>#{plugin.displayName}</h3>
+                                        <span class="technical-id">#{plugin.pluginId}</span>
+                                    </div>
+                                    <span class="state-chip #{plugin.enabled ? 'state-chip-active' : 'state-chip-inactive'}">
+                                        #{plugin.desiredStateLabel}
+                                    </span>
+                                </div>
+                                <dl class="admin-data-list">
+                                    <div>
+                                        <dt>Estado efectivo</dt>
+                                        <dd>#{plugin.effective ? 'Disponible para operar' : 'No efectivo'}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Versión de decisión</dt>
+                                        <dd>#{plugin.decisionVersion}</dd>
+                                    </div>
+                                </dl>
+                                <h:form styleClass="record-actions single-action" includeViewParams="true">
+                                    <input type="hidden" name="company" value="#{pluginAdminView.companyId}"/>
+                                    <input type="hidden" name="plugin" value="#{plugin.pluginId}"/>
+                                    <input type="hidden" name="decisionVersion" value="#{plugin.decisionVersion}"/>
+                                    <h:commandButton rendered="#{not plugin.enabled}"
+                                                     value="Habilitar"
+                                                     action="#{pluginAdminView.enableSelected}"
+                                                     styleClass="button button-primary"/>
+                                    <h:commandButton rendered="#{plugin.enabled}"
+                                                     value="Deshabilitar"
+                                                     action="#{pluginAdminView.disableSelected}"
+                                                     onclick="return confirm('El plugin dejará de ser efectivo para esta empresa. Sus tablas y datos se conservarán. ¿Desea continuar?');"
+                                                     styleClass="button button-danger"/>
+                                </h:form>
+                            </article>
+                        </ui:repeat>
+                    </div>
+                </section>
+
+                <section class="admin-form-card" aria-labelledby="customization-title">
+                    <div class="section-heading compact-heading">
+                        <div>
+                            <span class="eyebrow">Personalización exclusiva</span>
+                            <h2 id="customization-title">Reemplazar personalización</h2>
+                        </div>
+                        <span class="readonly-chip">Requiere COMPANY_MANAGE</span>
+                    </div>
+                    <ui:fragment rendered="#{pluginAdminView.canManageCompanies}">
+                        <h:form id="replace-customization" styleClass="admin-inline-form" includeViewParams="true">
+                            <h:inputHidden value="#{pluginAdminView.companyId}"/>
+                            <div class="admin-field">
+                                <h:outputLabel for="customization" value="Nueva personalización"/>
+                                <h:selectOneMenu id="customization"
+                                                 value="#{pluginAdminView.customizationPluginId}"
+                                                 required="true"
+                                                 requiredMessage="Seleccione una personalización libre."
+                                                 disabled="#{not pluginAdminView.customizationReplacementAvailable}"
+                                                 styleClass="select-control select-large">
+                                    <f:selectItem itemValue="" itemLabel="Seleccione una personalización" noSelectionOption="true"/>
+                                    <f:selectItems value="#{pluginAdminView.availableCustomizations}"
+                                                   var="customization"
+                                                   itemValue="#{customization.pluginId}"
+                                                   itemLabel="#{customization.label}"/>
+                                </h:selectOneMenu>
+                                <lx:selectorSource source="#{nativeSelectorSources.sources['admin.plugins.customization']}"/>
+                                <h:message for="customization" styleClass="field-message"/>
+                                <small>El servidor volverá a comprobar exclusividad, compatibilidad y versión.</small>
+                            </div>
+                            <h:commandButton value="Reemplazar personalización"
+                                             action="#{pluginAdminView.replaceCustomization(pluginAdminView.selectedCompany.version)}"
+                                             disabled="#{not pluginAdminView.customizationReplacementAvailable}"
+                                             onclick="return confirm('La interfaz y contribuciones efectivas de la empresa pueden cambiar. ¿Desea reemplazar su personalización?');"
+                                             styleClass="button button-danger">
+                                <f:param name="company" value="#{pluginAdminView.companyId}"/>
+                            </h:commandButton>
+                        </h:form>
+                        <ui:fragment rendered="#{empty pluginAdminView.availableCustomizations}">
+                            <p class="admin-empty-hint">No hay otra personalización física libre para esta empresa.</p>
+                        </ui:fragment>
+                    </ui:fragment>
+                    <ui:fragment rendered="#{not pluginAdminView.canManageCompanies}">
+                        <p class="admin-empty-hint">La sesión puede administrar activaciones, pero no reemplazar la personalización de la empresa.</p>
+                    </ui:fragment>
+                </section>
+            </ui:fragment>
+
+            <section aria-labelledby="physical-catalog-title">
+                <div class="section-heading">
+                    <div>
+                        <span class="eyebrow">Sólo lectura</span>
+                        <h2 id="physical-catalog-title">Catálogo físico desplegado</h2>
+                    </div>
+                    <span class="item-count">Sin instalación dinámica</span>
+                </div>
+                <div class="catalog-table" role="table" aria-label="Catálogo físico de plugins">
+                    <div class="catalog-row catalog-header" role="row">
+                        <span role="columnheader">Plugin</span>
+                        <span role="columnheader">Tipo</span>
+                        <span role="columnheader">Versión</span>
+                        <span role="columnheader">Dependencias</span>
+                    </div>
+                    <ui:repeat value="#{pluginAdminView.physicalPlugins}" var="catalogPlugin">
+                        <div class="catalog-row" role="row">
+                            <span role="cell" data-label="Plugin">
+                                <strong>#{catalogPlugin.displayName}</strong>
+                                <small>#{catalogPlugin.pluginId}</small>
+                            </span>
+                            <span role="cell" data-label="Tipo">
+                                <span class="kind-chip kind-#{catalogPlugin.kindCss}">#{catalogPlugin.kindLabel}</span>
+                            </span>
+                            <span role="cell" data-label="Versión">#{catalogPlugin.version}</span>
+                            <span role="cell" data-label="Dependencias">#{catalogPlugin.dependencies}</span>
+                        </div>
+                    </ui:repeat>
+                </div>
+            </section>
+
+            <aside class="admin-notice" aria-label="Límite del catálogo">
+                <strong>Catálogo inmutable en ejecución</strong>
+                <span>Agregar o retirar físicamente un plugin requiere reconstruir y redesplegar. Esta pantalla nunca carga JAR ni edita manifiestos.</span>
+            </aside>
+        </main>
+
+        <footer class="app-footer">
+            <span>Logixone · Administración de plugins</span>
+            <span>Estado deseado separado de presencia física</span>
+        </footer>
+    </div>
+</h:body>
+</html>

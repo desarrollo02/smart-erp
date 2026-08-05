@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="jakarta.faces.core"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:pt="jakarta.faces.passthrough">
+<f:metadata>
+    <f:viewParam name="route" value="#{shellView.requestedRoute}"/>
+    <f:viewParam name="mode" value="#{shellView.requestedMode}"/>
+    <f:viewParam name="tab" value="#{shellView.requestedTab}"/>
+    <f:viewParam name="selectorContext" value="#{shellView.selectorContextId}"/>
+    <f:viewParam name="selectorReturn" value="#{shellView.selectorReturnId}"/>
+    <f:event type="preRenderView" listener="#{shellView.prepare}"/>
+</f:metadata>
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · #{shellView.activeTitle}</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/selector-return.js?ln=logixone"
+            defer="defer"></script>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#main-content">Saltar al contenido</a>
+    <div class="app-frame">
+        <header class="topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                          styleClass="brand" pt:aria-label="Ir al inicio de Logixone">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy"><strong>Logixone</strong><small>ERP modular</small></span>
+            </h:outputLink>
+            <ui:fragment rendered="#{shellView.ready}">
+                <details class="mobile-navigation">
+                    <summary aria-label="Abrir navegación"><span aria-hidden="true">☰</span></summary>
+                    <nav aria-label="Navegación principal móvil">
+                        <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                                      styleClass="app-nav-item">
+                            <span aria-hidden="true">⌂</span><strong>Inicio</strong>
+                        </h:outputLink>
+                        <ui:repeat value="#{shellView.menuItems}" var="item">
+                            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                          styleClass="app-nav-item">
+                                <f:param name="route" value="#{item.route}"/>
+                                <span aria-hidden="true">◇</span><strong>#{item.label}</strong>
+                            </h:outputLink>
+                        </ui:repeat>
+                    </nav>
+                </details>
+                <div class="session-panel">
+                    <div class="identity-copy">
+                        <strong>#{shellView.actorDisplayName}</strong>
+                        <span>#{shellView.companyDisplayName}</span>
+                    </div>
+                    <h:form>
+                        <h:commandButton value="Cerrar sesión" action="#{shellView.logout}"
+                                         styleClass="button button-ghost"/>
+                    </h:form>
+                </div>
+            </ui:fragment>
+        </header>
+
+        <div class="shell-layout">
+        <h:panelGroup layout="block" rendered="#{shellView.ready}" styleClass="app-navigation">
+            <nav aria-label="Navegación principal">
+                <span class="app-nav-label">Trabajo</span>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                              styleClass="app-nav-item">
+                    <span aria-hidden="true">⌂</span><strong>Inicio</strong>
+                </h:outputLink>
+                <ui:repeat value="#{shellView.menuItems}" var="item">
+                    <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                  styleClass="app-nav-item #{item.route eq shellView.requestedRoute ? 'app-nav-item-active' : ''}">
+                        <f:param name="route" value="#{item.route}"/>
+                        <span aria-hidden="true">◇</span><strong>#{item.label}</strong>
+                    </h:outputLink>
+                </ui:repeat>
+            </nav>
+            <div class="app-nav-context">
+                <span>Empresa activa</span>
+                <strong>#{shellView.companyDisplayName}</strong>
+            </div>
+        </h:panelGroup>
+
+        <main id="main-content" class="main-content" tabindex="-1">
+            <h:panelGroup layout="block" rendered="#{shellView.ready}" styleClass="workspace">
+                <nav class="breadcrumb" aria-label="Ruta de navegación">
+                    <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml">Inicio</h:outputLink>
+                    <span aria-hidden="true">/</span>
+                    <span aria-current="page">#{shellView.activeTitle}</span>
+                </nav>
+
+                <h:panelGroup layout="block" rendered="#{shellView.selectorReturnAvailable}"
+                              styleClass="selector-return-banner" role="region"
+                              pt:aria-label="Retorno al formulario de origen">
+                    <div>
+                        <strong>Administración contextual</strong>
+                        <span>Al volver se refrescarán las opciones y se recuperará el borrador seguro.</span>
+                    </div>
+                    <h:form styleClass="selector-return-form">
+                        <input type="hidden" name="route" value="#{shellView.requestedRoute}"/>
+                        <input type="hidden" name="selectorContext" value="#{shellView.selectorContextId}"/>
+                        <h:commandLink value="#{shellView.selectorReturnLabel}"
+                                       action="#{shellView.returnToSelectorOrigin}"
+                                       styleClass="button button-tonal"/>
+                    </h:form>
+                </h:panelGroup>
+
+                <section class="composed-screen #{shellView.activeScreen.interactive ? 'composed-screen-business' : ''}"
+                         aria-labelledby="composed-screen-title">
+                    <ui:fragment rendered="#{not shellView.activeScreen.interactive}">
+                    <header class="composed-screen-header">
+                        <div>
+                            <span class="eyebrow">#{shellView.activeScreen.eyebrow}</span>
+                            <h1 id="composed-screen-title">#{shellView.activeScreen.title}</h1>
+                            <p>#{shellView.activeScreen.description}</p>
+                        </div>
+                        <div class="#{shellView.activeScreen.variantClass}" role="status">
+                            <span aria-hidden="true">●</span>
+                            #{shellView.activeScreen.variantLabel}
+                        </div>
+                    </header>
+                    </ui:fragment>
+
+                    <ui:fragment rendered="#{not shellView.activeScreen.interactive}">
+                    <div class="screen-contract-meta" aria-label="Contrato de pantalla">
+                        <span><strong>ID público</strong> #{shellView.activeScreen.id}</span>
+                        <span><strong>Versión</strong> #{shellView.activeScreen.contractVersion}</span>
+                    </div>
+                    </ui:fragment>
+
+                    <h:form styleClass="composed-screen-form"
+                            rendered="#{not shellView.activeScreen.interactive}">
+                        <input type="hidden" name="route" value="#{shellView.requestedRoute}"/>
+                        <div class="composed-main-region">
+                            <ui:repeat value="#{shellView.activeScreen.mainElements}" var="element">
+                                <h:panelGroup layout="block" rendered="#{element.displayText}"
+                                              styleClass="#{element.stateClass}">
+                                    <span class="element-kind">Contenido de presentación</span>
+                                    <h2>#{element.label}</h2>
+                                    <ui:fragment rendered="#{element.hasHelp}">
+                                        <p>#{element.help}</p>
+                                    </ui:fragment>
+                                </h:panelGroup>
+
+                                <h:panelGroup layout="block" rendered="#{element.textInput}"
+                                              styleClass="#{element.stateClass}">
+                                    <div class="field-heading">
+                                        <h:outputLabel for="demo-field" value="#{element.label}"/>
+                                        <h:panelGroup layout="inline" styleClass="required-chip"
+                                                      rendered="#{element.required}">Obligatorio</h:panelGroup>
+                                    </div>
+                                    <ui:fragment rendered="#{element.hasHelp}">
+                                        <p class="field-help">#{element.help}</p>
+                                    </ui:fragment>
+                                    <h:inputText id="demo-field"
+                                                 value="#{shellView.demonstrationValue}"
+                                                 required="#{element.required}"
+                                                 requiredMessage="Completa el campo de demostración."
+                                                 disabled="#{not element.enabled}"
+                                                 styleClass="text-control"/>
+                                    <h:message for="demo-field" styleClass="field-message"/>
+                                </h:panelGroup>
+                            </ui:repeat>
+
+                            <ui:repeat value="#{shellView.activeScreen.fragments}" var="fragment">
+                                <aside class="#{fragment.styleClass}">
+                                    <span class="element-kind">#{fragment.eyebrow}</span>
+                                    <h2>#{fragment.title}</h2>
+                                    <p>#{fragment.body}</p>
+                                </aside>
+                            </ui:repeat>
+
+                            <h:panelGroup layout="block" styleClass="hidden-elements-note"
+                                          rendered="#{shellView.activeScreen.hasHiddenElements}">
+                                <span aria-hidden="true">○</span>
+                                #{shellView.activeScreen.hiddenElementCount} elemento de la pantalla base fue ocultado por el overlay autorizado.
+                            </h:panelGroup>
+                        </div>
+
+                        <div class="composed-actions">
+                            <ui:repeat value="#{shellView.activeScreen.actions}" var="actionElement">
+                                <h:commandButton value="#{actionElement.label}"
+                                                 disabled="#{not actionElement.enabled}"
+                                                 styleClass="button button-primary"/>
+                            </ui:repeat>
+                            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                                          styleClass="button button-quiet">Volver al espacio de trabajo</h:outputLink>
+                        </div>
+                    </h:form>
+
+                    <ui:fragment rendered="#{shellView.activeScreen.interactive}">
+                        <header class="entity-page-header">
+                            <div>
+                                <span class="entity-context">#{shellView.activeScreen.entityContext}</span>
+                                <ui:fragment rendered="#{shellView.directoryMode}">
+                                    <h1 id="composed-screen-title">#{shellView.activeScreen.title}</h1>
+                                    <p>#{shellView.activeScreen.description}</p>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{shellView.createMode}">
+                                    <h1 id="composed-screen-title">#{shellView.activeScreen.createTitle}</h1>
+                                    <p>#{shellView.activeScreen.createDescription}</p>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{shellView.detailMode and shellView.activeInteraction.hasDetail}">
+                                    <h1 id="composed-screen-title">#{shellView.activeInteraction.detail.title}</h1>
+                                    <p>#{shellView.activeScreen.detailDescription}</p>
+                                </ui:fragment>
+                            </div>
+                            <div class="entity-page-actions">
+                                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                              styleClass="button button-primary"
+                                              rendered="#{shellView.directoryMode}">
+                                    <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                    <f:param name="mode" value="create"/>
+                                    <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                             disable="#{empty shellView.selectorContextId}"/>
+                                    <span aria-hidden="true">+</span> #{shellView.activeScreen.newActionLabel}
+                                </h:outputLink>
+                                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                              styleClass="button button-quiet"
+                                              rendered="#{not shellView.directoryMode}">
+                                    <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                    <f:param name="mode" value="directory"/>
+                                    <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                             disable="#{empty shellView.selectorContextId}"/>
+                                    <span aria-hidden="true">←</span> #{shellView.activeScreen.backActionLabel}
+                                </h:outputLink>
+                            </div>
+                        </header>
+                    </ui:fragment>
+
+                    <ui:fragment rendered="#{shellView.activeScreen.interactive}">
+                        <div class="interactive-screen">
+                            <div class="screen-notices" aria-live="polite">
+                                <h:panelGroup layout="block"
+                                              rendered="#{shellView.selectorReturnRestored}"
+                                              styleClass="screen-notice screen-notice-success"
+                                              role="status">
+                                    <strong>Opciones actualizadas</strong>
+                                    <span>Se recuperó el borrador seguro. Ya puedes elegir los valores disponibles.</span>
+                                </h:panelGroup>
+                                <ui:repeat value="#{shellView.activeInteraction.notices}" var="notice">
+                                    <div class="#{notice.styleClass}" role="#{notice.role}">
+                                        <strong>#{notice.summary}</strong>
+                                        <span>#{notice.detail}</span>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+
+                            <h:panelGroup layout="block" styleClass="directory-view"
+                                          rendered="#{shellView.directoryMode}">
+                                <ui:repeat value="#{shellView.activeScreen.directorySections}" var="section">
+                                    <h:panelGroup layout="block" styleClass="directory-filter-card"
+                                                  rendered="#{section.id eq 'search'}">
+                                        <h:form styleClass="directory-filter-form">
+                                            <input type="hidden" name="route" value="#{shellView.requestedRoute}"/>
+                                            <input type="hidden" name="mode" value="directory"/>
+                                            <input type="hidden" name="selectorContext" value="#{shellView.selectorContextId}"/>
+                                            <input type="hidden" name="selectorDraft" value=""/>
+                                            <div class="directory-filter-fields">
+                                                <ui:repeat value="#{section.fields}" var="field">
+                                                    <h:panelGroup layout="block" rendered="#{field.textInput}"
+                                                                  styleClass="screen-field search-main-field">
+                                                        <h:outputLabel for="directory-text" value="#{field.label}"/>
+                                                        <h:inputText id="directory-text"
+                                                                     value="#{shellView.inputValues[field.id]}"
+                                                                     pt:data-screen-input="#{field.id}"
+                                                                     maxlength="100"
+                                                                     disabled="#{not field.enabled}"
+                                                                     styleClass="text-control text-control-compact"/>
+                                                    </h:panelGroup>
+                                                    <h:panelGroup layout="block" rendered="#{field.select}"
+                                                                  styleClass="screen-field search-select-field">
+                                                        <div class="selector-field-heading">
+                                                            <h:outputLabel for="directory-select" value="#{field.label}"/>
+                                                            <h:commandLink
+                                                                    rendered="#{shellView.activeInteraction.selectorSources[field.id].managementAvailable}"
+                                                                    action="#{shellView.openSelectorManagement(field.id)}"
+                                                                    immediate="true"
+                                                                    onclick="LogixoneSelectorReturn.capture(this);"
+                                                                    styleClass="selector-management-link"
+                                                                    pt:aria-label="#{shellView.activeInteraction.selectorSources[field.id].managementLabel} opciones de #{field.label}">
+                                                                #{shellView.activeInteraction.selectorSources[field.id].managementLabel}
+                                                            </h:commandLink>
+                                                        </div>
+                                                        <h:selectOneMenu id="directory-select"
+                                                                         value="#{shellView.inputValues[field.id]}"
+                                                                         pt:data-screen-input="#{field.id}"
+                                                                         disabled="#{not field.enabled}"
+                                                                         styleClass="select-control select-compact">
+                                                            <f:selectItems value="#{shellView.activeInteraction.options[field.id]}"
+                                                                           var="option"
+                                                                           itemValue="#{option.value}"
+                                                                           itemLabel="#{option.label}"/>
+                                                        </h:selectOneMenu>
+                                                    </h:panelGroup>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="directory-filter-actions">
+                                                <ui:repeat value="#{section.actions}" var="action">
+                                                    <h:commandButton value="#{action.label}"
+                                                                     action="#{shellView.executeScreenAction}"
+                                                                     disabled="#{not action.enabled}"
+                                                                     styleClass="button button-tonal">
+                                                        <f:setPropertyActionListener
+                                                                target="#{shellView.requestedActionId}"
+                                                                value="#{action.id}"/>
+                                                    </h:commandButton>
+                                                </ui:repeat>
+                                            </div>
+                                        </h:form>
+                                    </h:panelGroup>
+                                </ui:repeat>
+
+                                <h:panelGroup layout="block" styleClass="directory-results"
+                                              rendered="#{shellView.activeScreen.hasTableElement and shellView.activeInteraction.hasTable}">
+                                    <div class="directory-results-heading">
+                                        <h2>#{shellView.activeScreen.tableElement.label}</h2>
+                                        <span class="item-count">#{shellView.activeInteraction.table.total} encontrados</span>
+                                    </div>
+
+                                    <h:panelGroup layout="block" styleClass="empty-card"
+                                                  rendered="#{shellView.activeInteraction.table.rowsEmpty}">
+                                        <h3>#{shellView.activeInteraction.table.emptyTitle}</h3>
+                                        <p>#{shellView.activeInteraction.table.emptyDescription}</p>
+                                    </h:panelGroup>
+
+                                    <h:panelGroup layout="block" styleClass="responsive-table-shell business-table-view"
+                                                  rendered="#{not shellView.activeInteraction.table.rowsEmpty}">
+                                        <table class="business-table">
+                                            <thead>
+                                            <tr>
+                                                <ui:repeat value="#{shellView.activeInteraction.table.columns}" var="column">
+                                                    <th scope="col">#{column.label}</th>
+                                                </ui:repeat>
+                                                <th scope="col" class="table-action-heading"><span class="sr-only">Abrir</span></th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            <ui:repeat value="#{shellView.activeInteraction.table.rows}" var="row">
+                                                <tr>
+                                                    <ui:repeat value="#{row.cells}" var="cell">
+                                                        <td>#{cell}</td>
+                                                    </ui:repeat>
+                                                    <td class="table-action-cell">
+                                                        <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                                      styleClass="row-open-link"
+                                                                      rendered="#{shellView.activeScreen.hasRowAction}"
+                                                                      pt:aria-label="Abrir #{row.cells[1]}">
+                                                            <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                                            <f:param name="mode" value="detail"/>
+                                                            <f:param name="resource" value="#{row.resourceId}"/>
+                                                            <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                                     disable="#{empty shellView.selectorContextId}"/>
+                                                            Ver <span aria-hidden="true">›</span>
+                                                        </h:outputLink>
+                                                    </td>
+                                                </tr>
+                                            </ui:repeat>
+                                            </tbody>
+                                        </table>
+                                    </h:panelGroup>
+
+                                    <div class="business-mobile-list">
+                                        <ui:repeat value="#{shellView.activeInteraction.table.rows}" var="row">
+                                            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                          styleClass="business-mobile-item">
+                                                <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                                <f:param name="mode" value="detail"/>
+                                                <f:param name="resource" value="#{row.resourceId}"/>
+                                                <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                         disable="#{empty shellView.selectorContextId}"/>
+                                                <span class="mobile-item-main">
+                                                    <ui:repeat value="#{row.cells}" var="cell" varStatus="cellStatus">
+                                                        <span class="mobile-data-line">
+                                                            <small>#{shellView.activeInteraction.table.columns[cellStatus.index].label}</small>
+                                                            <strong>#{cell}</strong>
+                                                        </span>
+                                                    </ui:repeat>
+                                                </span>
+                                                <span class="mobile-item-arrow" aria-hidden="true">›</span>
+                                            </h:outputLink>
+                                        </ui:repeat>
+                                    </div>
+                                </h:panelGroup>
+                            </h:panelGroup>
+
+                            <h:panelGroup layout="block" styleClass="create-view"
+                                          rendered="#{shellView.createMode}">
+                                <ui:repeat value="#{shellView.activeScreen.directorySections}" var="section">
+                                    <h:panelGroup layout="block" styleClass="create-form-card"
+                                                  rendered="#{section.id eq 'create'}">
+                                        <div class="form-introduction">
+                                            <h2>Datos principales</h2>
+                                            <p>Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.</p>
+                                        </div>
+                                        <h:form styleClass="screen-section-form compact-business-form">
+                                            <input type="hidden" name="route" value="#{shellView.requestedRoute}"/>
+                                            <input type="hidden" name="mode" value="create"/>
+                                            <input type="hidden" name="selectorContext" value="#{shellView.selectorContextId}"/>
+                                            <input type="hidden" name="selectorDraft" value=""/>
+                                            <div class="create-field-grid">
+                                                <ui:repeat value="#{section.fields}" var="field">
+                                                    <h:panelGroup layout="block" rendered="#{field.textInput}"
+                                                                  styleClass="screen-field">
+                                                        <div class="field-heading">
+                                                            <h:outputLabel for="create-text" value="#{field.label}"/>
+                                                            <h:panelGroup layout="inline" styleClass="required-mark"
+                                                                          rendered="#{field.required}">*</h:panelGroup>
+                                                        </div>
+                                                        <h:inputText id="create-text"
+                                                                     value="#{shellView.inputValues[field.id]}"
+                                                                     pt:data-screen-input="#{field.id}"
+                                                                     required="#{field.required}"
+                                                                     requiredMessage="Completa #{field.label}."
+                                                                     disabled="#{not field.enabled}"
+                                                                     maxlength="1000"
+                                                                     styleClass="text-control text-control-compact"/>
+                                                        <h:message for="create-text" styleClass="field-message"/>
+                                                    </h:panelGroup>
+                                                    <h:panelGroup layout="block" rendered="#{field.select}"
+                                                                  styleClass="screen-field">
+                                                        <div class="field-heading selector-field-heading">
+                                                            <span class="field-label-with-mark">
+                                                                <h:outputLabel for="create-select" value="#{field.label}"/>
+                                                                <h:panelGroup layout="inline" styleClass="required-mark"
+                                                                              rendered="#{field.required}">*</h:panelGroup>
+                                                            </span>
+                                                            <h:commandLink
+                                                                    rendered="#{shellView.activeInteraction.selectorSources[field.id].managementAvailable}"
+                                                                    action="#{shellView.openSelectorManagement(field.id)}"
+                                                                    immediate="true"
+                                                                    onclick="LogixoneSelectorReturn.capture(this);"
+                                                                    styleClass="selector-management-link"
+                                                                    pt:aria-label="#{shellView.activeInteraction.selectorSources[field.id].managementLabel} opciones de #{field.label}">
+                                                                #{shellView.activeInteraction.selectorSources[field.id].managementLabel}
+                                                            </h:commandLink>
+                                                        </div>
+                                                        <h:selectOneMenu id="create-select"
+                                                                         value="#{shellView.inputValues[field.id]}"
+                                                                         pt:data-screen-input="#{field.id}"
+                                                                         required="#{field.required}"
+                                                                         disabled="#{not field.enabled}"
+                                                                         styleClass="select-control select-compact">
+                                                            <f:selectItems value="#{shellView.activeInteraction.options[field.id]}"
+                                                                           var="option"
+                                                                           itemValue="#{option.value}"
+                                                                           itemLabel="#{option.label}"/>
+                                                        </h:selectOneMenu>
+                                                    </h:panelGroup>
+                                                    <h:panelGroup layout="block" rendered="#{field.displayText}"
+                                                                  styleClass="screen-field create-display-summary">
+                                                        <div class="field-heading">
+                                                            <span class="field-label">#{field.label}</span>
+                                                        </div>
+                                                        <p class="field-help">#{field.help}</p>
+                                                        <h:inputHidden value="#{shellView.inputValues[field.id]}"/>
+                                                        <h:outputText value="#{shellView.inputValues[field.id]}"
+                                                                      styleClass="create-display-summary-value"/>
+                                                    </h:panelGroup>
+                                                </ui:repeat>
+                                            </div>
+                                            <div class="form-actions-bar">
+                                                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                              styleClass="button button-quiet">
+                                                    <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                                    <f:param name="mode" value="directory"/>
+                                                    <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                             disable="#{empty shellView.selectorContextId}"/>
+                                                    Cancelar
+                                                </h:outputLink>
+                                                <ui:repeat value="#{section.actions}" var="action">
+                                                    <h:commandButton value="#{action.label}"
+                                                                     action="#{shellView.executeScreenAction}"
+                                                                     disabled="#{not action.enabled}"
+                                                                     styleClass="button button-primary">
+                                                        <f:setPropertyActionListener
+                                                                target="#{shellView.requestedActionId}"
+                                                                value="#{action.id}"/>
+                                                    </h:commandButton>
+                                                </ui:repeat>
+                                            </div>
+                                        </h:form>
+                                    </h:panelGroup>
+                                </ui:repeat>
+                            </h:panelGroup>
+
+                            <h:panelGroup layout="block" styleClass="business-detail-view"
+                                          rendered="#{shellView.detailMode and shellView.activeInteraction.hasDetail}">
+                                <nav class="detail-tabs" aria-label="Secciones del registro">
+                                    <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                  styleClass="detail-tab #{shellView.summaryTab ? 'detail-tab-active' : ''}">
+                                        <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                        <f:param name="mode" value="detail"/>
+                                        <f:param name="resource" value="#{shellView.selectedResourceId}"/>
+                                        <f:param name="tab" value="summary"/>
+                                        <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                 disable="#{empty shellView.selectorContextId}"/>
+                                        Resumen
+                                    </h:outputLink>
+                                    <ui:repeat value="#{shellView.activeScreen.detailTabs}" var="detailTab">
+                                        <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                      styleClass="detail-tab #{shellView.isDetailTabActive(detailTab.id) ? 'detail-tab-active' : ''}">
+                                            <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                            <f:param name="mode" value="detail"/>
+                                            <f:param name="resource" value="#{shellView.selectedResourceId}"/>
+                                            <f:param name="tab" value="#{detailTab.id}"/>
+                                            <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                     disable="#{empty shellView.selectorContextId}"/>
+                                            #{detailTab.label}
+                                        </h:outputLink>
+                                    </ui:repeat>
+                                </nav>
+
+                                <h:panelGroup layout="block" styleClass="detail-summary-panel"
+                                              rendered="#{shellView.summaryTab}">
+                                    <div class="detail-panel-heading">
+                                        <div>
+                                            <h2>Resumen</h2>
+                                            <p>#{shellView.activeScreen.summaryDescription}</p>
+                                        </div>
+                                        <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                      styleClass="button button-tonal">
+                                            <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                            <f:param name="mode" value="detail"/>
+                                            <f:param name="resource" value="#{shellView.selectedResourceId}"/>
+                                            <f:param name="tab" value="general"/>
+                                            <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                     disable="#{empty shellView.selectorContextId}"/>
+                                            Editar datos
+                                        </h:outputLink>
+                                    </div>
+                                    <dl class="business-summary-grid">
+                                        <ui:repeat value="#{shellView.activeInteraction.detail.items}" var="item">
+                                            <h:panelGroup layout="block" rendered="#{item.label ne 'Versión'}">
+                                                <dt>#{item.label}</dt>
+                                                <dd>#{item.value}</dd>
+                                            </h:panelGroup>
+                                        </ui:repeat>
+                                    </dl>
+                                </h:panelGroup>
+
+                                <h:panelGroup layout="block" styleClass="detail-tab-panel"
+                                              rendered="#{not shellView.summaryTab}">
+                                    <h:form styleClass="screen-section-form compact-business-form detail-tab-form">
+                                        <input type="hidden" name="route" value="#{shellView.requestedRoute}"/>
+                                        <input type="hidden" name="mode" value="detail"/>
+                                        <input type="hidden" name="tab" value="#{shellView.requestedTab}"/>
+                                        <input type="hidden" name="resource" value="#{shellView.selectedResourceId}"/>
+                                        <input type="hidden" name="version" value="#{shellView.selectedResourceVersion}"/>
+                                        <input type="hidden" name="selectorContext" value="#{shellView.selectorContextId}"/>
+                                        <input type="hidden" name="selectorDraft" value=""/>
+                                        <h:inputHidden value="#{shellView.selectedResourceId}"/>
+                                        <h:inputHidden value="#{shellView.selectedResourceVersion}"/>
+                                    <ui:repeat value="#{shellView.activeScreen.detailSections}" var="section">
+                                        <h:panelGroup layout="block"
+                                                      styleClass="detail-form-section #{section.id eq 'history' ? 'detail-form-section-wide' : ''}"
+                                                      rendered="#{section.tabId eq shellView.requestedTab}">
+                                            <section aria-labelledby="detail-#{section.id}-title">
+                                                <header class="detail-form-heading">
+                                                    <h2 id="detail-#{section.id}-title">#{section.title}</h2>
+                                                    <p>#{section.description}</p>
+                                                </header>
+                                                    <div class="detail-field-grid">
+                                                        <ui:repeat value="#{section.fields}" var="field">
+                                                            <h:panelGroup layout="block" rendered="#{field.textInput}"
+                                                                          styleClass="screen-field">
+                                                                <div class="field-heading">
+                                                                    <h:outputLabel for="detail-text" value="#{field.label}"/>
+                                                                    <h:panelGroup layout="inline" styleClass="required-mark"
+                                                                                  rendered="#{field.required}">*</h:panelGroup>
+                                                                </div>
+                                                                <h:inputText id="detail-text"
+                                                                             value="#{shellView.inputValues[field.id]}"
+                                                                             pt:data-screen-input="#{field.id}"
+                                                                             required="false"
+                                                                             pt:aria-required="#{field.required}"
+                                                                             requiredMessage="Completa #{field.label}."
+                                                                             disabled="#{not field.enabled}"
+                                                                             maxlength="1000"
+                                                                             styleClass="text-control text-control-compact"/>
+                                                                <h:message for="detail-text" styleClass="field-message"/>
+                                                            </h:panelGroup>
+                                                            <h:panelGroup layout="block" rendered="#{field.select}"
+                                                                          styleClass="screen-field">
+                                                                <div class="field-heading selector-field-heading">
+                                                                    <span class="field-label-with-mark">
+                                                                        <h:outputLabel for="detail-select" value="#{field.label}"/>
+                                                                        <h:panelGroup layout="inline" styleClass="required-mark"
+                                                                                      rendered="#{field.required}">*</h:panelGroup>
+                                                                    </span>
+                                                                    <h:commandLink
+                                                                            rendered="#{shellView.activeInteraction.selectorSources[field.id].managementAvailable}"
+                                                                            action="#{shellView.openSelectorManagement(field.id)}"
+                                                                            immediate="true"
+                                                                            onclick="LogixoneSelectorReturn.capture(this);"
+                                                                            styleClass="selector-management-link"
+                                                                            pt:aria-label="#{shellView.activeInteraction.selectorSources[field.id].managementLabel} opciones de #{field.label}">
+                                                                        #{shellView.activeInteraction.selectorSources[field.id].managementLabel}
+                                                                    </h:commandLink>
+                                                                </div>
+                                                                <h:selectOneMenu id="detail-select"
+                                                                                 value="#{shellView.inputValues[field.id]}"
+                                                                                 pt:data-screen-input="#{field.id}"
+                                                                                 required="false"
+                                                                                 pt:aria-required="#{field.required}"
+                                                                                 disabled="#{not field.enabled}"
+                                                                                 styleClass="select-control select-compact">
+                                                                    <f:selectItems value="#{shellView.activeInteraction.options[field.id]}"
+                                                                                   var="option"
+                                                                                   itemValue="#{option.value}"
+                                                                                   itemLabel="#{option.label}"/>
+                                                                </h:selectOneMenu>
+                                                            </h:panelGroup>
+                                                            <h:panelGroup layout="block" rendered="#{field.displayText}"
+                                                                          styleClass="screen-field detail-display-summary">
+                                                                <div class="field-heading">
+                                                                    <span class="field-label">#{field.label}</span>
+                                                                </div>
+                                                                <ui:fragment rendered="#{field.hasHelp}">
+                                                                    <p class="field-help">#{field.help}</p>
+                                                                </ui:fragment>
+                                                                <h:inputHidden value="#{shellView.inputValues[field.id]}"/>
+                                                                <h:outputText value="#{shellView.inputValues[field.id]}"
+                                                                              styleClass="detail-display-summary-value"/>
+                                                            </h:panelGroup>
+                                                        </ui:repeat>
+                                                    </div>
+                                                    <ui:repeat value="#{section.fields}" var="field">
+                                                        <h:panelGroup layout="block"
+                                                                      styleClass="revision-history"
+                                                                      rendered="#{field.dataTable and shellView.activeInteraction.hasTable and shellView.activeInteraction.table.elementId eq field.id}">
+                                                            <div class="revision-history-heading">
+                                                                <div>
+                                                                    <h3>#{field.label}</h3>
+                                                                    <ui:fragment rendered="#{field.hasHelp}">
+                                                                        <p>#{field.help}</p>
+                                                                    </ui:fragment>
+                                                                </div>
+                                                                <span class="item-count">#{shellView.activeInteraction.table.total} revisiones</span>
+                                                            </div>
+                                                            <h:panelGroup layout="block" styleClass="empty-card"
+                                                                          rendered="#{shellView.activeInteraction.table.rowsEmpty}">
+                                                                <h3>#{shellView.activeInteraction.table.emptyTitle}</h3>
+                                                                <p>#{shellView.activeInteraction.table.emptyDescription}</p>
+                                                            </h:panelGroup>
+                                                            <h:panelGroup layout="block"
+                                                                          styleClass="responsive-table-shell business-table-view"
+                                                                          rendered="#{not shellView.activeInteraction.table.rowsEmpty}">
+                                                                <table class="business-table revision-history-table">
+                                                                    <thead><tr>
+                                                                        <ui:repeat value="#{shellView.activeInteraction.table.columns}" var="column">
+                                                                            <th scope="col">#{column.label}</th>
+                                                                        </ui:repeat>
+                                                                    </tr></thead>
+                                                                    <tbody>
+                                                                        <ui:repeat value="#{shellView.activeInteraction.table.rows}" var="row">
+                                                                            <tr>
+                                                                                <ui:repeat value="#{row.cells}" var="cell">
+                                                                                    <td>#{cell}</td>
+                                                                                </ui:repeat>
+                                                                            </tr>
+                                                                        </ui:repeat>
+                                                                    </tbody>
+                                                                </table>
+                                                            </h:panelGroup>
+                                                            <div class="business-mobile-list revision-history-mobile">
+                                                                <ui:repeat value="#{shellView.activeInteraction.table.rows}" var="row">
+                                                                    <div class="business-mobile-item revision-history-mobile-item">
+                                                                        <span class="mobile-item-main">
+                                                                            <ui:repeat value="#{row.cells}" var="cell" varStatus="cellStatus">
+                                                                                <span class="mobile-data-line">
+                                                                                    <small>#{shellView.activeInteraction.table.columns[cellStatus.index].label}</small>
+                                                                                    <strong>#{cell}</strong>
+                                                                                </span>
+                                                                            </ui:repeat>
+                                                                        </span>
+                                                                    </div>
+                                                                </ui:repeat>
+                                                            </div>
+                                                        </h:panelGroup>
+                                                    </ui:repeat>
+                                                    <div class="form-actions-bar">
+                                                        <ui:repeat value="#{section.actions}" var="action">
+                                                            <h:commandButton value="#{action.label}"
+                                                                             action="#{shellView.executeScreenAction}"
+                                                                             disabled="#{not action.enabled}"
+                                                                             styleClass="button button-secondary action-#{action.id}">
+                                                                <f:setPropertyActionListener
+                                                                        target="#{shellView.requestedActionId}"
+                                                                        value="#{action.id}"/>
+                                                            </h:commandButton>
+                                                        </ui:repeat>
+                                                    </div>
+                                            </section>
+                                        </h:panelGroup>
+                                    </ui:repeat>
+                                    </h:form>
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </div>
+                    </ui:fragment>
+
+                    <ui:fragment rendered="#{not shellView.activeScreen.interactive}">
+                        <footer class="screen-demo-note">
+                            <span aria-hidden="true">i</span>
+                            <p><strong>Demostración técnica:</strong> valida composición, autorización y personalización visual. No representa facturación ni otra función ERP terminada.</p>
+                        </footer>
+                    </ui:fragment>
+                </section>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" rendered="#{shellView.denied}"
+                          styleClass="state-card state-denied" role="status">
+                <span class="state-icon" aria-hidden="true">!</span>
+                <span class="eyebrow">Acceso no habilitado</span>
+                <h1>Esta función no está disponible para tu contexto actual</h1>
+                <p>La ruta fue rechazada sin revelar información interna.</p>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                              styleClass="button button-primary">Volver al inicio</h:outputLink>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" rendered="#{shellView.error}"
+                          styleClass="state-card state-error" role="alert">
+                <span class="state-icon" aria-hidden="true">×</span>
+                <span class="eyebrow">Estado temporal</span>
+                <h1>No pudimos abrir esta función</h1>
+                <p>Intenta nuevamente sin modificar la dirección solicitada.</p>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                              styleClass="button button-primary">Volver al inicio</h:outputLink>
+            </h:panelGroup>
+        </main>
+        </div>
+
+        <footer class="app-footer">
+            <span>Logixone · Jakarta EE 11</span>
+            <span>JSF server-side · Material Design 3</span>
+        </footer>
+    </div>
+</h:body>
+</html>

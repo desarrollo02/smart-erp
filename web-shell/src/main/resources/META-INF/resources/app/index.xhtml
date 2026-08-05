@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="jakarta.faces.core"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:pt="jakarta.faces.passthrough"
+      xmlns:lx="jakarta.faces.composite/logixone">
+<f:metadata>
+    <f:event type="preRenderView" listener="#{shellView.prepare}"/>
+</f:metadata>
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · Espacio de trabajo</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/selector-return.js?ln=logixone" defer="defer"></script>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#main-content">Saltar al contenido</a>
+
+    <div class="app-frame">
+        <header class="topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                          styleClass="brand" aria-label="Ir al inicio de Logixone">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy">
+                    <strong>Logixone</strong>
+                    <small>ERP modular</small>
+                </span>
+            </h:outputLink>
+
+            <ui:fragment rendered="#{shellView.ready}">
+                <div class="session-panel">
+                    <div class="identity-copy">
+                        <strong>#{shellView.actorDisplayName}</strong>
+                        <span>#{shellView.companyDisplayName}</span>
+                    </div>
+                    <h:form styleClass="company-switcher" rendered="#{shellView.multiCompany}">
+                        <input type="hidden" name="selectorDraft" value=""/>
+                        <h:outputLabel for="company" value="Cambiar empresa" styleClass="sr-only"/>
+                        <h:selectOneMenu id="company" value="#{shellView.selectedCompanyId}"
+                                         pt:data-selector-draft="selected_company_id"
+                                         styleClass="select-control">
+                            <f:selectItems value="#{shellView.companyOptions}" var="company"
+                                           itemValue="#{company.id}" itemLabel="#{company.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['app.company_switcher']}"/>
+                        <h:commandButton value="Cambiar" action="#{shellView.selectCompany}"
+                                         styleClass="button button-quiet"/>
+                    </h:form>
+                    <h:form>
+                        <h:commandButton value="Cerrar sesión" action="#{shellView.logout}"
+                                         styleClass="button button-ghost"/>
+                    </h:form>
+                </div>
+            </ui:fragment>
+        </header>
+
+        <main id="main-content" class="main-content" tabindex="-1">
+            <lx:selectorReturnStatus/>
+            <h:panelGroup layout="block" styleClass="state-card state-loading"
+                          rendered="#{shellView.loading}" aria-live="polite" aria-busy="true">
+                <span class="status-dot" aria-hidden="true"></span>
+                <h1>Validando tu sesión</h1>
+                <p>Estamos preparando un contexto empresarial seguro.</p>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" styleClass="selection-layout"
+                          rendered="#{shellView.selectionRequired}">
+                <section class="selection-card" aria-labelledby="selection-title">
+                    <span class="eyebrow">Contexto empresarial</span>
+                    <h1 id="selection-title">Elige dónde quieres trabajar</h1>
+                    <p>Tu identidad tiene acceso a más de una empresa. La selección será validada nuevamente en el servidor.</p>
+                    <h:form styleClass="selection-form">
+                        <input type="hidden" name="selectorDraft" value=""/>
+                        <h:outputLabel for="selected-company" value="Empresa autorizada"/>
+                        <h:selectOneMenu id="selected-company" value="#{shellView.selectedCompanyId}"
+                                         pt:data-selector-draft="selected_company_id"
+                                         required="true" requiredMessage="Selecciona una empresa."
+                                         styleClass="select-control select-large">
+                            <f:selectItem itemLabel="Selecciona una opción" itemValue="" noSelectionOption="true"/>
+                            <f:selectItems value="#{shellView.companyOptions}" var="company"
+                                           itemValue="#{company.id}" itemLabel="#{company.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['app.company_selection']}"/>
+                        <h:message for="selected-company" styleClass="field-message"/>
+                        <h:commandButton value="Continuar" action="#{shellView.selectCompany}"
+                                         styleClass="button button-primary"/>
+                    </h:form>
+                </section>
+                <aside class="trust-card" aria-label="Protección del contexto">
+                    <span class="trust-icon" aria-hidden="true">✓</span>
+                    <h2>Selección protegida</h2>
+                    <p>La empresa enviada por el navegador nunca concede acceso por sí sola.</p>
+                </aside>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" rendered="#{shellView.denied}"
+                          styleClass="state-card state-denied" role="status">
+                <span class="state-icon" aria-hidden="true">!</span>
+                <span class="eyebrow">Acceso no habilitado</span>
+                <h1>No podemos abrir un espacio de trabajo para esta sesión</h1>
+                <p>Solicita al administrador que revise tu usuario y membresías. No se muestran detalles internos por seguridad.</p>
+                <h:form>
+                    <h:commandButton value="Cerrar sesión" action="#{shellView.logout}"
+                                     styleClass="button button-primary"/>
+                </h:form>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" rendered="#{shellView.error}"
+                          styleClass="state-card state-error" role="alert">
+                <span class="state-icon" aria-hidden="true">×</span>
+                <span class="eyebrow">Estado temporal</span>
+                <h1>No pudimos preparar el espacio de trabajo</h1>
+                <p>Intenta nuevamente. Si el problema continúa, comunícate con soporte.</p>
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/index.xhtml"
+                              styleClass="button button-primary">Volver a intentar</h:outputLink>
+            </h:panelGroup>
+
+            <h:panelGroup layout="block" rendered="#{shellView.ready}" styleClass="workspace">
+                <section class="welcome-panel">
+                    <div>
+                        <span class="eyebrow">Espacio de trabajo seguro</span>
+                        <h1>Buen día, #{shellView.actorDisplayName}</h1>
+                        <p>Estás trabajando en <strong>#{shellView.companyDisplayName}</strong>. El menú se calculó con tus permisos y los plugins efectivos de esta empresa.</p>
+                    </div>
+                    <div class="context-badge">
+                        <span aria-hidden="true">●</span>
+                        Contexto verificado
+                    </div>
+                </section>
+
+                <section aria-labelledby="modules-title">
+                    <div class="section-heading">
+                        <div>
+                            <span class="eyebrow">Navegación autorizada</span>
+                            <h2 id="modules-title">Funciones disponibles</h2>
+                        </div>
+                        <span class="item-count">#{shellView.menuItems.size()} disponibles</span>
+                    </div>
+
+                    <h:panelGroup layout="block" styleClass="empty-card"
+                                  rendered="#{empty shellView.menuItems}">
+                        <h3>Aún no hay funciones disponibles</h3>
+                        <p>La sesión y la empresa son válidas, pero no existe un menú efectivo para tus permisos actuales.</p>
+                    </h:panelGroup>
+
+                    <div class="menu-grid">
+                        <ui:repeat value="#{shellView.menuItems}" var="item">
+                            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                          styleClass="menu-card">
+                                <f:param name="route" value="#{item.route}"/>
+                                <span class="menu-icon" aria-hidden="true">↗</span>
+                                <span class="menu-copy">
+                                    <strong>#{item.label}</strong>
+                                    <small>Abrir función autorizada</small>
+                                </span>
+                                <span class="menu-arrow" aria-hidden="true">→</span>
+                            </h:outputLink>
+                        </ui:repeat>
+                    </div>
+                </section>
+            </h:panelGroup>
+        </main>
+
+        <footer class="app-footer">
+            <span>Logixone · Jakarta EE 11</span>
+            <span>Las funciones visibles dependen de los plugins efectivos de la empresa</span>
+        </footer>
+    </div>
+</h:body>
+</html>

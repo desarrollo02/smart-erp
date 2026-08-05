@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:lx="jakarta.faces.composite/logixone">
+<f:metadata>
+    <f:viewParam name="category" value="#{auditAdminView.category}"/>
+    <f:viewParam name="outcome" value="#{auditAdminView.outcome}"/>
+    <f:viewParam name="window" value="#{auditAdminView.timeWindow}"/>
+    <f:viewParam name="company" value="#{auditAdminView.companyId}"/>
+    <f:viewParam name="correlation" value="#{auditAdminView.correlationId}"/>
+    <f:viewParam name="page" value="#{auditAdminView.page}"/>
+    <f:viewAction action="#{auditAdminView.load}" onPostback="false"/>
+</f:metadata>
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="theme-color" content="#006a64"/>
+    <title>Logixone · Auditoría técnica</title>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
+    <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/admin.css?ln=logixone"/>
+</h:head>
+<h:body styleClass="app-body md3-theme">
+    <a class="skip-link" href="#admin-content">Saltar al contenido</a>
+    <div class="app-frame">
+        <header class="topbar admin-topbar">
+            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml" styleClass="brand"
+                    aria-label="Ir al inicio de administración">
+                <span class="brand-mark" aria-hidden="true">L</span>
+                <span class="brand-copy"><strong>Logixone</strong><small>Auditoría técnica</small></span>
+            </h:outputLink>
+            <nav class="admin-actions" aria-label="Navegación administrativa">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml"
+                              styleClass="button button-ghost">Panel</h:outputLink>
+            </nav>
+        </header>
+
+        <main id="admin-content" class="main-content admin-workspace" tabindex="-1">
+            <nav class="breadcrumb" aria-label="Ruta de navegación">
+                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/index.xhtml">Administración</h:outputLink>
+                <span aria-hidden="true">/</span><span>Auditoría</span>
+            </nav>
+
+            <section class="admin-page-heading" aria-labelledby="audit-title">
+                <div>
+                    <span class="eyebrow">Autoridad global · AUDIT_VIEW</span>
+                    <h1 id="audit-title">Actividad técnica del kernel</h1>
+                    <p>Consulta paginada de operaciones y decisiones de acceso. Sólo muestra identificadores locales, resultados y códigos estables.</p>
+                </div>
+                <span class="metric-chip">Página #{auditAdminView.currentPageNumber}</span>
+            </section>
+
+            <h:messages globalOnly="true" infoClass="admin-message admin-message-info"
+                        errorClass="admin-message admin-message-error" layout="list"/>
+
+            <section class="admin-form-card" aria-labelledby="audit-filter-title">
+                <div class="section-heading compact-heading">
+                    <div><span class="eyebrow">Filtros cerrados</span><h2 id="audit-filter-title">Acotar consulta</h2></div>
+                    <span class="readonly-chip">25 registros por página</span>
+                </div>
+                <h:form id="audit-filter-form" styleClass="audit-filter-grid">
+                    <div class="admin-field">
+                        <h:outputLabel for="category" value="Categoría"/>
+                        <h:selectOneMenu id="category" value="#{auditAdminView.category}" styleClass="select-control">
+                            <f:selectItem itemValue="" itemLabel="Todas"/>
+                            <f:selectItems value="#{auditAdminView.categoryOptions}" var="option"
+                                           itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['admin.audit.category']}"/>
+                    </div>
+                    <div class="admin-field">
+                        <h:outputLabel for="outcome" value="Resultado"/>
+                        <h:selectOneMenu id="outcome" value="#{auditAdminView.outcome}" styleClass="select-control">
+                            <f:selectItem itemValue="" itemLabel="Todos"/>
+                            <f:selectItems value="#{auditAdminView.outcomeOptions}" var="option"
+                                           itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['admin.audit.outcome']}"/>
+                    </div>
+                    <div class="admin-field">
+                        <h:outputLabel for="window" value="Ventana temporal"/>
+                        <h:selectOneMenu id="window" value="#{auditAdminView.timeWindow}"
+                                         required="true" styleClass="select-control">
+                            <f:selectItems value="#{auditAdminView.windowOptions}" var="option"
+                                           itemValue="#{option.value}" itemLabel="#{option.label}"/>
+                        </h:selectOneMenu>
+                        <lx:selectorSource source="#{nativeSelectorSources.sources['admin.audit.window']}"/>
+                    </div>
+                    <div class="admin-field">
+                        <h:outputLabel for="company" value="Empresa técnica exacta"/>
+                        <h:inputText id="company" value="#{auditAdminView.companyId}"
+                                     maxlength="36" autocomplete="off" styleClass="text-control"/>
+                        <small>UUID canónico; opcional.</small>
+                    </div>
+                    <div class="admin-field">
+                        <h:outputLabel for="correlation" value="Correlación exacta"/>
+                        <h:inputText id="correlation" value="#{auditAdminView.correlationId}"
+                                     maxlength="128" autocomplete="off" styleClass="text-control"/>
+                        <small>Valor técnico del servidor; opcional.</small>
+                    </div>
+                    <div class="audit-filter-actions">
+                        <h:commandButton value="Aplicar filtros" action="#{auditAdminView.applyFilters}"
+                                         styleClass="button button-primary"/>
+                        <h:commandButton value="Limpiar" action="#{auditAdminView.clearFilters}"
+                                         immediate="true" styleClass="button button-quiet"/>
+                    </div>
+                </h:form>
+            </section>
+
+            <section aria-labelledby="audit-events-title">
+                <div class="section-heading">
+                    <div><span class="eyebrow">Más reciente primero</span><h2 id="audit-events-title">Eventos persistidos</h2></div>
+                    <span class="item-count">#{auditAdminView.events.size()} visibles</span>
+                </div>
+
+                <ui:fragment rendered="#{auditAdminView.validQuery and empty auditAdminView.events}">
+                    <article class="empty-card">
+                        <h3>Sin eventos para estos filtros</h3>
+                        <p>Amplíe la ventana o quite un filtro exacto. La tabla sólo contiene eventos producidos desde V5.</p>
+                    </article>
+                </ui:fragment>
+
+                <div class="audit-timeline">
+                    <ui:repeat value="#{auditAdminView.events}" var="event">
+                        <article class="audit-event-card">
+                            <div class="audit-event-marker" aria-hidden="true"></div>
+                            <div class="audit-event-content">
+                                <div class="record-card-heading">
+                                    <div>
+                                        <span class="eyebrow">#{event.categoryLabel}</span>
+                                        <h3>#{event.operation}</h3>
+                                    </div>
+                                    <span class="state-chip #{event.outcomeStyle}">#{event.outcomeLabel}</span>
+                                </div>
+                                <div class="audit-event-meta">
+                                    <span>#{event.occurredAt}</span>
+                                    <span>#{event.actorKindLabel}</span>
+                                </div>
+                                <dl class="audit-detail-grid">
+                                    <ui:repeat value="#{event.details}" var="detail">
+                                        <div><dt>#{detail.label}</dt><dd>#{detail.value}</dd></div>
+                                    </ui:repeat>
+                                    <div><dt>Evento</dt><dd>#{event.eventId}</dd></div>
+                                </dl>
+                            </div>
+                        </article>
+                    </ui:repeat>
+                </div>
+
+                <ui:fragment rendered="#{auditAdminView.validQuery}">
+                <nav class="audit-pagination" aria-label="Paginación de auditoría">
+                    <ui:fragment rendered="#{auditAdminView.hasPrevious}">
+                        <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/audit.xhtml"
+                                      styleClass="button button-quiet">
+                            <f:param name="category" value="#{auditAdminView.category}"/>
+                            <f:param name="outcome" value="#{auditAdminView.outcome}"/>
+                            <f:param name="window" value="#{auditAdminView.timeWindow}"/>
+                            <f:param name="company" value="#{auditAdminView.companyId}"/>
+                            <f:param name="correlation" value="#{auditAdminView.correlationId}"/>
+                            <f:param name="page" value="#{auditAdminView.previousPage}"/>
+                            ← Página anterior
+                        </h:outputLink>
+                    </ui:fragment>
+                    <span>Página #{auditAdminView.currentPageNumber}</span>
+                    <ui:fragment rendered="#{auditAdminView.hasNext}">
+                        <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/admin/audit.xhtml"
+                                      styleClass="button button-primary">
+                            <f:param name="category" value="#{auditAdminView.category}"/>
+                            <f:param name="outcome" value="#{auditAdminView.outcome}"/>
+                            <f:param name="window" value="#{auditAdminView.timeWindow}"/>
+                            <f:param name="company" value="#{auditAdminView.companyId}"/>
+                            <f:param name="correlation" value="#{auditAdminView.correlationId}"/>
+                            <f:param name="page" value="#{auditAdminView.nextPage}"/>
+                            Página siguiente →
+                        </h:outputLink>
+                    </ui:fragment>
+                </nav>
+                </ui:fragment>
+            </section>
+
+            <aside class="admin-notice" aria-label="Alcance de la auditoría">
+                <strong>Historial desde V5</strong>
+                <span>Los logs estructurados anteriores no se importan. Esta pantalla no permite editar, borrar, exportar ni consultar identidad externa o datos comerciales.</span>
+            </aside>
+        </main>
+
+        <footer class="app-footer">
+            <span>Logixone · Auditoría técnica append-only</span>
+            <span>Filtros cerrados · sin datos sensibles</span>
+        </footer>
+    </div>
+</h:body>
+</html>

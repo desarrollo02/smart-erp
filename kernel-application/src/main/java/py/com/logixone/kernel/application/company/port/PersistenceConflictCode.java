@@ -1,0 +1,12 @@
+package py.com.logixone.kernel.application.company.port;
+
+public enum PersistenceConflictCode {
+    COMPANY_ALREADY_EXISTS,
+    COMPANY_NOT_FOUND,
+    COMPANY_VERSION_CONFLICT,
+    CUSTOMIZATION_ALREADY_ASSIGNED,
+    ACTIVATION_ALREADY_EXISTS,
+    ACTIVATION_NOT_FOUND,
+    ACTIVATION_VERSION_CONFLICT,
+    PERSISTENCE_CONFLICT
+}

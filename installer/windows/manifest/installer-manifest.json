@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "installer": {
+    "product": "Logixone Jakarta 11",
+    "version": "0.8.0-internal.1",
+    "sprint": "8",
+    "story": "J11-S8-08",
+    "profile": "demo-local",
+    "releaseChannel": "INTERNAL_UNSIGNED",
+    "baselineDate": "2026-08-01"
+  },
+  "baseline": {
+    "mavenProfile": "with-inventory-demo",
+    "applicationImage": "logixone/app:j11-s8-07-closing",
+    "applicationDigest": "sha256:a44293d0bc1a0df01e4e13025a6bc202266dec82fa6bb5f74f858cd70667d4fb",
+    "migratorImage": "logixone/migrator:j11-s8-07-closing",
+    "migratorDigest": "sha256:bcf5a51b535c30cb466a10d782f6059bc383ea8db8360575f01a52086451fd81"
+  },
+  "requirements": {
+    "windows": {
+      "product": "Windows 11",
+      "architecture": "x64",
+      "minimumBuild": 26100
+    },
+    "memoryGiB": {
+      "minimum": 8,
+      "recommended": 16
+    },
+    "diskGiB": {
+      "minimum": 30,
+      "updateMinimum": 5,
+      "recommended": 60
+    },
+    "wsl": {
+      "minimumVersion": "2.1.5"
+    },
+    "docker": {
+      "desktopInstallVersion": "4.84.0",
+      "minimumEngineVersion": "29.6.0",
+      "minimumComposeVersion": "5.3.0",
+      "downloadUrl": "https://desktop.docker.com/win/main/amd64/234817/Docker%20Desktop%20Installer.exe",
+      "downloadBytes": 643194800,
+      "sha256": "fe54164c1ceb9e2004137e22e4013826baccf2352c1cedb27e8daa8e56230dd7",
+      "licenseName": "Docker Subscription Service Agreement",
+      "licenseUrl": "https://www.docker.com/legal/docker-subscription-service-agreement/",
+      "installationMode": "per-user",
+      "backend": "wsl-2"
+    },
+    "ports": [18080, 8180]
+  },
+  "installation": {
+    "defaultDirectory": "%LOCALAPPDATA%\\Logixone\\demo-local",
+    "composeProject": "logixone",
+    "health": {
+      "liveness": "http://localhost:18080/logixone/health/live",
+      "readiness": "http://localhost:18080/logixone/health/ready",
+      "application": "http://localhost:18080/logixone/faces/app/index.xhtml"
+    },
+    "dataPolicy": "PRESERVE_VOLUMES",
+    "stopCommand": "docker compose down"
+  },
+  "exitCodes": {
+    "compatible": 0,
+    "compatibleWithWarnings": 1,
+    "blocked": 2,
+    "installationFailed": 3,
+    "restartRequired": 4,
+    "invalidUsage": 64,
+    "internalError": 70
+  },
+  "generatedFiles": [
+    "Logixone-Setup-0.8.0-internal.1.exe",
+    "Logixone-Installer.Cli.exe",
+    "installer-manifest.json",
+    "payload.zip",
+    "THIRD-PARTY-NOTICES.txt",
+    "INSTALLER-README.txt",
+    "SHA256SUMS.txt",
+    "BUILD-INFO.json"
+  ]
+}

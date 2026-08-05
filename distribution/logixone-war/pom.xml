@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>py.com.logixone</groupId>
+        <artifactId>logixone-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>logixone-war</artifactId>
+    <packaging>war</packaging>
+
+    <name>Logixone WAR Distribution</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>py.com.logixone</groupId>
+            <artifactId>kernel-infrastructure-jakarta</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>py.com.logixone</groupId>
+            <artifactId>web-shell</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>py.com.logixone</groupId>
+            <artifactId>logixone-plugin-set</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>logixone</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <webResources>
+                        <resource>
+                            <directory>${project.basedir}/../../web-shell/src/main/resources/META-INF/resources</directory>
+                            <targetPath>/</targetPath>
+                            <filtering>false</filtering>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

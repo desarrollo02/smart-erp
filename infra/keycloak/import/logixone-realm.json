@@ -1,0 +1,109 @@
+{
+  "realm": "logixone",
+  "displayName": "Logixone",
+  "enabled": true,
+  "sslRequired": "external",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "rememberMe": false,
+  "verifyEmail": false,
+  "loginWithEmailAllowed": false,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "clients": [
+    {
+      "clientId": "${LOGIXONE_OIDC_CLIENT_ID}",
+      "name": "Logixone Web",
+      "description": "Cliente confidencial del shell ERP; no contiene roles funcionales.",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "${LOGIXONE_OIDC_CLIENT_SECRET}",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": true,
+      "redirectUris": [
+        "${LOGIXONE_OIDC_REDIRECT_URI}"
+      ],
+      "webOrigins": [
+        "${LOGIXONE_OIDC_WEB_ORIGIN}"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "${LOGIXONE_OIDC_POST_LOGOUT_REDIRECT_URI}",
+        "backchannel.logout.revoke.offline.tokens": "true",
+        "backchannel.logout.session.required": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "logixone-client-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "${LOGIXONE_OIDC_CLIENT_ID}",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "introspection.token.claim": "true",
+            "lightweight.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "username": "demo.sin.empresa",
+      "enabled": true,
+      "email": "sin-empresa@demo.invalid",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Sin empresa",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${LOGIXONE_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "username": "demo.empresa.a",
+      "enabled": true,
+      "email": "empresa-a@demo.invalid",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Empresa A",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${LOGIXONE_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "username": "demo.empresas.ab",
+      "enabled": true,
+      "email": "empresas-ab@demo.invalid",
+      "emailVerified": true,
+      "firstName": "Demo",
+      "lastName": "Empresas A y B",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${LOGIXONE_DEMO_USER_PASSWORD}",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
