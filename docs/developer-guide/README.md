@@ -1,7 +1,7 @@
 # Manual técnico para desarrolladores de Logixone
 
-- Edición: 0.1-rc36
-- Fecha: 2026-08-04
+- Edición: 0.1-rc37
+- Fecha: 2026-08-05
 - Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C03 agrega la fundación
   `reference_data`, su API 1.0.0, V1 privada, trazabilidad `PY/PYG/USD` y consumo
   desde socios/catálogo; exige Docker/Playwright, recongelación y decisión de
@@ -345,6 +345,41 @@ Compose habilite `app`.
 
 Después de cada cambio de código ejecute inmediatamente la prueba más pequeña que
 lo demuestra. No continúe con una prueba relevante fallando.
+
+### 15.1 Flujo Git por Sprint
+
+El repositorio usa un GitFlow liviano dirigido por Sprint:
+
+```text
+story/* | fix/* | chore/* -> sprint/NN-descripcion -> main -> tag sprint-NN
+hotfix/* -------------------------------------------> main -> Sprint activo
+```
+
+| Rama | Origen | Destino | Duración |
+|---|---|---|---|
+| `main` | baseline aceptado | no aplica | permanente |
+| `sprint/NN-descripcion` | `main` después del cierre anterior | `main` | un Sprint |
+| `story/<id>-descripcion` | Sprint activo | Sprint activo | una historia |
+| `fix/<id>-descripcion` | Sprint activo | Sprint activo | una corrección |
+| `chore/<id>-descripcion` | Sprint activo | Sprint activo | una tarea técnica |
+| `hotfix/<id>-descripcion` | tag productivo o `main` | `main` y Sprint activo | un incidente |
+
+No existe `develop`: con un solo Sprint autorizado, la rama `sprint/*` ya es la
+línea de integración. Tampoco se mantiene `release/*`; los candidatos se fijan con
+tags inmutables `sprint-NN-rc.N`. Las historias usan squash merge hacia el Sprint
+y el cierre usa merge commit hacia `main`. `main` sólo recibe cierres o hotfixes
+mediante Pull Request.
+
+El PR de una historia documenta la prueba mínima, `mvn verify` y los gates
+adicionales aplicables. El PR de cierre exige la matriz integral, demo, seguridad,
+topología, manuales, PDF, validación independiente y decisión del instalador. La
+rama del Sprint se elimina después de crear el tag anotado `sprint-NN`; `vX.Y.Z`
+se reserva para una versión de producto aprobada.
+
+La adopción inicial está planificada en
+[J11-S8-C04](../sprints/sprint-08/J11-S8-C04-gobierno-git-ramas.md). Hasta cerrar
+Sprint 8, `main` conserva excepcionalmente el importe inicial de un Sprint todavía
+abierto y no debe interpretarse como un release formal.
 
 ## 16. Comandos de prueba
 

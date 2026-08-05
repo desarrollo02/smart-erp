@@ -91,6 +91,7 @@ el PDF continúan pendientes.
 - [Guía de implementación del ERP por empresa](implementation-guide/README.md)
 - [Manual de usuario](user-guide/README.md)
 - [Manual técnico para desarrolladores](developer-guide/README.md)
+- [J11-S8-C04 — Gobierno Git y ramas por Sprint](sprints/sprint-08/J11-S8-C04-gobierno-git-ramas.md)
 - [Guía para levantar Logixone con Visual Studio Code](runbooks/levantar-logixone-visual-studio-code.md)
 - [Estructura de plugins y dependencias de Sprint 7](sprints/sprint-07/estructura-plugins-y-dependencias.md)
 - [Estructura de plugins y dependencias de Sprint 8](sprints/sprint-08/estructura-plugins-y-dependencias.md)

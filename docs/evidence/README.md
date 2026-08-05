@@ -6,6 +6,7 @@ No versionar secretos ni volcados completos que contengan información sensible.
 
 ## Índice
 
+- [J11-S8-C04 — Gobierno Git y ramas por Sprint](J11-S8-C04-gobierno-git-ramas.md)
 - [J11-S1-01 — Validación documental y arquitectónica](J11-S1-01-validacion-documental.md)
 - [J11-S1-02 — Validación del esqueleto Maven](J11-S1-02-validacion-build.md)
 - [J11-S1-02 — Relocalización de descargas dentro del proyecto](J11-S1-02-descargas-proyecto.md)

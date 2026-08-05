@@ -28,6 +28,9 @@ secrets/
 *.log
 *.tmp
 *.swp
+tmp/
+**/__pycache__/
+*.pyc
 
 # Evidencia generada pesada
 test-results/

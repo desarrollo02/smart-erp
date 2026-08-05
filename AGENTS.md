@@ -407,6 +407,43 @@ Esta excepción modifica el momento de ejecución, no los criterios de aceptaci�
 - No crear commits, publicar ramas, abrir pull requests ni desplegar a producción sin autorización explícita del usuario.
 - Cada entrega debe indicar archivos modificados, pruebas ejecutadas y resultados.
 
+### Estrategia de ramas por Sprint
+
+- `main` es la única rama permanente y representa el último baseline formalmente
+  aceptado. El importe inicial de 2026-08-05 es una excepción transitoria: contiene
+  Sprint 8 todavía abierto y no debe etiquetarse como Sprint cerrado.
+- Existe una sola rama de integración de Sprint activa, con nombre
+  `sprint/NN-descripcion`. El siguiente Sprint nace desde `main` únicamente después
+  de cerrar, fusionar y etiquetar el anterior. No mantener una rama `develop` ni
+  ramas `release/*` mientras siga vigente este trabajo secuencial.
+- Cada historia o corrección nace desde la rama del Sprint y usa
+  `story/<id>-descripcion`, `fix/<id>-descripcion` o `chore/<id>-descripcion`. Su
+  Pull Request apunta a la rama del Sprint, no a `main`.
+- Las historias se integran con squash merge para conservar un commit coherente
+  por historia. El cierre del Sprint se integra a `main` mediante merge commit,
+  sin condensar todo el Sprint en un único commit.
+- `main` sólo recibe Pull Requests de `sprint/*` o `hotfix/*`. Un cierre no se
+  fusiona mientras quede cualquier gate, demo, documento, PDF, validación
+  independiente o decisión de instalador pendiente.
+- Los candidatos pueden etiquetarse de forma inmutable como
+  `sprint-NN-rc.1`, `sprint-NN-rc.2`, etc. Después del cierre formal se crea el tag
+  anotado `sprint-NN`. Un tag semántico `vX.Y.Z` se reserva para una versión de
+  producto expresamente aprobada, no para el mero fin temporal de un Sprint.
+- Un hotfix nace desde el tag productivo exacto o desde `main`, se valida en su
+  propio Pull Request y, después de integrarse, se incorpora también a la rama de
+  Sprint activa para evitar regresiones.
+- Proteger `main` y `sprint/*` contra push directo, force push y borrado. Exigir
+  Pull Request, rama actualizada, conversaciones resueltas y checks aplicables;
+  no configurar un check obligatorio por nombre hasta que su workflow exista.
+- El Pull Request de historia conserva evidencia de la prueba mínima, `mvn verify`
+  y los gates adicionales que apliquen. El Pull Request de cierre conserva la
+  matriz integral y la aprobación independiente exigida por el Sprint.
+- Eliminar ramas `story/*`, `fix/*`, `chore/*` y la rama de Sprint después de su
+  integración. Los tags de baseline no se mueven ni se reutilizan.
+- Los temporales y cachés no son fuentes. Planificar su salida del índice mediante
+  un cambio no destructivo que mantenga los archivos locales, actualice
+  `.gitignore` y no reescriba el historial publicado.
+
 ## Definition of Done
 
 Una historia de código solo está terminada cuando:

@@ -1,6 +1,6 @@
 # Sprint 8 - Inventario `inventory`
 
-- Estado: Reabierto; J11-S8-C03 eleva los metadatos neutrales a 91/91, incorpora `reference_data` con el subconjunto normativo trazable `PY/PYG/USD` y conecta país/moneda a socios y catálogo; J11-S8-C02 mantiene retorno contextual seguro para selectores de plugins y los 11 usos nativos administrables, alta/consulta y ciclo activo/inactivo de
+- Estado: Reabierto; J11-S8-C04 implementa y valida localmente el gobierno Git por Sprint, con `sprint/08-cierre` publicada y el PR/protecciones remotas pendientes; J11-S8-C03 eleva los metadatos neutrales a 91/91, incorpora `reference_data` con el subconjunto normativo trazable `PY/PYG/USD` y conecta país/moneda a socios y catálogo; J11-S8-C02 mantiene retorno contextual seguro para selectores de plugins y los 11 usos nativos administrables, alta/consulta y ciclo activo/inactivo de
   unidades, categorías, marcas, etiquetas, perfiles tributarios, tipos de canal y familias de variantes, revisión
   explícita e historial visible de contenido/vigencia tributaria, además de altas de familias de
   variantes, revisión/historial append-only y reemplazo seguro de definiciones simples, revisión de nombre con historial visible append-only de tipos de canal, revisión estructural/historial append-only de familias y asignación versionada de familias a artículos;
@@ -31,13 +31,28 @@ leer sus tablas ni importar sus entidades.
 | 8 | [J11-S8-07](J11-S8-07-validacion-demo-cierre.md) | validación integral, demo oficial, retrospectiva y PDF; baseline congelado |
 | 9 | [J11-S8-08](J11-S8-08-instalador-windows-cierre.md) | instalador Windows, preflight, montaje, pruebas y cierre formal |
 
-Corrección posterior al congelamiento:
+Correcciones posteriores al congelamiento:
 
 | Historia | Resultado esperado |
 |---|---|
 | [J11-S8-C01](J11-S8-C01-administracion-perfiles-tributarios.md) | administración visual autorizada de perfiles, recongelación y repetición de gates afectados |
 | [J11-S8-C02](J11-S8-C02-gobierno-selectores-administrables.md) | fuentes gobernadas y administración visible de catálogos antes de recongelar |
 | [J11-S8-C03](J11-S8-C03-datos-referencia-normativos.md) | países y monedas normativos compartidos, trazables y revalidados antes de `purchasing` |
+| [J11-S8-C04](J11-S8-C04-gobierno-git-ramas.md) | adoptar ramas por Sprint, protección de `main`, PR por historia y detener el crecimiento de temporales versionados |
+
+## Plan de ramas para el cierre
+
+La estrategia Git aprobada el 2026-08-05 usa `main` como baseline aceptado, una
+única rama `sprint/*` activa y ramas cortas `story/*`, `fix/*` o `chore/*`. Como el
+primer commit Git importó el estado abierto de Sprint 8, se registra una excepción
+transitoria: `main` permanece congelada en `166c5e1` y el cierre continúa en
+`sprint/08-cierre`. No se creará `sprint/09-purchasing` hasta completar todos los
+gates, integrar el cierre en `main` y crear el tag anotado `sprint-08`.
+
+La adopción, las protecciones, los checks y la higiene no destructiva del índice
+se detallan en [J11-S8-C04](J11-S8-C04-gobierno-git-ramas.md). El responsable de
+producto autorizó el 2026-08-05 ejecutar la adopción. La autorización no permite
+fusionar el cierre del Sprint en `main` antes de completar todos sus gates.
 
 ## Límites iniciales
 
