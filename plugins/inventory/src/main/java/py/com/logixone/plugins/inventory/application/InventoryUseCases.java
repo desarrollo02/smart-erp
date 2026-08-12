@@ -1,5 +1,7 @@
 package py.com.logixone.plugins.inventory.application;
 
+import py.com.logixone.plugins.inventory.api.CatalogStockMovementRequest;
+
 import py.com.logixone.plugins.inventory.api.InventoryItemId;
 import py.com.logixone.plugins.inventory.api.StockAvailability;
 import py.com.logixone.plugins.inventory.api.StockCountId;
@@ -41,6 +43,8 @@ public interface InventoryUseCases {
 
     InventoryOperationResult<StockMovementReference> postMovement(
             InventoryOperationContext context, StockMovementRequest request);
+    InventoryOperationResult<StockMovementReference> postCatalogMovement(
+            InventoryOperationContext context, CatalogStockMovementRequest request);
     InventoryOperationResult<StockReservationReference> reserve(
             InventoryOperationContext context, StockReservationRequest request);
     InventoryOperationResult<StockReservationReference> consume(

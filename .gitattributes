@@ -14,3 +14,4 @@ mvnw.cmd text eol=crlf
 *.jpeg binary
 *.gif binary
 *.zip binary
+*.pdf binary

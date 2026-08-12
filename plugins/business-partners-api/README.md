@@ -2,7 +2,7 @@
 
 Contrato empresarial público y Java puro de `business_partners`.
 
-- Versión del contrato: `1.0.0`.
+- Versión del contrato: `1.1.0`.
 - Dependencia permitida: `kernel-api` sólo para `CompanyId`.
 - Prohibido: Jakarta, JPA, JDBC, Hibernate, JSF, entidades y adaptadores internos.
 
@@ -13,7 +13,10 @@ Contrato empresarial público y Java puro de `business_partners`.
 - `BusinessPartnerState`: activo o inactivo;
 - `BusinessPartnerRole`: cliente o proveedor;
 - `BusinessPartnerReference`: proyección mínima e inmutable;
-- `BusinessPartnerDirectory`: consulta síncrona por empresa e ID;
+- `BusinessPartnerDirectory`: consulta síncrona por empresa e ID y búsqueda
+  paginada por texto, rol y estado para selectores autorizados;
+- `BusinessPartnerSearchQuery` y `BusinessPartnerSearchPage`: límites públicos
+  de búsqueda sin exponer repositorios ni criterios internos;
 - `BusinessPartnerContractVersion`: versión semántica vigente.
 
 La proyección deliberadamente no contiene direcciones, correos, identificaciones

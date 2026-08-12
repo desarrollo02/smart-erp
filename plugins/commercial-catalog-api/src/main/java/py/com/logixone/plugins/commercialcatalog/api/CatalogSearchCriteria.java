@@ -9,8 +9,18 @@ public record CatalogSearchCriteria(
         String query,
         Set<CatalogItemType> types,
         Set<CatalogItemState> states,
+        Set<CatalogItemScope> scopes,
         int offset,
         int limit) {
+
+    public CatalogSearchCriteria(
+            String query,
+            Set<CatalogItemType> types,
+            Set<CatalogItemState> states,
+            int offset,
+            int limit) {
+        this(query, types, states, Set.of(), offset, limit);
+    }
 
     public CatalogSearchCriteria {
         Objects.requireNonNull(query, "query");
@@ -20,6 +30,7 @@ public record CatalogSearchCriteria(
         }
         types = Set.copyOf(Objects.requireNonNull(types, "types"));
         states = Set.copyOf(Objects.requireNonNull(states, "states"));
+        scopes = Set.copyOf(Objects.requireNonNull(scopes, "scopes"));
         if (offset < 0) {
             throw new IllegalArgumentException("offset must not be negative");
         }

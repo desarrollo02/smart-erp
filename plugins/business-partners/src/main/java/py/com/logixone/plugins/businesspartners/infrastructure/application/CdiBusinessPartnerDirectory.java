@@ -9,6 +9,8 @@ import py.com.logixone.kernel.api.company.CompanyId;
 import py.com.logixone.plugins.businesspartners.api.BusinessPartnerDirectory;
 import py.com.logixone.plugins.businesspartners.api.BusinessPartnerId;
 import py.com.logixone.plugins.businesspartners.api.BusinessPartnerReference;
+import py.com.logixone.plugins.businesspartners.api.BusinessPartnerSearchPage;
+import py.com.logixone.plugins.businesspartners.api.BusinessPartnerSearchQuery;
 import py.com.logixone.plugins.businesspartners.application.RepositoryBusinessPartnerDirectory;
 import py.com.logixone.plugins.businesspartners.application.port.BusinessPartnerRepository;
 
@@ -23,5 +25,12 @@ public class CdiBusinessPartnerDirectory implements BusinessPartnerDirectory {
     public Optional<BusinessPartnerReference> findById(
             CompanyId companyId, BusinessPartnerId partnerId) {
         return new RepositoryBusinessPartnerDirectory(repository).findById(companyId, partnerId);
+    }
+
+    @Override
+    @Transactional(TxType.SUPPORTS)
+    public BusinessPartnerSearchPage search(
+            CompanyId companyId, BusinessPartnerSearchQuery query) {
+        return new RepositoryBusinessPartnerDirectory(repository).search(companyId, query);
     }
 }

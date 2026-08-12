@@ -8,11 +8,15 @@ Estas instrucciones aplican a todo el repositorio `smart-erp`. Un archivo `AGENT
 
 Construir desde cero un ERP con Jakarta EE 11, organizado como monolito modular basado en plugins. El sistema debe poder crecer por capacidades sin volver a crear el acoplamiento del sistema legado.
 
-Los proyectos legados ubicados en `C:\cosme\multienvios\miaterra` y
-`C:\cosme\felsina\ingeniolafelsina` son exclusivamente bases de conocimiento de
-solo lectura. Se pueden consultar para identificar comportamiento, reglas de
-negocio, datos, permisos, pantallas, reportes, procesos e integraciones, pero no
-deben modificarse desde este proyecto.
+Los proyectos legados ubicados en `C:\cosme\multienvios\miaterra`,
+`C:\cosme\mega\miaterra` y `C:\cosme\felsina\ingeniolafelsina` son
+exclusivamente bases de conocimiento de solo lectura. La copia actualizada de
+Miaterra se encuentra en `C:\cosme\mega\miaterra` y su raíz de código es
+`C:\cosme\mega\miaterra\fuente\tag`; debe consultarse preferentemente cuando se
+investiguen cambios recientes del legado. Se pueden consultar estas fuentes para
+identificar comportamiento, reglas de negocio, datos, permisos, pantallas,
+reportes, procesos e integraciones, pero no deben modificarse desde este
+proyecto.
 
 No copiar código legado de forma mecánica. Antes de implementar una capacidad, convertir el comportamiento observado en requisitos, casos de uso, decisiones documentadas y pruebas de caracterización. No introducir dependencias `javax.*`.
 
@@ -256,6 +260,42 @@ de `J11-S4-08` permanece pendiente.
   transversales; no permite saltar el orden de plugins definido por ADR-0011.
 
 Esta excepción modifica el momento de ejecución, no los criterios de aceptación ni la Definition of Done.
+
+### Continuidad funcional con validación independiente diferida
+
+Por aclaración del responsable de producto del 2026-08-11, se autoriza continuar
+las iteraciones funcionales posteriores a Sprint 8 y diferir únicamente las
+pruebas de aceptación o validaciones independientes que deba realizar otra
+persona hasta que exista una candidata considerada comercializable. Las pruebas
+automatizadas ejecutables por el agente no se difieren.
+
+- La continuidad comienza con `purchasing`, siguiente plugin del orden aprobado
+  por ADR-0011. No autoriza adelantar plugins posteriores ni cambiar sus
+  dependencias.
+- Cada historia que modifique código, migraciones, composición o interfaz debe
+  volver al flujo incremental obligatorio: prueba mínima inmediata, pruebas de
+  módulo y los gates automatizados proporcionales al riesgo.
+- Maven, ArchUnit, PostgreSQL/Testcontainers, JTA/OIDC, Docker/Compose, health,
+  seguridad negativa y Playwright deben ejecutarse cuando sean aplicables y la
+  capacidad necesaria exista en el corte.
+- Una prueba automatizada fallida bloquea el avance y debe corregirse antes de
+  iniciar el siguiente cambio.
+- La excepción permite planificar e implementar el siguiente incremento mientras
+  Sprint 8 conserva pendientes su cierre formal y G7 independiente. No convierte
+  ningún Sprint abierto en cerrado.
+- Una historia con sus gates automatizados verdes puede registrarse como
+  `Implementada y validada automáticamente; validación independiente pendiente`.
+  Ese estado no equivale a aceptación funcional por otra persona.
+- Antes de aceptar la primera versión comercializable debe completarse la
+  validación independiente acumulada y cualquier prueba manual o exploratoria
+  asignada a otra persona, además de conservar verdes los gates automatizados.
+- La evidencia de cada historia debe distinguir revisión estática, pruebas
+  automatizadas ejecutadas y validación independiente pendiente.
+
+Esta excepción modifica exclusivamente el calendario de la validación humana
+independiente y la continuidad entre incrementos. No cambia los gates
+automatizados, criterios de aceptación, seguridad, arquitectura, orden de plugins
+ni Definition of Done.
 
 ## Calidad y seguridad
 

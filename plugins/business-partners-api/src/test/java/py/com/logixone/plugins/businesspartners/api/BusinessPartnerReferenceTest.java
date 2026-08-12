@@ -30,7 +30,7 @@ class BusinessPartnerReferenceTest {
         assertThrows(
                 UnsupportedOperationException.class,
                 () -> reference.roles().add(BusinessPartnerRole.SUPPLIER));
-        assertEquals("1.0.0", BusinessPartnerContractVersion.CURRENT);
+        assertEquals("1.1.0", BusinessPartnerContractVersion.CURRENT);
     }
 
     @Test
@@ -82,4 +82,5 @@ class BusinessPartnerReferenceTest {
                         null,
                         0));
     }
+
 }

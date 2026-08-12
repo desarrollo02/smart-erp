@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,6 +29,32 @@ class InventoryMovementAndReservationContractTest {
                 List.of(line), Optional.empty()));
         assertThrows(IllegalArgumentException.class, () -> new MovementQuantity(
                 "EA", BigDecimal.ONE, "EA", new BigDecimal("1.0000000000001"), BigDecimal.ONE, 0));
+    }
+
+    @Test
+    void catalogMovementKeepsInventoryIdentityPrivateAndResolvesOneStockLine() {
+        MovementQuantity quantity = new MovementQuantity(
+                "BOX", BigDecimal.ONE, "EA", new BigDecimal("12"),
+                new BigDecimal("12"), 4);
+        CatalogStockMovementRequest request = new CatalogStockMovementRequest(
+                StockMovementType.RECEIPT, "PURCHASE_RECEIPT",
+                new StockSourceReference("PURCHASING_RECEIPT", "RC-1"),
+                "receipt-line-1", new UUID(0, 20), new WarehouseId(new UUID(0, 2)),
+                new StockLocationId(new UUID(0, 3)), Optional.of("LOT-A"),
+                Optional.empty(), Optional.of(LocalDate.of(2027, 1, 1)),
+                StockCondition.AVAILABLE, quantity);
+
+        StockMovementRequest resolved = request.resolve(new InventoryItemId(new UUID(0, 1)));
+
+        assertEquals(new UUID(0, 1), resolved.lines().getFirst().key().inventoryItemId().value());
+        assertEquals(StockMovementDirection.INCREASE, resolved.lines().getFirst().direction());
+        assertThrows(IllegalArgumentException.class, () -> new CatalogStockMovementRequest(
+                StockMovementType.RECEIPT, "PURCHASE_RECEIPT", request.source(),
+                "receipt-line-2", request.catalogItemId(), request.warehouseId(),
+                request.locationId(), Optional.empty(), Optional.empty(), Optional.empty(),
+                StockCondition.AVAILABLE,
+                new MovementQuantity("EA", BigDecimal.ONE, "EA", BigDecimal.ONE,
+                        new BigDecimal("2"), 4)));
     }
 
     @Test

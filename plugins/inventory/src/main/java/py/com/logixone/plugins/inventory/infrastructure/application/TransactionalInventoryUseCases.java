@@ -9,6 +9,7 @@ import java.time.Clock;
 import py.com.logixone.kernel.api.audit.TechnicalAudit;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogItemDirectory;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogUnitConversions;
+import py.com.logixone.plugins.inventory.api.CatalogStockMovementRequest;
 import py.com.logixone.plugins.inventory.api.InventoryItemId;
 import py.com.logixone.plugins.inventory.api.StockAvailability;
 import py.com.logixone.plugins.inventory.api.StockCountId;
@@ -102,6 +103,10 @@ public class TransactionalInventoryUseCases implements InventoryUseCases {
     @Override public InventoryOperationResult<StockMovementReference> postMovement(
             InventoryOperationContext context, StockMovementRequest request) {
         return mutation(movementService().post(context, request));
+    }
+    @Override public InventoryOperationResult<StockMovementReference> postCatalogMovement(
+            InventoryOperationContext context, CatalogStockMovementRequest request) {
+        return mutation(movementService().postCatalog(context, request));
     }
     @Override public InventoryOperationResult<StockReservationReference> reserve(
             InventoryOperationContext context, StockReservationRequest request) {

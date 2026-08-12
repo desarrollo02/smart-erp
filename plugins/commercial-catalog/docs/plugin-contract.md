@@ -1,7 +1,7 @@
 # Contrato del plugin `commercial_catalog`
 
-- Plugin: `commercial_catalog@1.0.0`
-- Contrato público: `commercial-catalog-api@1.0.0`
+- Plugin: `commercial_catalog@1.1.0`
+- Contrato público: `commercial-catalog-api@1.1.0`
 - Compatibilidad Plugin API: `[0.4.0,0.5.0)`
 - Estado del corte: dominio, persistencia, aplicación e interfaz neutral implementados; J11-S8-C03 resuelve moneda mediante `reference_data`; los gates finales del corte normativo permanecen pendientes
 
@@ -20,7 +20,7 @@ cuatro permisos operativos, cinco capacidades, cinco menús y cinco pantallas in
 No declara overlays ni eventos. Las contribuciones visuales son contratos
 neutrales: el plugin no incluye XHTML, CSS, JavaScript ni EL.
 
-## Interfaz neutral 1.0.0
+## Interfaz neutral
 
 - `commercial_catalog:items`, ruta `/catalog`: directorio, alta y ficha de
   artículos/servicios;
@@ -60,9 +60,11 @@ inactiva deja de alimentar operaciones nuevas sin borrar su identidad ni sus
 referencias históricas. El corte no implica todavía edición de nombres o
 estructura, reemplazo ni retorno seguro con borrador.
 
-## Superficie pública 1.0.0
+## Superficie pública 1.1.0
 
-- `CatalogItemDirectory`: referencia mínima y búsqueda paginada por empresa;
+- `CatalogItemDirectory`: referencia mínima y búsqueda paginada por empresa,
+  tipo, estado y alcance comercial; el repositorio aplica todos los filtros antes
+  de calcular el total y la página;
 - `CatalogUnitConversions`: conversión determinista específica por ítem;
 - `CatalogPricing`: cotización sobre una lista indicada explícitamente;
 - IDs UUID opacos para ítem, lista y entrada de precio;

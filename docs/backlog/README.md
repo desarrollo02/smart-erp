@@ -15,6 +15,7 @@ Una historia debe estar suficientemente definida y ser comprobable antes de entr
 - [Planes, prorrateo y consumo medido](epica-facturacion-recurrente.md)
 - [Telemetría vehicular y seguimiento GPS](epica-telemetria-vehicular.md)
 - [Roadmap inicial de plugins productivos](epica-roadmap-plugins-productivos.md)
+- [Compras: solicitudes, órdenes, recepciones y devoluciones](epica-compras.md)
 - [Terminal de punto de venta](epica-terminal-punto-venta.md)
 - [Estaciones de servicio de combustible](epica-estaciones-servicio-combustible.md)
 - [Recursos humanos, nómina y cumplimiento paraguayo](epica-recursos-humanos-nomina-paraguay.md)
@@ -25,6 +26,10 @@ Una historia debe estar suficientemente definida y ser comprobable antes de entr
 - [Gestión de lanzamientos, mejoras y correcciones](epica-gestion-lanzamientos-erp.md)
 - [Conector seguro de soporte](epica-conector-soporte-seguro.md)
 - [Cooperativa de ahorro y crédito de Paraguay](epica-cooperativa-ahorro-credito-paraguay.md)
+- [Migración de legados con Oracle Forms & Reports](epica-migracion-legados-oracle-forms-reports.md)
+- [Gestión de procesos de negocio BPM](epica-gestion-procesos-negocio-bpm.md)
+- [Mantenimiento de flota](epica-mantenimiento-flota.md)
+- [Taller automotriz comercial](epica-taller-automotriz-comercial.md)
 
 ## Historias futuras refinadas
 
@@ -37,6 +42,22 @@ Una historia debe estar suficientemente definida y ser comprobable antes de entr
 - [Instalador Windows reproducible](epica-instalador-windows-reproducible.md): en cada cierre producto decide `SÍ` o `NO`; si responde `SÍ`, se regenera después de congelar el baseline.
 
 ## Incremento activo
+
+Por decisión de producto del 2026-08-11 se abrió documentalmente
+[Sprint 9](../sprints/sprint-09/README.md) para `purchasing`, cuarto plugin del
+roadmap. [J11-S9-01](../sprints/sprint-09/J11-S9-01-caracterizacion-purchasing.md)
+caracterizó el legado actualizado y presentó PU-D01 a PU-D10. Producto las
+aceptó sin cambios y autorizó la rama local
+`sprint/09-purchasing` el 2026-08-11. J11-S9-02 implementó API y dominio;
+J11-S9-03 implementó V1 privada, JPA y repositorios; J11-S9-04 implementó
+aplicación, permisos, V2, CDI/JTA e integración con Inventario; J11-S9-05 agregó
+cinco pantallas, directorios, selectores y el manual 07. Las cuatro historias
+quedaron validadas automáticamente mediante pruebas de módulo, PostgreSQL,
+ArchUnit y `mvn verify`; J11-S9-06 quedó habilitada. La aclaración de producto
+difiere sólo la validación independiente de otra persona. Docker/Compose runtime,
+health/OIDC y Playwright de Compras se ejecutarán cuando J11-S9-06 componga las
+rutas navegables. Esto no cierra Sprint 8 o Sprint 9 ni permite promover o
+desplegar el baseline.
 
 La candidata visual de [Sprint 3](../sprints/sprint-03/README.md) está disponible y
 sus gates técnicos G2-G6 quedaron verdes; G7 independiente continúa pendiente. El
@@ -101,6 +122,32 @@ reutilizables sin renumerar ERP 1–19. El reactor conserva el subconjunto hist�
 `PY/PYG/USD` y J11-S8-C07 implementa publicaciones `FULL` 248/178, unidad menor
 opcional y búsqueda paginada; sus gates runtime y la recongelación permanecen pendientes.
 
+[ADR-0040](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+agrega al plan `legacy_migration` como técnico opcional para descubrimiento,
+ensayos, importación, conciliación y corte. Oracle Forms & Reports es el primer
+perfil de origen. No renumera ERP 1–19 y eleva el catálogo global planificado a
+treinta reutilizables. Una oferta de reemplazo Oracle debe completar la
+[épica de migración](epica-migracion-legados-oracle-forms-reports.md) antes de
+declararse comercializable.
+
+[ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) agrega al plan
+`business_process_management` como plugin funcional transversal, reutilizable y
+opcional por empresa. No recibe un orden ERP ni altera que J11-S9-06 sea el
+siguiente incremento. Eleva el catálogo global planificado a treinta y un
+reutilizables y propone la aprobación de solicitudes de Compras como primer
+piloto, después de resolver BPM-D01 a BPM-D12 en su
+[épica propia](epica-gestion-procesos-negocio-bpm.md).
+
+[ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md) agrega
+la familia vertical Flota con orden interno F1 `fleet_maintenance` y F2
+`automotive_workshop`. Producto aprobó FM-D01 a FM-D12 y AW-D01 a AW-D10 sin
+cambios el 2026-08-12. La familia no renumera ERP 1–19, eleva el catálogo global
+planificado a treinta y tres reutilizables y mantiene J11-S9-06 como siguiente
+incremento. F1 requiere una identidad pública estable de vehículo en Logística;
+F2 se construye después de F1, Ventas y Documentos Comerciales. Consulte las
+épicas de [mantenimiento de flota](epica-mantenimiento-flota.md) y
+[taller automotriz comercial](epica-taller-automotriz-comercial.md).
+
 [COOP-00](COOP-00-gobierno-alcance-matriz-normativa.md) quedó refinada con
 COOP-D01–D15, registro de fuentes, mapa de dependencias y gates G0–G5. Continúa
 pendiente de estatuto, tipo/nivel, productos, plan contable, matriz LA/FT,
@@ -151,7 +198,7 @@ verdes. J11-S8-06 y J11-S8-07 completaron composición, Playwright, demo y gates
 técnicos; J11-S8-08 produjo la primera edición interna del instalador. El hallazgo
 visual sobre selectores sin administración reabrió el baseline mediante
 [J11-S8-C01](../sprints/sprint-08/J11-S8-C01-administracion-perfiles-tributarios.md).
-No se inicia otro plugin: [J11-S8-C02](../sprints/sprint-08/J11-S8-C02-gobierno-selectores-administrables.md)
+[J11-S8-C02](../sprints/sprint-08/J11-S8-C02-gobierno-selectores-administrables.md)
 ya validó altas y ciclos de definiciones simples y perfiles tributarios, revisión
 explícita e historial visible de contenido/vigencia tributaria, además de
 altas de familias y tipos de canal. El décimo corte publicó metadatos y gobierno
@@ -164,7 +211,8 @@ atributos, identidad y referencias existentes. El decimoctavo agregó revisión
 estructural, historial append-only y versión inmutable para asignaciones
 existentes. El decimonoveno corte valida la asignación visual/versionada de
 familias a artículos. El vigésimo administra tipos de identificación y
-tipos/propósitos de dirección mediante el mismo maestro V4 de socios. Antes de
-`purchasing` faltan fuentes normativas, estrategia de listas grandes y la
-recongelación.
+tipos/propósitos de dirección mediante el mismo maestro V4 de socios. C06/C07
+resolvieron las políticas empresariales, publicaciones normativas completas y
+búsqueda paginada requeridas por `purchasing`; la recongelación formal continúa
+pendiente, pero producto autorizó la continuidad excepcional el 2026-08-11.
 El instalador nuevo sólo se decidirá después de completar esos gates.

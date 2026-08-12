@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Proyecto LogixOne / Smart ERP">
+  <meta name="description" content="Manual de usuario del modulo Administracion segura del kernel">
+  <title>Manual de usuario - Administracion segura del kernel</title>
+  <style>:root {
+  --md-sys-color-primary: #315da8;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #d9e2ff;
+  --md-sys-color-surface: #fbf8ff;
+  --md-sys-color-surface-container: #f0edf5;
+  --md-sys-color-outline: #74777f;
+  --md-sys-color-on-surface: #1b1b1f;
+  --md-sys-color-error: #ba1a1a;
+}
+* { box-sizing: border-box; }
+html { font-family: "Segoe UI", Arial, sans-serif; color: var(--md-sys-color-on-surface); background: #fff; }
+body { margin: 0; line-height: 1.45; font-size: 10.5pt; }
+article { max-width: 1100px; margin: 0 auto; padding: 28px 40px 60px; }
+.cover { min-height: 85vh; display: flex; flex-direction: column; justify-content: center; border-bottom: 8px solid var(--md-sys-color-primary); break-after: page; }
+.cover .eyebrow { color: var(--md-sys-color-primary); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.cover h1 { font-size: 34pt; line-height: 1.08; margin: 18px 0; color: #173a70; }
+.cover .subtitle { font-size: 15pt; max-width: 760px; }
+.cover .meta { margin-top: 44px; padding: 18px; background: var(--md-sys-color-primary-container); border-radius: 14px; }
+h2 { color: #173a70; font-size: 22pt; border-bottom: 2px solid #b5c4e8; padding-bottom: 6px; margin-top: 30px; }
+h3 { color: #214d8f; font-size: 16pt; margin-top: 24px; }
+h4 { color: #31507e; font-size: 12pt; margin: 18px 0 8px; }
+p, li { orphans: 3; widows: 3; }
+a { color: var(--md-sys-color-primary); }
+.toc { break-after: page; }
+.toc li { margin: 7px 0; }
+.screen { break-before: page; }
+.screen-title { display: flex; align-items: baseline; gap: 12px; border-bottom: 3px solid var(--md-sys-color-primary); }
+.route { font-family: Consolas, monospace; color: #4b566b; font-size: 9pt; }
+.callout { border-left: 5px solid var(--md-sys-color-primary); background: #edf2ff; padding: 12px 15px; margin: 14px 0; border-radius: 0 10px 10px 0; }
+.warning { border-left-color: #a44b00; background: #ffede2; }
+.success { border-left-color: #2b6847; background: #e3f4e9; }
+.wireframe { font-family: Consolas, "Courier New", monospace; white-space: pre-wrap; border: 1px solid var(--md-sys-color-outline); background: #f8f9fc; border-radius: 10px; padding: 12px; font-size: 8.5pt; line-height: 1.25; break-inside: avoid; }
+.screen-capture { margin: 14px 0 20px; break-inside: avoid; }
+.screen-capture img { display: block; width: 100%; height: auto; border: 1px solid #9aa3b2; border-radius: 12px; box-shadow: 0 5px 14px rgba(33, 52, 79, .14); }
+.screen-capture figcaption { margin-top: 7px; color: #4b566b; font-size: 8.3pt; }
+.example-card { margin: 14px 0; padding: 14px 16px; border: 2px solid #71a99f; border-radius: 12px; background: #effaf7; break-inside: avoid; }
+.example-card h3, .example-card h4 { margin-top: 0; color: #125f59; }
+.step-list { margin: 8px 0 8px 22px; padding: 0; }
+.step-list li { margin: 6px 0; padding-left: 3px; }
+.result-box { margin-top: 10px; padding: 9px 11px; border-radius: 8px; background: #e0f1e9; color: #214f3a; }
+.caption-note { color: #4b566b; font-size: 8.5pt; }
+.coverage-table td:first-child { width: 7%; text-align: center; font-weight: 700; }
+.entity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 10px 0; }
+.entity-card { border: 1px solid #8ca0c6; border-radius: 10px; background: #fff; overflow: hidden; break-inside: avoid; }
+.entity-card h4 { margin: 0; padding: 7px 9px; color: #fff; background: #315da8; font-size: 10pt; }
+.entity-card ul { margin: 0; padding: 8px 9px 8px 26px; font-family: Consolas, "Courier New", monospace; font-size: 7.6pt; line-height: 1.35; }
+.entity-card li { margin: 3px 0; }
+.entity-card .entity-note { margin: 0; padding: 0 9px 9px; color: #4b566b; font-size: 7.8pt; }
+.relation-list { margin: 10px 0 0; padding: 10px 12px; border-top: 1px solid #b8c5dc; background: #edf2ff; font-size: 8.3pt; }
+.relation-list li { margin: 4px 0; }
+.trigger-card { margin-top: 10px; border: 2px solid #9d5d00; border-radius: 10px; padding: 11px; background: #fff7e8; break-inside: avoid; }
+.trigger-card h4 { margin-top: 0; color: #754600; }
+.validation-note { border-left: 5px solid #596579; background: #f0f2f6; padding: 11px 14px; margin: 14px 0; border-radius: 0 10px 10px 0; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 8.7pt; }
+thead { display: table-header-group; }
+th { text-align: left; color: #fff; background: #315da8; padding: 7px; border: 1px solid #244b89; }
+td { vertical-align: top; padding: 6px 7px; border: 1px solid #c3c7d0; overflow-wrap: anywhere; }
+tbody tr:nth-child(even) { background: #f4f5fa; }
+code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; padding: 1px 3px; border-radius: 3px; }
+.db-diagram { border: 2px solid #7186af; background: #f8faff; padding: 12px; border-radius: 12px; break-inside: avoid; }
+.db-row { display: grid; grid-template-columns: minmax(145px, 1fr) 2.5fr 85px; gap: 8px; border-bottom: 1px solid #ccd4e5; padding: 6px 0; }
+.db-row:last-child { border-bottom: 0; }
+.db-name { font-weight: 700; color: #173a70; }
+.crud { font-weight: 700; text-align: center; color: #5a3b00; }
+.relation { margin: 8px 0 0; color: #36435a; font-size: 8.7pt; }
+.term-grid { columns: 2; column-gap: 28px; }
+.term-grid dt { font-weight: 700; color: #214d8f; break-after: avoid; }
+.term-grid dd { margin: 0 0 9px; break-inside: avoid; }
+.page-footer { position: fixed; bottom: 3mm; left: 14mm; right: 14mm; color: #626978; border-top: 1px solid #c5c9d2; padding-top: 2mm; font-size: 7.5pt; text-align: center; }
+.page-footer .page-number::after { content: counter(page); }
+.no-print { display: block; }
+@page {
+  size: A4;
+  margin: 14mm 13mm 18mm;
+  @bottom-center {
+    content: "LogixOne · Manual de usuario por módulo · página " counter(page) " de " counter(pages);
+    color: #626978;
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 7.5pt;
+    border-top: 1px solid #c5c9d2;
+    padding-top: 2mm;
+  }
+}
+@media print {
+  body { font-size: 9.5pt; }
+  article { max-width: none; padding: 0; }
+  h2, h3, h4 { break-after: avoid; }
+  table, .db-diagram, .wireframe, .callout, .screen-capture, .example-card, .entity-card, .trigger-card { break-inside: avoid; }
+  .db-diagram.db-diagram-splittable { break-inside: auto; }
+  .db-diagram-splittable { padding: 9px; }
+  .db-diagram-splittable .entity-grid { gap: 6px; margin: 6px 0; }
+  .db-diagram-splittable .entity-card h4 { padding: 5px 7px; }
+  .db-diagram-splittable .entity-card ul { padding: 6px 7px 6px 22px; font-size: 7.2pt; line-height: 1.25; }
+  .db-diagram-splittable .entity-card li { margin: 2px 0; }
+  .db-diagram-splittable .relation-list { margin-top: 6px; padding: 7px 9px; font-size: 7.8pt; }
+  .db-diagram-splittable .relation-list li { margin: 2px 0; }
+  .page-footer { display: none; }
+  .no-print { display: none; }
+}
+@media (max-width: 599px) {
+  article { padding: 18px 14px 50px; }
+  .cover h1 { font-size: 25pt; }
+  .term-grid { columns: 1; }
+  .entity-grid { grid-template-columns: 1fr; }
+  .db-row { grid-template-columns: 1fr; }
+  .crud { text-align: left; }
+  table { display: block; overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+<article data-manual-version="2">
+  <div class="page-footer">LogixOne · Manual de Administración del núcleo · edición 2026-08-11 · página <span class="page-number"></span></div>
+  <header class="cover">
+    <div class="eyebrow">Manual operativo y de soporte</div>
+    <h1>Administración segura del núcleo del sistema</h1>
+    <p class="subtitle"><strong>Kernel:</strong> núcleo transversal que controla empresas, identidad, seguridad, configuración, auditoría y disponibilidad de capacidades.</p>
+    <div class="meta"><strong>Nombre del módulo:</strong> Administración del kernel.<br/><strong>Versión observada:</strong> baseline local del 11 de agosto de 2026.<br/><strong>Audiencia:</strong> administradores de la instancia, responsables de seguridad, auditores y personal de soporte.<br/><strong>Evidencia:</strong> seis pantallas reales de la aplicación y metadatos de la base local consultados sin modificar información.<br/><strong>Regla de seguridad:</strong> use cuentas nominativas, una segunda ruta administrativa probada y el menor acceso necesario.</div>
+  </header>
+
+  <section class="concepts">
+    <h2>Conceptos necesarios para leer este manual</h2>
+    <p>Las definiciones siguientes aparecen antes de las instrucciones, capturas y diagramas para que una persona nueva pueda interpretar el módulo sin leer el código.</p>
+    <h3>Interfaz, identidad y autorización</h3>
+    <dl class="term-grid">
+      <dt>Actor</dt><dd>Persona o proceso que intenta realizar una operación.</dd>
+      <dt>Empresa</dt><dd>Frontera que separa configuración, acceso y operaciones de una organización dentro de la misma instalación.</dd>
+      <dt>Plugin</dt><dd>Módulo incorporado físicamente al construir la aplicación. No se instala desde estas pantallas.</dd>
+      <dt>Plugin funcional</dt><dd>Plugin que aporta una capacidad de negocio, por ejemplo catálogo o inventario.</dd>
+      <dt>Personalización</dt><dd>Plugin exclusivo que adapta contribuciones de interfaz y composición para una empresa.</dd>
+      <dt>Catálogo físico</dt><dd>Lista de plugins realmente incluidos en la distribución desplegada.</dd>
+      <dt>Estado deseado</dt><dd>Decisión guardada de habilitar o deshabilitar un plugin para una empresa.</dd>
+      <dt>Estado efectivo</dt><dd>Resultado real después de comprobar empresa activa, presencia física, tipo, compatibilidad y dependencias.</dd>
+      <dt>Dependencia requerida</dt><dd>Plugin que debe estar efectivo antes de que otro pueda operar.</dd>
+      <dt>Proveedor de identidad</dt><dd>Sistema externo que autentica a una persona. En esta demo se usa Keycloak.</dd>
+      <dt>OIDC</dt><dd>OpenID Connect, protocolo usado para recibir una identidad autenticada desde el proveedor.</dd>
+      <dt>Emisor OIDC o issuer</dt><dd>Dirección confiable que identifica al proveedor y al ámbito donde existe la cuenta.</dd>
+      <dt>Subject OIDC</dt><dd>Identificador estable de la cuenta dentro del emisor; no es la contraseña ni necesariamente el nombre visible.</dd>
+      <dt>Usuario local</dt><dd>Representación interna de una identidad externa. El sistema no guarda su contraseña OIDC.</dd>
+      <dt>Membresía</dt><dd>Vínculo que permite a un usuario participar en una empresa determinada.</dd>
+      <dt>Rol empresarial</dt><dd>Agrupación de permisos válida solamente dentro de una empresa.</dd>
+      <dt>Rol global</dt><dd>Agrupación de permisos para administrar toda la instancia, sin pertenecer a una empresa.</dd>
+      <dt>Permiso</dt><dd>Código cerrado que representa una capacidad autorizable, por ejemplo <code>kernel.audit.view</code>.</dd>
+      <dt>Autoridad efectiva</dt><dd>Acceso que resulta de combinar usuario activo, asignaciones, rol activo y permiso concedido.</dd>
+      <dt>Auditoría</dt><dd>Registro cronológico de operaciones y decisiones de acceso útil para investigación y soporte.</dd>
+      <dt>Correlación</dt><dd>Identificador que reúne eventos producidos por una misma solicitud o recorrido.</dd>
+      <dt>Versión de concurrencia</dt><dd>Número que cambia al modificar un registro y evita sobrescribir una actualización realizada por otra sesión.</dd>
+      <dt>Inactivar</dt><dd>Impedir nuevas operaciones conservando configuración, relaciones, datos e historia.</dd>
+      <dt>UUID</dt><dd>Identificador técnico de 36 caracteres que distingue empresas, usuarios, roles y eventos.</dd>
+    </dl>
+    <h3>Base de datos y leyenda de diagramas</h3>
+    <dl class="term-grid">
+      <dt>Base de datos</dt><dd>Conjunto organizado de información que la aplicación consulta o modifica.</dd>
+      <dt>Esquema</dt><dd>Espacio lógico de la base que agrupa objetos. El núcleo usa el esquema <code>core</code>.</dd>
+      <dt>Tabla</dt><dd>Estructura que guarda registros de un mismo tipo.</dd>
+      <dt>Registro o fila</dt><dd>Conjunto completo de datos que representa una ocurrencia, por ejemplo una empresa.</dd>
+      <dt>Columna o campo de base</dt><dd>Dato individual almacenado en una tabla, por ejemplo <code>status</code>.</dd>
+      <dt>ID o identificador</dt><dd>Valor que distingue un registro de los demás.</dd>
+      <dt>Restricción o constraint</dt><dd>Regla que la base obliga a cumplir.</dd>
+      <dt>SQL</dt><dd>Lenguaje usado para consultar o modificar una base de datos.</dd>
+      <dt>DML</dt><dd>Parte de SQL que opera registros mediante <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code> y <code>DELETE</code>.</dd>
+      <dt>Clave primaria o PK</dt><dd>Columna o conjunto de columnas que identifica de forma única cada registro.</dd>
+      <dt>Clave foránea o FK</dt><dd>Columna que referencia la PK de otro registro y crea una relación.</dd>
+      <dt>Clave única o UK</dt><dd>Restricción que impide repetir un valor o una combinación de valores.</dd>
+      <dt>Nulo y no nulo o NN</dt><dd>Ausencia de valor y obligación de informar un valor, respectivamente.</dd>
+      <dt>Relación y cardinalidad</dt><dd>Vínculo entre objetos y cantidad de registros que pueden asociarse, por ejemplo uno a muchos.</dd>
+      <dt>Índice</dt><dd>Estructura que acelera búsquedas o ayuda a garantizar unicidad.</dd>
+      <dt>Vista</dt><dd>Consulta guardada que se presenta como una fuente de datos.</dd>
+      <dt>Vista materializada</dt><dd>Resultado almacenado de una consulta que requiere refresco.</dd>
+      <dt>Trigger</dt><dd>Rutina que la base ejecuta automáticamente ante un evento.</dd>
+      <dt>Función o procedimiento</dt><dd>Rutina de base invocada para calcular, validar o ejecutar una tarea.</dd>
+      <dt>ABM o CRUD</dt><dd>Alta, consulta, modificación y baja de registros.</dd>
+      <dt>C, R, U, D y EXT</dt><dd>Leyenda de los diagramas: crear, leer, modificar, eliminar y fuente externa al esquema.</dd>
+    </dl>
+    <div class="validation-note"><strong>Comprobación local:</strong> el 11 de agosto de 2026 se consultaron en modo de solo lectura tablas, columnas, tipos, nulabilidad, valores predeterminados, PK, FK, UK, restricciones, índices, vistas, vistas materializadas, secuencias, funciones y triggers del esquema <code>core</code>. No se consultaron filas funcionales ni se ejecutaron cambios.</div>
+  </section>
+
+  <section class="toc">
+    <h2>Cómo usar este manual</h2>
+    <p>Cada capítulo comienza con una captura real, explica los datos y acciones, desarrolla un ejemplo ficticio, incluye un bosquejo orientativo y termina con el diagrama técnico que soporte puede usar para diagnosticar.</p>
+    <h3>Índice</h3>
+    <table class="coverage-table"><thead><tr><th>N.º</th><th>Contenido</th><th>Página</th></tr></thead><tbody>
+      <tr><td>1</td><td>Panel de administración</td><td>5</td></tr><tr><td>2</td><td>Empresas</td><td>8</td></tr><tr><td>3</td><td>Plugins por empresa</td><td>11</td></tr><tr><td>4</td><td>Seguridad empresarial</td><td>14</td></tr><tr><td>5</td><td>Roles y permisos globales</td><td>17</td></tr><tr><td>6</td><td>Auditoría</td><td>20</td></tr><tr><td>7</td><td>Errores frecuentes, seguridad, soporte y glosario</td><td>23</td></tr>
+    </tbody></table>
+    <h3>Permisos y alcance</h3>
+    <table><thead><tr><th>Permiso global</th><th>Permite</th><th>No permite por sí solo</th></tr></thead><tbody>
+      <tr><td><code>kernel.company.manage</code></td><td>Registrar, activar e inactivar empresas; reservar o reemplazar personalización.</td><td>Habilitar plugins o administrar usuarios.</td></tr>
+      <tr><td><code>kernel.plugin.manage</code></td><td>Configurar plugins funcionales por empresa.</td><td>Reemplazar una personalización sin <code>kernel.company.manage</code>.</td></tr>
+      <tr><td><code>kernel.security.manage</code></td><td>Administrar usuarios locales, membresías, roles y permisos empresariales.</td><td>Crear contraseñas, cuentas OIDC o roles globales.</td></tr>
+      <tr><td><code>kernel.system_administration.manage</code></td><td>Administrar roles y permisos globales de toda la instancia.</td><td>Conceder acceso funcional dentro de una empresa.</td></tr>
+      <tr><td><code>kernel.audit.view</code></td><td>Consultar el historial técnico paginado.</td><td>Editar, borrar o exportar eventos.</td></tr>
+    </tbody></table>
+    <h3>Orden recomendado de configuración</h3>
+    <ol class="step-list"><li>Compruebe que existe una personalización física libre.</li><li>Registre la empresa, que nace inactiva.</li><li>Habilite primero los plugins requeridos y después sus dependientes.</li><li>Active la empresa cuando la composición sea operativa.</li><li>Registre usuarios, membresías y roles empresariales.</li><li>Conceda permisos mínimos, active los elementos necesarios y pruebe con otra sesión.</li><li>Conserve una segunda autoridad global antes de retirar accesos administrativos.</li><li>Use Auditoría para confirmar el resultado y reunir la correlación de soporte.</li></ol>
+  </section>
+
+  <section class="screen" data-screen="admin-home">
+    <div class="screen-title"><h2>1. Panel de administración</h2><span class="route">/faces/admin/index.xhtml</span></div>
+    <p><strong>Objetivo:</strong> presentar solamente las áreas que el actor puede abrir según sus permisos globales vigentes.</p><p><strong>Prerrequisito:</strong> sesión autenticada con al menos uno de los cinco permisos administrativos documentados.</p>
+    <h3>Términos de esta pantalla</h3><dl><dt><strong>Tarjeta administrativa</strong></dt><dd>Enlace visible hacia una capacidad autorizada. La ausencia de una tarjeta no se resuelve escribiendo la dirección manualmente porque el servidor vuelve a autorizar.</dd></dl>
+    <h3>Captura real de la pantalla</h3><figure class="screen-capture"><img src="../images/administracion-kernel/01-panel-administracion.png" alt="Panel real de Administración segura del kernel con cinco áreas habilitadas"/><figcaption>Demo local del 11 de agosto de 2026. La cuenta ficticia dispone de las cinco áreas. La captura no contiene la contraseña ni datos productivos.</figcaption></figure>
+    <h3>Datos y acciones</h3>
+    <table><thead><tr><th>Elemento</th><th>Qué informa</th><th>Qué puede hacer</th></tr></thead><tbody><tr><td>Autorización vigente</td><td>La autoridad fue resuelta para la solicitud actual.</td><td>No es un botón ni concede permisos nuevos.</td></tr><tr><td>Áreas habilitadas</td><td>Cantidad de tarjetas que la cuenta puede abrir.</td><td>Abrir Empresas, Plugins, Seguridad, Auditoría o Autoridad global.</td></tr><tr><td>Espacio de trabajo</td><td>Regreso al contexto empresarial.</td><td>Volver a la aplicación sin modificar autoridad.</td></tr><tr><td>Cerrar sesión</td><td>Finalización segura de la sesión.</td><td>Salir mediante el recorrido configurado.</td></tr></tbody></table>
+    <div class="example-card"><h3>Ejemplo: elegir el área correcta</h3><ol class="step-list"><li>Si una empresa no puede usar Inventario, abra <strong>Plugins</strong> y compruebe estado deseado, estado efectivo y dependencias.</li><li>Si una persona no ve Inventario dentro de una empresa, abra <strong>Seguridad</strong> y compruebe usuario, membresía, rol y permiso.</li><li>Si una persona no ve ni siquiera la tarjeta Plugins, abra <strong>Autoridad global</strong> desde una segunda cuenta autorizada y revise el rol global.</li><li>Después abra <strong>Auditoría</strong> para confirmar qué permiso se permitió o denegó.</li></ol><div class="result-box"><strong>Resultado esperado:</strong> el diagnóstico comienza en la capa correcta y evita modificar datos sin necesidad.</div></div>
+    <h3>Bosquejo orientativo de la pantalla</h3><p class="caption-note">Representación estimada; la disposición puede variar según versión, resolución, permiso o estado.</p><div class="wireframe">┌ Smart ERP · Administración del kernel ────────────────────────────────┐
+│                                  [Espacio de trabajo] [Cerrar sesión] │
+├ Administración segura del núcleo · autorización vigente ────────────┤
+│ [Empresas] [Plugins] [Seguridad] [Auditoría] [Autoridad global]      │
+│ Solo aparecen las tarjetas permitidas para la cuenta.                │
+└──────────────────────────────────────────────────────────────────────┘</div>
+    <h3>Diagrama de datos y tablas afectadas</h3><div class="db-diagram"><div class="entity-grid">
+      <div class="entity-card"><h4>core.app_user [R]</h4><ul><li><strong>PK</strong> app_user_id : uuid, NN</li><li><strong>UK</strong> issuer + subject : texto, NN</li><li>status : texto, NN</li></ul><p class="entity-note">Resuelve la identidad local activa antes de construir autoridad.</p></div>
+      <div class="entity-card"><h4>core.app_user_system_role [R]</h4><ul><li><strong>PK/FK</strong> app_user_id : uuid, NN</li><li><strong>PK/FK</strong> system_role_id : uuid, NN</li><li>created_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.system_role [R]</h4><ul><li><strong>PK</strong> system_role_id : uuid, NN</li><li><strong>UK</strong> role_code : texto, NN</li><li>status : texto, NN</li><li>version : entero largo, NN</li></ul></div>
+      <div class="entity-card"><h4>core.system_role_permission [R]</h4><ul><li><strong>PK/FK</strong> system_role_id : uuid, NN</li><li><strong>PK</strong> permission_id : texto, NN</li><li>created_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.audit_event [C]</h4><ul><li><strong>PK</strong> audit_event_id : uuid, NN</li><li>category, operation, outcome, actor_kind : texto, NN</li><li>actor_user_id, permission_id, screen_id, result_code : opcionales</li><li>correlation_id : texto opcional</li><li>occurred_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>Contexto autenticado [EXT]</h4><ul><li>issuer + subject recibidos mediante OIDC</li><li>permisos efectivos calculados por servicios del kernel</li></ul><p class="entity-note">La pantalla no consulta contraseñas ni roles del proveedor.</p></div>
+    </div><ul class="relation-list"><li><code>app_user (1) &lt;- app_user_system_role (N) -&gt; system_role (1)</code>.</li><li><code>system_role (1) &lt;- system_role_permission (N)</code>.</li><li><code>audit_event.actor_user_id</code> conserva un identificador lógico sin FK para preservar la historia.</li><li>La inserción del evento no dispara el trigger de protección, que actúa solamente ante UPDATE o DELETE.</li></ul></div>
+  </section>
+
+  <section class="screen" data-screen="companies">
+    <div class="screen-title"><h2>2. Empresas</h2><span class="route">/faces/admin/companies.xhtml</span></div>
+    <p><strong>Objetivo:</strong> registrar la frontera empresarial, reservar su personalización exclusiva y administrar su estado sin borrar datos.</p><p><strong>Permiso:</strong> <code>kernel.company.manage</code>. El enlace Configurar plugins se muestra solamente si también existe <code>kernel.plugin.manage</code>.</p>
+    <h3>Términos de esta pantalla</h3><dl><dt><strong>Alta controlada</strong></dt><dd>Creación que aplica reglas en el servidor y genera el UUID; la pantalla no permite escribir el identificador.</dd><dt><strong>Personalización exclusiva</strong></dt><dd>Personalización física que solo puede reservar una empresa. Su UK impide duplicarla.</dd></dl>
+    <h3>Captura real de la pantalla</h3><figure class="screen-capture"><img src="../images/administracion-kernel/02-empresas.png" alt="Pantalla real de Empresas con formulario de alta deshabilitado porque no hay personalización libre"/><figcaption>La demo muestra dos empresas y ninguna personalización libre. El estado deshabilitado es correcto: una nueva personalización requiere reconstruir y redesplegar.</figcaption></figure>
+    <h3>Datos y acciones</h3><table><thead><tr><th>Dato o acción</th><th>Formato y origen</th><th>Regla y efecto</th></tr></thead><tbody><tr><td>Personalización exclusiva</td><td>Selector obligatorio obtenido del catálogo físico.</td><td>Solo muestra personalizaciones libres; no admite texto libre.</td></tr><tr><td>Registrar empresa</td><td>Acción de alta; el UUID se genera automáticamente.</td><td>Crea la empresa inactiva y reserva la personalización. No habilita plugins funcionales.</td></tr><tr><td>Estado</td><td>Activa o inactiva.</td><td>Activar revalida composición. Inactivar conserva activaciones y datos.</td></tr><tr><td>Versión</td><td>Entero automático.</td><td>Si cambió en otra sesión, la operación se rechaza y debe recargarse.</td></tr><tr><td>Configurar plugins</td><td>Enlace con UUID de empresa.</td><td>Abre la configuración de esa empresa exacta.</td></tr><tr><td>Activar o Inactivar</td><td>Botón según estado actual.</td><td>Inactivar pide confirmación. No existe borrado desde esta pantalla.</td></tr></tbody></table>
+    <div class="example-card"><h3>Ejemplo: registrar una empresa ficticia</h3><p>Suponga que la distribución incluye una personalización libre llamada <strong>Comercial Guaraní</strong>.</p><ol class="step-list"><li>Seleccione Comercial Guaraní en Personalización exclusiva.</li><li>Pulse Registrar empresa.</li><li>Guarde el UUID generado en la ficha de implementación de la organización.</li><li>Abra Configurar plugins y prepare las capacidades requeridas.</li><li>Regrese y active la empresa únicamente cuando la composición figure operativa.</li></ol><div class="result-box"><strong>Resultado esperado:</strong> empresa inactiva al crearla, personalización reservada una sola vez y evento auditable. Si el selector está vacío como en la captura, no intente crearla con SQL.</div></div>
+    <h3>Bosquejo orientativo de la pantalla</h3><p class="caption-note">Representación estimada; la disposición puede variar según versión, resolución, permiso o estado.</p><div class="wireframe">┌ Empresas y personalización obligatoria ───────────────────────────────┐
+│ Personalización exclusiva [seleccione ▼] [Registrar empresa]         │
+├ Empresas registradas ────────────────────────────────────────────────┤
+│ UUID · Activa/Inactiva · personalización · versión                   │
+│ [Configurar plugins] [Activar/Inactivar]                             │
+└ Sin borrado ni SQL manual ───────────────────────────────────────────┘</div>
+    <h3>Diagrama de datos y tablas afectadas</h3><div class="db-diagram"><div class="entity-grid">
+      <div class="entity-card"><h4>core.company [C/R/U]</h4><ul><li><strong>PK</strong> company_id : uuid, NN, generado</li><li>status : varchar(16), NN, INACTIVE/ACTIVE</li><li><strong>UK</strong> customization_plugin_id : varchar(59), NN</li><li>version : bigint, NN, predeterminado 0</li><li>created_at, updated_at : fecha y hora, NN</li></ul><p class="entity-note">La pantalla crea, lista y cambia estado. No elimina.</p></div>
+      <div class="entity-card"><h4>core.company_plugin_activation [R]</h4><ul><li><strong>PK/FK</strong> company_id : uuid, NN</li><li><strong>PK</strong> plugin_id : varchar(59), NN</li><li>desired_state : varchar(16), NN</li><li>version : bigint, NN</li><li>created_at, updated_at : fecha y hora, NN</li></ul><p class="entity-note">Se consulta al revalidar la composición antes de activar.</p></div>
+      <div class="entity-card"><h4>Catálogo de plugins [EXT/R]</h4><ul><li>plugin_id, display_name, kind, version</li><li>dependencias y compatibilidad declaradas</li></ul><p class="entity-note">Origen: descriptores físicos incluidos en la distribución.</p></div>
+      <div class="entity-card"><h4>core.audit_event [C]</h4><ul><li>audit_event_id, category, operation, outcome</li><li>actor_kind, actor_user_id, company_id</li><li>plugin_id, result_code</li><li>previous_version, resulting_version</li><li>correlation_id, occurred_at</li></ul></div>
+    </div><ul class="relation-list"><li><code>company (1) -&gt; company_plugin_activation (0..N)</code> por <code>company_id</code>, con FK y DELETE RESTRICT.</li><li>La UK <code>company_customization_plugin_id_uk</code> impide compartir personalización.</li><li>Las restricciones validan formato del plugin, estados cerrados, versión no negativa y fechas coherentes.</li><li>No existen triggers sobre <code>company</code> ni <code>company_plugin_activation</code> en la base local verificada.</li></ul></div>
+  </section>
+
+  <section class="screen" data-screen="plugins">
+    <div class="screen-title"><h2>3. Plugins por empresa</h2><span class="route">/faces/admin/plugins.xhtml?company=&lt;uuid&gt;</span></div>
+    <p><strong>Objetivo:</strong> comparar catálogo físico, decisión empresarial y disponibilidad efectiva; habilitar o deshabilitar plugins funcionales y, con permiso adicional, reemplazar personalización.</p><p><strong>Permisos:</strong> <code>kernel.plugin.manage</code>; reemplazar personalización exige además <code>kernel.company.manage</code>.</p>
+    <h3>Términos de esta pantalla</h3><dl><dt><strong>Composición operativa</strong></dt><dd>Estado donde empresa, personalización, plugins y dependencias cumplen todas las reglas necesarias para operar.</dd><dt><strong>Versión de decisión</strong></dt><dd>Versión del registro que guarda el estado deseado de un plugin para una empresa.</dd></dl>
+    <h3>Captura real de la pantalla</h3><figure class="screen-capture"><img src="../images/administracion-kernel/03-plugins-por-empresa.png" alt="Pantalla real de Plugins por empresa con selector de una empresa activa y siete plugins físicos"/><figcaption>La captura muestra una empresa ficticia activa y siete plugins físicos. El selector identifica de forma explícita la empresa que recibirá cualquier cambio.</figcaption></figure>
+    <h3>Datos, acciones y diagnósticos</h3><table><thead><tr><th>Elemento</th><th>Qué significa</th><th>Uso correcto</th></tr></thead><tbody><tr><td>Empresa</td><td>UUID y estado de la empresa objetivo.</td><td>Seleccione y pulse Abrir configuración; cambiar el selector no modifica nada por sí solo.</td></tr><tr><td>Plugin, versión y tipo</td><td>Datos del descriptor físico.</td><td>Solo los plugins funcionales aceptan Habilitar o Deshabilitar.</td></tr><tr><td>Estado deseado</td><td>Decisión persistida de la empresa.</td><td>Cambia con Habilitar o Deshabilitar.</td></tr><tr><td>Estado efectivo</td><td>Capacidad realmente disponible.</td><td>Debe decir Disponible para operar antes de comunicar disponibilidad.</td></tr><tr><td>Diagnóstico</td><td>Bloqueo de empresa, presencia, tipo, dependencia o compatibilidad.</td><td>Resuelva la causa; no repita el mismo botón.</td></tr><tr><td>Nueva personalización</td><td>Personalización física libre distinta de la actual.</td><td>Reemplazar conserva datos, revalida exclusividad y puede cambiar la interfaz.</td></tr><tr><td>Catálogo físico desplegado</td><td>Lista de solo lectura con dependencias.</td><td>Agregar o retirar un plugin exige reconstruir y redesplegar.</td></tr></tbody></table>
+    <div class="example-card"><h3>Ejemplo: habilitar Inventario respetando dependencias</h3><p>La demo declara <code>inventory</code> dependiente de <code>commercial_catalog</code>; este último y <code>business_partners</code> dependen de <code>reference_data</code>.</p><ol class="step-list"><li>Seleccione la empresa exacta y confirme que está activa.</li><li>Compruebe que <code>reference_data</code> está habilitado y efectivo.</li><li>Habilite <code>commercial_catalog</code> y confirme Disponible para operar.</li><li>Habilite <code>inventory</code> y vuelva a comprobar estado efectivo.</li><li>Si necesita deshabilitar <code>commercial_catalog</code>, revise primero Inventario; el kernel puede rechazar dejar un dependiente activo.</li></ol><div class="result-box"><strong>Resultado esperado:</strong> los cuatro plugins que aparecen habilitados en la demo permanecen efectivos. Deshabilitar conserva tablas, migraciones y datos.</div></div>
+    <h3>Bosquejo orientativo de la pantalla</h3><p class="caption-note">Representación estimada; la disposición puede variar según versión, resolución, permiso o estado.</p><div class="wireframe">┌ Plugins por empresa ──────────────────────────────────────────────────┐
+│ Empresa [UUID · estado ▼] [Abrir configuración]                      │
+├ Empresa seleccionada · personalización · diagnóstico ────────────────┤
+│ Plugin funcional · versión · deseado · efectivo [Habilitar/Deshab.]  │
+├ Reemplazar personalización [opción libre ▼] [Reemplazar]             │
+├ Catálogo físico: plugin · tipo · versión · dependencias (solo lectura)│
+└──────────────────────────────────────────────────────────────────────┘</div>
+    <h3>Diagrama de datos y tablas afectadas</h3><div class="db-diagram"><div class="entity-grid">
+      <div class="entity-card"><h4>core.company_plugin_activation [C/R/U]</h4><ul><li><strong>PK/FK</strong> company_id : uuid, NN</li><li><strong>PK</strong> plugin_id : varchar(59), NN</li><li>desired_state : varchar(16), NN</li><li>version : bigint, NN, control de concurrencia</li><li>created_at, updated_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.company [R/U]</h4><ul><li><strong>PK</strong> company_id : uuid, NN</li><li>status : varchar(16), NN</li><li><strong>UK</strong> customization_plugin_id : varchar(59), NN</li><li>version : bigint, NN</li><li>updated_at : fecha y hora, NN</li></ul><p class="entity-note">U solamente al reemplazar personalización.</p></div>
+      <div class="entity-card"><h4>Descriptores físicos [EXT/R]</h4><ul><li>plugin_id, display_name, kind, version</li><li>dependencias requeridas y rangos compatibles</li><li>evidencia de migración presente</li></ul><p class="entity-note">El estado efectivo se calcula; no es una columna.</p></div>
+      <div class="entity-card"><h4>core.audit_event [C]</h4><ul><li>audit_event_id, category, operation, outcome</li><li>actor_user_id, company_id, plugin_id</li><li>result_code, previous_version, resulting_version</li><li>correlation_id, occurred_at</li></ul></div>
+    </div><ul class="relation-list"><li><code>company (1) -&gt; company_plugin_activation (0..N)</code> mediante FK <code>company_id</code>.</li><li>El índice parcial <code>company_plugin_activation_enabled_idx</code> acelera decisiones ENABLED.</li><li>La personalización se valida contra catálogo externo y UK de <code>company.customization_plugin_id</code>.</li><li>No existen triggers sobre las tablas escritas por esta pantalla en la base local verificada.</li></ul></div>
+  </section>
+
+  <section class="screen" data-screen="business-security">
+    <div class="screen-title"><h2>4. Seguridad empresarial</h2><span class="route">/faces/admin/security.xhtml?company=&lt;uuid&gt;</span></div>
+    <p><strong>Objetivo:</strong> registrar identidades confiables, vincularlas con una empresa y administrar roles y permisos funcionales sin gestionar contraseñas.</p><p><strong>Permiso:</strong> <code>kernel.security.manage</code>. Todas las operaciones vuelven a validar empresa y autoridad en el servidor.</p>
+    <h3>Términos de esta pantalla</h3><dl><dt><strong>Emisor configurado</strong></dt><dd>Issuer confiable leído desde la configuración del servidor. El navegador lo muestra pero no puede cambiarlo.</dd><dt><strong>Permiso disponible</strong></dt><dd>Permiso aportado por el kernel o por un plugin que está efectivo para la empresa seleccionada.</dd></dl>
+    <h3>Captura real de la pantalla</h3><figure class="screen-capture"><img src="../images/administracion-kernel/04-seguridad-empresarial.png" alt="Pantalla real de Seguridad empresarial con registro de usuario y selector de empresa"/><figcaption>La demo muestra 24 usuarios ficticios. El emisor OIDC es de solo lectura y la empresa seleccionada limita todos los roles y membresías mostrados debajo.</figcaption></figure>
+    <h3>Datos y acciones</h3><table><thead><tr><th>Grupo</th><th>Datos</th><th>Regla funcional</th></tr></thead><tbody><tr><td>Usuario local</td><td>Emisor configurado, subject obligatorio, nombre opcional, estado y versión.</td><td>Emisor + subject son únicos. Nace inactivo y no contiene contraseña.</td></tr><tr><td>Empresa</td><td>Selector de UUID y estado.</td><td>Todo lo que sigue pertenece exclusivamente a esa empresa.</td></tr><tr><td>Membresía</td><td>Usuario, empresa, estado, versión y roles asignados.</td><td>Nace inactiva. Sin membresía activa no hay acceso empresarial.</td></tr><tr><td>Rol empresarial</td><td>Código único por empresa, nombre, estado, versión y permisos.</td><td>Nace inactivo; inactivar conserva asignaciones.</td></tr><tr><td>Asignar o Desasignar</td><td>Relación membresía - rol.</td><td>Desasignar elimina la relación, no el usuario ni el rol.</td></tr><tr><td>Conceder o Revocar</td><td>Relación rol - permiso.</td><td>Solo se ofrece un permiso disponible en la composición actual.</td></tr><tr><td>Activar o Inactivar</td><td>Cambio de usuario, membresía o rol con versión.</td><td>Una cuenta inactiva deja de aportar autoridad sin borrar historia.</td></tr></tbody></table>
+    <div class="example-card"><h3>Ejemplo: acceso de solo consulta al catálogo</h3><p>Use datos ficticios: nombre <strong>Ana Compras Demo</strong>, subject <code>ana.compras.demo</code>, rol <code>catalog_reader</code> y permiso <code>commercial_catalog.view</code>.</p><ol class="step-list"><li>Registre el usuario con el emisor mostrado; luego actívelo.</li><li>Seleccione la empresa y registre la membresía; luego actívela.</li><li>Registre el rol <code>catalog_reader</code> con nombre Lector de catálogo.</li><li>Conceda <code>commercial_catalog.view</code> al rol. Si no aparece, compruebe que Commercial catalog está efectivo.</li><li>Active el rol y asígnelo a la membresía de Ana.</li><li>Pruebe desde una sesión distinta: la cuenta debe consultar el catálogo, pero no debe administrar el kernel.</li></ol><div class="result-box"><strong>Resultado esperado:</strong> usuario, membresía y rol activos; permiso mínimo concedido; asignación auditable y aislada a una empresa.</div></div>
+    <h3>Bosquejo orientativo de la pantalla</h3><p class="caption-note">Representación estimada; la disposición puede variar según versión, resolución, permiso o estado.</p><div class="wireframe">┌ Usuarios y acceso por empresa ───────────────────────────────────────┐
+│ Registrar usuario: issuer (solo lectura) · subject · nombre [Registrar]│
+│ Empresa [UUID ▼] [Abrir seguridad]                                   │
+├ Usuarios conocidos · estado [Activar/Inactivar]                      │
+├ Registrar membresía │ Registrar rol │ Asignar rol │ Conceder permiso │
+├ Membresías: roles [Desasignar] · estado [Activar/Inactivar]          │
+├ Roles: permisos [Revocar] · estado [Activar/Inactivar]               │
+└──────────────────────────────────────────────────────────────────────┘</div>
+    <h3>Diagrama de datos y tablas afectadas</h3><div class="db-diagram db-diagram-splittable"><div class="entity-grid">
+      <div class="entity-card"><h4>core.app_user [C/R/U]</h4><ul><li><strong>PK</strong> app_user_id : uuid, NN</li><li><strong>UK</strong> issuer + subject : varchar, NN</li><li>display_name : varchar(160), opcional</li><li>status : varchar(16), NN</li><li>version : bigint, NN</li><li>created_at, updated_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.company_membership [C/R/U]</h4><ul><li><strong>PK/FK</strong> app_user_id : uuid, NN</li><li><strong>PK/FK</strong> company_id : uuid, NN</li><li>status : varchar(16), NN</li><li>version : bigint, NN</li><li>created_at, updated_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.security_role [C/R/U]</h4><ul><li><strong>PK</strong> role_id : uuid, NN</li><li><strong>FK</strong> company_id : uuid, NN</li><li><strong>UK por empresa</strong> role_code : varchar(128), NN</li><li>display_name : varchar(160), NN</li><li>status : varchar(16), NN</li><li>version : bigint, NN</li><li>created_at, updated_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.membership_role [C/R/D]</h4><ul><li><strong>PK/FK</strong> app_user_id : uuid, NN</li><li><strong>PK/FK</strong> company_id : uuid, NN</li><li><strong>PK/FK</strong> role_id : uuid, NN</li><li>created_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.role_permission [C/R/D]</h4><ul><li><strong>PK/FK</strong> company_id : uuid, NN</li><li><strong>PK/FK</strong> role_id : uuid, NN</li><li><strong>PK</strong> permission_id : varchar(128), NN</li><li>created_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.company [R]</h4><ul><li><strong>PK</strong> company_id : uuid, NN</li><li>status : varchar(16), NN</li></ul></div>
+      <div class="entity-card"><h4>Permisos efectivos [EXT/R]</h4><ul><li>permission_id aportado por kernel o plugins efectivos</li><li>plugin_id y empresa usados para resolver disponibilidad</li></ul></div>
+      <div class="entity-card"><h4>core.audit_event [C]</h4><ul><li>audit_event_id, category, operation, outcome</li><li>actor_user_id, subject_user_id, company_id</li><li>role_id, permission_id, result_code</li><li>previous_version, resulting_version</li><li>correlation_id, occurred_at</li></ul></div>
+    </div><ul class="relation-list"><li><code>app_user (1) -&gt; company_membership (0..N) -&gt; company (1)</code>.</li><li><code>company (1) -&gt; security_role (0..N)</code>.</li><li><code>company_membership (N) &lt;- membership_role -&gt; security_role (N)</code> con FKs compuestas que impiden cruces de empresa.</li><li><code>security_role (1) -&gt; role_permission (0..N)</code> mediante <code>company_id + role_id</code>.</li><li>Los índices parciales favorecen usuarios y roles activos. No existen triggers sobre estas tablas en la base local verificada.</li></ul></div>
+  </section>
+
+  <section class="screen" data-screen="system-authority">
+    <div class="screen-title"><h2>5. Roles y permisos globales</h2><span class="route">/faces/admin/system-authority.xhtml</span></div>
+    <p><strong>Objetivo:</strong> administrar quién puede operar toda la instancia sin mezclar esa autoridad con el acceso funcional de una empresa.</p><p><strong>Permiso:</strong> <code>kernel.system_administration.manage</code>. Es la pantalla de mayor impacto y protege contra dejar la instancia sin un administrador efectivo.</p>
+    <h3>Términos de esta pantalla</h3><dl><dt><strong>Autobloqueo administrativo</strong></dt><dd>Situación donde se retira la última combinación activa de usuario, rol y permiso capaz de administrar la autoridad global.</dd><dt><strong>Separación de funciones</strong></dt><dd>Práctica de distribuir capacidades sensibles entre cuentas o roles diferentes.</dd></dl>
+    <h3>Captura real de la pantalla</h3><figure class="screen-capture"><img src="../images/administracion-kernel/05-autoridad-global.png" alt="Pantalla real de Roles y permisos de la instancia con aviso contra autobloqueo"/><figcaption>La demo contiene un rol global. El aviso amarillo explica las tres protecciones que el servidor vuelve a comprobar antes de reducir autoridad.</figcaption></figure>
+    <h3>Datos y acciones</h3><table><thead><tr><th>Elemento</th><th>Datos</th><th>Efecto</th></tr></thead><tbody><tr><td>Registrar rol global</td><td>Código único y nombre obligatorios.</td><td>Crea un rol inactivo sin empresa.</td></tr><tr><td>Asignar rol global</td><td>Usuario local y rol global existentes.</td><td>Crea la relación usuario - rol.</td></tr><tr><td>Conceder permiso global</td><td>Rol y permiso de la lista cerrada del kernel.</td><td>Crea la relación rol - permiso.</td></tr><tr><td>Activar o Inactivar</td><td>Estado y versión del rol.</td><td>Inactivar retira autoridad efectiva, sujeto a protección del último administrador.</td></tr><tr><td>Desasignar</td><td>Usuario y rol de una asignación existente.</td><td>Elimina la relación, no el usuario ni el rol.</td></tr><tr><td>Revocar</td><td>Rol y permiso concedido.</td><td>Elimina la concesión, salvo que cause autobloqueo.</td></tr></tbody></table>
+    <div class="example-card"><h3>Ejemplo: crear un rol de auditoría para soporte</h3><p>Use un segundo usuario ficticio ya registrado y cree el rol <code>support_auditor</code> con nombre Auditor de soporte.</p><ol class="step-list"><li>Registre el rol global; nacerá inactivo.</li><li>Conceda solamente <code>kernel.audit.view</code>.</li><li>Asigne el rol al segundo usuario y actívelo.</li><li>Pruebe desde otra sesión: debe abrir Panel y Auditoría, pero no Empresas, Plugins, Seguridad ni Autoridad global.</li><li>No retire la cuenta administradora original hasta verificar una segunda ruta con <code>kernel.system_administration.manage</code>.</li></ol><div class="result-box"><strong>Resultado esperado:</strong> soporte puede investigar eventos sin modificar configuración. La separación de funciones limita el impacto de la cuenta.</div></div>
+    <h3>Bosquejo orientativo de la pantalla</h3><p class="caption-note">Representación estimada; la disposición puede variar según versión, resolución, permiso o estado.</p><div class="wireframe">┌ Roles y permisos de la instancia ────────────────────────────────────┐
+│ Aviso: protección contra autobloqueo                                 │
+│ Código · nombre [Registrar rol global]                               │
+│ Usuario [▼] Rol [▼] [Asignar]                                       │
+│ Rol [▼] Permiso global [▼] [Conceder]                               │
+├ Rol · estado · versión · usuarios [Desasignar] · permisos [Revocar] │
+│ [Activar/Inactivar]                                                  │
+└──────────────────────────────────────────────────────────────────────┘</div>
+    <h3>Diagrama de datos y tablas afectadas</h3><div class="db-diagram"><div class="entity-grid">
+      <div class="entity-card"><h4>core.system_role [C/R/U]</h4><ul><li><strong>PK</strong> system_role_id : uuid, NN</li><li><strong>UK</strong> role_code : varchar(128), NN</li><li>display_name : varchar(160), NN</li><li>status : varchar(16), NN</li><li>version : bigint, NN</li><li>created_at, updated_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.app_user_system_role [C/R/D]</h4><ul><li><strong>PK/FK</strong> app_user_id : uuid, NN</li><li><strong>PK/FK</strong> system_role_id : uuid, NN</li><li>created_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.system_role_permission [C/R/D]</h4><ul><li><strong>PK/FK</strong> system_role_id : uuid, NN</li><li><strong>PK</strong> permission_id : varchar(128), NN</li><li>created_at : fecha y hora, NN</li></ul></div>
+      <div class="entity-card"><h4>core.app_user [R]</h4><ul><li><strong>PK</strong> app_user_id : uuid, NN</li><li>display_name : varchar(160), opcional</li><li>status : varchar(16), NN</li></ul></div>
+      <div class="entity-card"><h4>Permisos globales [EXT/R]</h4><ul><li>kernel.company.manage</li><li>kernel.plugin.manage</li><li>kernel.security.manage</li><li>kernel.audit.view</li><li>kernel.system_administration.manage</li></ul></div>
+      <div class="entity-card"><h4>core.audit_event [C]</h4><ul><li>audit_event_id, category, operation, outcome</li><li>actor_user_id, subject_user_id, system_role_id</li><li>permission_id, result_code</li><li>previous_version, resulting_version</li><li>correlation_id, occurred_at</li></ul></div>
+    </div><ul class="relation-list"><li><code>app_user (N) &lt;- app_user_system_role -&gt; system_role (N)</code>.</li><li><code>system_role (1) -&gt; system_role_permission (0..N)</code>.</li><li>UK <code>system_role_code_uk</code> evita códigos duplicados.</li><li>Los índices de roles activos y de permisos aceleran la resolución de autoridad. No existen triggers sobre estas tablas en la base local verificada.</li></ul></div>
+  </section>
+
+  <section class="screen" data-screen="audit">
+    <div class="screen-title"><h2>6. Auditoría</h2><span class="route">/faces/admin/audit.xhtml</span></div>
+    <p><strong>Objetivo:</strong> investigar operaciones y decisiones de acceso mediante filtros cerrados y paginación, sin modificar el historial.</p><p><strong>Permiso:</strong> <code>kernel.audit.view</code>.</p>
+    <h3>Términos de esta pantalla</h3><dl><dt><strong>Ventana temporal</strong></dt><dd>Periodo cerrado que limita la consulta: 24 horas, 7 días, 30 días o todo desde la migración V5.</dd><dt><strong>Append-only</strong></dt><dd>Modelo donde se agregan eventos pero se rechaza modificar o borrar los ya registrados.</dd><dt><strong>Paginación</strong></dt><dd>División del resultado en bloques de 25 eventos, ordenados del más reciente al más antiguo.</dd></dl>
+    <h3>Captura real de la pantalla</h3><figure class="screen-capture"><img src="../images/administracion-kernel/06-auditoria.png" alt="Pantalla real de Auditoría con filtros de categoría, resultado, ventana, empresa y correlación"/><figcaption>La demo inicia con los últimos 7 días y 25 registros por página. Abrir las áreas administrativas también produce eventos de acceso permitidos.</figcaption></figure>
+    <h3>Filtros, columnas y acciones</h3><table><thead><tr><th>Elemento</th><th>Valores o formato</th><th>Interpretación</th></tr></thead><tbody><tr><td>Categoría</td><td>Empresa y plugins, Seguridad empresarial, Acceso empresarial, Autoridad global, Acceso administrativo u Operación de plugin.</td><td>Separa el tipo de actividad investigada.</td></tr><tr><td>Resultado</td><td>Aplicado, Sin cambios, Rechazado, Permitido, Denegado o Requiere selección.</td><td>Distingue cambio confirmado, no operación y decisión de acceso.</td></tr><tr><td>Ventana temporal</td><td>24 horas, 7 días, 30 días o todo desde V5.</td><td>Comience por el periodo más corto que incluya el incidente.</td></tr><tr><td>Empresa técnica exacta</td><td>UUID canónico opcional.</td><td>No busca por nombre ni admite un UUID parcial.</td></tr><tr><td>Correlación exacta</td><td>Texto técnico canónico opcional.</td><td>Reúne todos los eventos de una solicitud o recorrido.</td></tr><tr><td>Evento</td><td>Fecha UTC, categoría, operación, resultado, actor y detalles disponibles.</td><td>Los campos opcionales solo aparecen cuando aplican.</td></tr><tr><td>Aplicar filtros</td><td>Reinicia en página 1.</td><td>Valida entradas antes de ejecutar la consulta.</td></tr><tr><td>Limpiar</td><td>Quita filtros y vuelve a valores predeterminados.</td><td>No borra eventos.</td></tr></tbody></table>
+    <div class="example-card"><h3>Ejemplo: investigar un plugin que no pudo habilitarse</h3><ol class="step-list"><li>Seleccione categoría Empresa y plugins.</li><li>Seleccione resultado Rechazado y ventana Últimas 24 horas.</li><li>Copie el UUID exacto de la empresa desde Empresas o Plugins.</li><li>Pulse Aplicar filtros y abra el evento correspondiente al momento del intento.</li><li>Lea operación, plugin, código, versión anterior, versión resultante y correlación.</li><li>Busque la misma correlación para ordenar los eventos relacionados; resuelva dependencia o conflicto antes de reintentar.</li></ol><div class="result-box"><strong>Resultado esperado:</strong> soporte distingue un intento rechazado de un cambio aplicado y puede escalar con empresa, hora, operación, código y correlación sin enviar secretos.</div></div>
+    <h3>Bosquejo orientativo de la pantalla</h3><p class="caption-note">Representación estimada; la disposición puede variar según versión, resolución, permiso o estado.</p><div class="wireframe">┌ Actividad técnica del kernel ─────────────────────────────────────────┐
+│ Categoría [▼] Resultado [▼] Ventana [▼]                             │
+│ Empresa exacta [UUID] Correlación exacta [texto]                    │
+│ [Aplicar filtros] [Limpiar]                                         │
+├ Eventos: fecha UTC · operación · resultado · actor · detalles       │
+│ [Página anterior]                 Página n              [Siguiente] │
+└──────────────────────────────────────────────────────────────────────┘</div>
+    <h3>Diagrama de datos y tablas afectadas</h3><div class="db-diagram"><div class="entity-grid">
+      <div class="entity-card"><h4>core.audit_event [R]</h4><ul><li><strong>PK</strong> audit_event_id : uuid, NN</li><li>category : varchar(40), NN, filtro</li><li>operation : varchar(96), NN</li><li>outcome : varchar(32), NN, filtro</li><li>actor_kind : varchar(32), NN</li><li>actor_user_id, subject_user_id : uuid, opcionales</li><li>company_id : uuid, opcional, filtro</li><li>role_id, system_role_id : uuid, opcionales</li><li>plugin_id : varchar(128), opcional</li></ul></div>
+      <div class="entity-card"><h4>core.audit_event [R] continuación</h4><ul><li>permission_id : varchar(160), opcional</li><li>screen_id : varchar(260), opcional</li><li>result_code : varchar(128), opcional</li><li>previous_version, resulting_version : bigint, opcionales</li><li>correlation_id : varchar(128), opcional, filtro</li><li>occurred_at : fecha y hora, NN, filtro y orden</li><li>resource_type : varchar(96), opcional</li><li>resource_id : varchar(160), opcional</li></ul></div>
+      <div class="entity-card"><h4>Índices usados [R]</h4><ul><li>audit_event_occurred_idx</li><li>audit_event_category_outcome_idx</li><li>audit_event_company_idx</li><li>audit_event_actor_idx</li><li>audit_event_correlation_idx</li><li>audit_event_resource_idx</li></ul><p class="entity-note">La consulta se ordena por <code>occurred_at DESC, audit_event_id DESC</code>.</p></div>
+      <div class="entity-card"><h4>Catálogos cerrados [EXT/R]</h4><ul><li>categorías y resultados definidos por el kernel</li><li>ventanas temporales cerradas</li><li>tamaño fijo: 25 eventos por página</li></ul><p class="entity-note">La pantalla no crea categorías ni resultados.</p></div>
+    </div><ul class="relation-list"><li>Los identificadores de actor, usuario, empresa, roles, plugin y recurso son referencias históricas lógicas; <code>audit_event</code> no declara FKs hacia esas tablas.</li><li>No existen vistas, vistas materializadas ni secuencias del esquema <code>core</code> en la base local verificada.</li></ul>
+    <div class="trigger-card"><h4>Trigger comprobado: audit_event_no_update_or_delete</h4><table><tbody><tr><th>Tabla</th><td><code>core.audit_event</code></td></tr><tr><th>Momento y evento</th><td>BEFORE UPDATE OR DELETE, por cada fila, sin condición WHEN.</td></tr><tr><th>Estado</th><td>Habilitado (<code>tgenabled = O</code>).</td></tr><tr><th>Llama</th><td><code>core.reject_audit_event_mutation()</code>, función PL/pgSQL.</td></tr><tr><th>Lee o modifica</th><td>No lee ni modifica otra tabla.</td></tr><tr><th>Error</th><td>Genera la excepción <code>core.audit_event is append-only</code>.</td></tr><tr><th>Efecto funcional</th><td>Bloquea cualquier modificación o borrado del evento. INSERT permanece permitido para servicios autorizados.</td></tr><tr><th>Evidencia</th><td>Migración core V5 y metadatos <code>pg_trigger</code>/<code>pg_proc</code> consultados el 11 de agosto de 2026.</td></tr></tbody></table></div></div>
+  </section>
+
+  <section class="screen-support">
+    <h2>Errores frecuentes y recuperación</h2>
+    <table><thead><tr><th>Mensaje o síntoma</th><th>Causa probable</th><th>Recuperación segura</th></tr></thead><tbody><tr><td>No aparece una tarjeta del panel.</td><td>La cuenta no posee el permiso global exacto.</td><td>No fuerce la URL. Pida a una segunda cuenta autorizada que revise rol, asignación, estado y permiso.</td></tr><tr><td>No hay personalización física libre.</td><td>Todas las personalizaciones desplegadas ya están reservadas.</td><td>Planifique una nueva personalización, reconstrucción y redespliegue. No cree la empresa con SQL.</td></tr><tr><td>El estado cambió en otra sesión.</td><td>Conflicto de versión de concurrencia.</td><td>Recargue, compare el estado actual y decida de nuevo. No repita a ciegas.</td></tr><tr><td>La composición no cumple dependencias.</td><td>Dependencia requerida no efectiva o dependiente activo.</td><td>Revise el catálogo físico y aplique el orden dependencia antes de dependiente.</td></tr><tr><td>El permiso ya no está disponible.</td><td>El plugin que lo aporta no está efectivo.</td><td>Compruebe empresa, plugin y dependencias antes de volver a conceder.</td></tr><tr><td>La operación dejaría la instancia sin administrador.</td><td>Protección del último administrador global.</td><td>Prepare y pruebe primero una segunda combinación efectiva de usuario, rol y permiso.</td></tr><tr><td>Consulta de auditoría no válida.</td><td>UUID, correlación, página o valor cerrado con formato incorrecto.</td><td>Limpie filtros y vuelva a completar valores exactos, sin espacios adicionales.</td></tr><tr><td>Sin eventos para los filtros.</td><td>Ventana corta, filtro exacto incorrecto o evento anterior a V5.</td><td>Amplíe la ventana, quite un filtro exacto y revise paginación; no significa ausencia total.</td></tr></tbody></table>
+    <h2>Seguridad y accesibilidad</h2><ul><li>Use una cuenta nominativa y no comparta contraseña, token, cookie ni secreto OIDC.</li><li>Compruebe empresa, usuario y acción antes de confirmar una reducción de autoridad.</li><li>Pruebe cambios de permisos desde una segunda sesión para evitar confundir la sesión administradora con la cuenta objetivo.</li><li>Inactivar conserva información; no solicite borrado manual para ocultar un error.</li><li>La navegación por teclado comienza con Saltar al contenido y el foco visible debe permanecer reconocible.</li><li>En ancho compacto los formularios y tarjetas se apilan. No dependa solo del color: lea también las etiquetas Activa, Inactiva, Habilitado y Disponible para operar.</li><li>Si una animación resulta molesta, el tema debe respetar la preferencia de movimiento reducido del sistema.</li></ul>
+    <h2>Información que soporte debe solicitar</h2><ol class="step-list"><li>Nombre visible y ruta de la pantalla.</li><li>Acción intentada y resultado exacto.</li><li>UUID de empresa cuando el caso sea empresarial.</li><li>ID local del usuario o rol afectado, nunca contraseña ni token.</li><li>Fecha y hora aproximada con zona horaria.</li><li>Categoría, operación, código y correlación de Auditoría.</li><li>Estado actual, versión visible y orden de acciones previas.</li><li>Captura sin datos sensibles cuando ayude a reproducir.</li></ol>
+    <h2>Glosario de consulta rápida</h2><table><thead><tr><th>Término</th><th>Consulte</th></tr></thead><tbody><tr><td>Empresa, plugin, personalización, estado deseado y efectivo</td><td>Conceptos necesarios y capítulos 2 y 3.</td></tr><tr><td>OIDC, emisor, subject, usuario, membresía y rol empresarial</td><td>Conceptos necesarios y capítulo 4.</td></tr><tr><td>Rol global, permiso y autoridad efectiva</td><td>Conceptos necesarios y capítulos 1 y 5.</td></tr><tr><td>Auditoría, correlación, ventana y append-only</td><td>Conceptos necesarios y capítulo 6.</td></tr><tr><td>PK, FK, UK, NN, C, R, U, D y EXT</td><td>Conceptos de base de datos y diagramas de cada pantalla.</td></tr></tbody></table>
+    <div class="validation-note"><strong>Alcance de la evidencia:</strong> se verificaron 13 tablas del esquema <code>core</code>, 88 columnas, restricciones, 34 índices, ausencia de vistas, vistas materializadas y secuencias, y un trigger activo de protección de auditoría. Las capturas provienen de una demo local con datos ficticios. No se ejecutaron altas, activaciones, inactivaciones, asignaciones, revocaciones ni escrituras directas en la base durante la elaboración del manual.</div>
+  </section>
+</article>
+
+</body>
+</html>

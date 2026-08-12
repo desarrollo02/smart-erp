@@ -306,6 +306,15 @@ public class JpaCatalogItemRepository implements CatalogItemRepository {
             clause.append(" AND item.state IN :states");
             parameters.put("states", criteria.states());
         }
+        if (!criteria.scopes().isEmpty()) {
+            clause.append(" AND EXISTS (SELECT scope.detailCode ")
+                    .append("FROM CatalogItemScopeEntity scope ")
+                    .append("WHERE scope.companyId = item.companyId ")
+                    .append("AND scope.catalogItemId = item.catalogItemId ")
+                    .append("AND scope.detailCode IN :scopes)");
+            parameters.put("scopes", criteria.scopes().stream()
+                    .map(Enum::name).collect(Collectors.toUnmodifiableSet()));
+        }
         return new SearchQuery(clause.toString(), parameters);
     }
 

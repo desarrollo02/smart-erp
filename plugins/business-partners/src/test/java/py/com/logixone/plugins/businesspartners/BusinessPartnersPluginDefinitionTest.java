@@ -24,7 +24,7 @@ class BusinessPartnersPluginDefinitionTest {
         PluginDescriptor descriptor = new BusinessPartnersPluginDefinition().descriptor();
 
         assertEquals("business_partners", descriptor.id().value());
-        assertEquals("1.0.0", descriptor.version().toString());
+        assertEquals("1.1.0", descriptor.version().toString());
         assertEquals(BusinessPartnerContractVersion.CURRENT, descriptor.version().toString());
         assertEquals(PluginKind.FUNCTIONAL, descriptor.kind());
         assertTrue(descriptor.pluginApiCompatibility().contains(PluginApiVersion.CURRENT));

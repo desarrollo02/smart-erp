@@ -13,6 +13,7 @@ import py.com.logixone.plugin.api.PluginId;
 import py.com.logixone.plugin.api.PluginKind;
 import py.com.logixone.plugin.api.SemanticVersion;
 import py.com.logixone.plugin.api.VersionRange;
+import py.com.logixone.plugins.businesspartners.api.BusinessPartnerContractVersion;
 import py.com.logixone.plugins.businesspartners.application.BusinessPartnerPermissions;
 import py.com.logixone.plugins.businesspartners.application.BusinessPartnersIdentity;
 
@@ -26,7 +27,7 @@ public class BusinessPartnersPluginDefinition implements PluginDefinition {
     private static final PluginDescriptor DESCRIPTOR = new PluginDescriptor(
             ID,
             PluginKind.FUNCTIONAL,
-            SemanticVersion.parse("1.0.0"),
+            SemanticVersion.parse(BusinessPartnerContractVersion.CURRENT),
             new VersionRange(
                     SemanticVersion.parse("0.4.0"),
                     SemanticVersion.parse("0.5.0")),

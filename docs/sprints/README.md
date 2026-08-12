@@ -13,6 +13,12 @@ Los documentos deben registrar las pruebas realizadas después de cada cambio co
 
 La candidata visual de Sprint 3 tiene una excepción temporal de calendario aprobada el 2026-07-28: las pruebas automatizadas se acumulan en su historia de cierre. El trabajo previo usa el estado `Implementada pendiente de validación`, por lo que la regla de no declarar historias completadas continúa intacta.
 
+El responsable de producto aclaró el 2026-08-11 que la continuidad funcional
+posterior a Sprint 8 difiere únicamente la validación independiente asignada a
+otra persona. Todas las pruebas automatizadas aplicables siguen siendo
+obligatorias en cada corte. Los Sprints permanecen abiertos y no promocionables
+hasta completar además composición, gates runtime y aceptación independiente.
+
 ## Índice
 
 - [Sprint 1 — Fundación técnica verificable](sprint-01/README.md)
@@ -23,3 +29,4 @@ La candidata visual de Sprint 3 tiene una excepción temporal de calendario apro
 - [Sprint 6 — Primer plugin productivo `business_partners`](sprint-06/README.md)
 - [Sprint 7 — Catálogo comercial `commercial_catalog`](sprint-07/README.md)
 - [Sprint 8 — Inventario `inventory`](sprint-08/README.md)
+- [Sprint 9 — Compras `purchasing`](sprint-09/README.md)

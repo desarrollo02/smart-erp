@@ -1,12 +1,17 @@
 # Manual técnico para desarrolladores de Smart ERP
 
-- Edición: 0.1-rc42
-- Fecha: 2026-08-05
+- Edición: 0.1-rc51
+- Fecha: 2026-08-12
 - Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C07 implementa publicaciones
   completas, unidad menor opcional y búsqueda paginada de `reference_data`;
   J11-S8-C06 mantiene políticas optimistas y V2 append-only; PostgreSQL, Docker,
   JTA/OIDC y Playwright de C06/C07 están verdes y el PDF fue verificado; producto
-  decidió `NO` crear instalador para este baseline; G7 permanece pendiente
+  decidió `NO` crear instalador para este baseline; J11-S9-05 incorpora cinco
+  contratos de pantalla, handlers, directorios paginados, selectores gobernados y
+  renderer del shell para `purchasing`, validado automáticamente mediante módulo,
+  PostgreSQL, ArchUnit y `mvn verify`, pero aún fuera de la composición; ADR-0040 planifica
+  `legacy_migration`, ADR-0045 `business_process_management` y ADR-0046 la familia
+  Flota F1/F2; G7 permanece pendiente
 - Audiencia: desarrolladores, revisores, arquitectos e implementadores técnicos
 - Estado: inicial; G7 independiente y autorización de producción pendientes
 
@@ -41,13 +46,18 @@ flowchart TB
     registry --> bp["business_partners"]
     registry --> catalog["commercial_catalog"]
     registry --> inventory["inventory\nAPI + dominio + aplicación JTA"]
+    registry --> purchasing["purchasing\nsolicitud, orden y cumplimiento"]
     bp -->|"reference-data-api / REQUIRED 1.x"| referenceData
     catalog -->|"reference-data-api / REQUIRED 1.x"| referenceData
     inventory -->|"contrato público requerido"| catalog
+    purchasing -->|"contratos públicos 1.x"| bp
+    purchasing -->|"contratos públicos 1.x"| catalog
+    purchasing -->|"movimientos y almacenamiento 1.1"| inventory
     referenceData --> referencedb[("plg_reference_data V1")]
     bp --> bpdb[("plg_business_partners")]
     catalog --> catalogdb[("plg_commercial_catalog V1-V4")]
     inventory --> inventorydb[("plg_inventory V1-V2")]
+    purchasing --> purchasingdb[("plg_purchasing V1-V2")]
     kernel --> coredb[("core")]
     pluginSet["logixone-plugin-set"] --> war["logixone-war"]
     pluginSet --> migrator["migrator one-shot"]
@@ -754,6 +764,58 @@ un tipo de negocio. `current` permanece intacto y el Sprint sigue abierto por G7
 
 ## 23. Roadmap vigente y familias futuras
 
+J11-S9-02 materializa el cuarto plugin funcional con dos módulos nuevos.
+`purchasing-api@1.1.0` sólo depende de Java y `CompanyId`; expone identidades,
+referencias mínimas, directorio y comandos controlados para importar solicitudes
+u órdenes abiertas. `purchasing@1.1.0` contiene el descriptor CDI/SPI y dominio
+privado, y depende sólo de las APIs públicas de socios, catálogo, referencia e
+inventario.
+
+El dominio separa `PurchaseRequest`, `PurchaseOrder`, `GoodsReceipt` y
+`SupplierReturn`. No use estados de factura/pago en la orden, no edite cantidades
+confirmadas y no cree un repositorio compartido. El cumplimiento por línea es
+`ordenado - recibido + devuelto - faltante_cerrado`; sobre-recepción y devolución
+mayor al neto recibido son inválidas. Para `STOCK`, la aplicación coordina en JTA
+la confirmación con `InventoryPurchaseMovements.postCatalogItem`; no acceda a
+`plg_inventory` ni resuelva `InventoryItemId` desde Compras.
+
+La frontera `PurchasingImports` conserva sistema, registro y checksum de origen,
+pero sólo acepta documentos abiertos. El adaptador pertenece a
+`legacy_migration`; Compras no depende del migrador. Consulte
+[ADR-0041](../adr/0041-modelo-purchasing-y-contratos-publicos.md) y la
+[historia J11-S9-02](../sprints/sprint-09/J11-S9-02-dominio-contratos-purchasing.md).
+J11-S9-03 agrega `plg_purchasing` con nueve tablas: cabecera/líneas de solicitud,
+orden, recepción y devolución, más asignaciones parciales solicitud→orden. Las
+referencias externas son UUID y snapshots; ninguna FK o relación JPA atraviesa
+plugins. Cuatro repositorios acotados por `CompanyId` reconstruyen agregados y no
+exponen borrado. Las raíces usan `@Version`; triggers protegen líneas finalizadas,
+documentos confirmados y movimiento obligatorio de stock.
+
+La unidad `logixone-purchasing-pu` usa el datasource JTA común y `validate`, con
+generación DDL deshabilitada. J11-S9-04 agrega V2 con dos ledgers, doce permisos,
+servicios auditados y adaptadores CDI. Al confirmar recepción/devolución, la
+frontera JTA publica un movimiento por línea `STOCK`, actualiza la orden y confirma
+el documento; cualquier resultado fallido marca rollback. `inventory-api@1.1.0`
+resuelve internamente la identidad local a partir del catálogo. Consulte
+[ADR-0042](../adr/0042-persistencia-privada-purchasing.md) y
+[J11-S9-03](../sprints/sprint-09/J11-S9-03-persistencia-purchasing.md),
+[ADR-0043](../adr/0043-aplicacion-jta-idempotencia-purchasing.md) y
+[J11-S9-04](../sprints/sprint-09/J11-S9-04-aplicacion-purchasing.md).
+
+J11-S9-05 agrega cinco `ScreenDefinition` y handlers para solicitudes, órdenes,
+recepciones, devoluciones y seguimiento. Los directorios públicos paginan la
+búsqueda de proveedores y almacenamiento; `commercial-catalog-api@1.1.0` filtra
+el alcance `PURCHASE` antes de calcular total y página; `PurchasingSelectorSources` declara
+propietario, clase, estrategia y ruta administrativa de cada selector. El shell
+es el único renderer y resuelve los textos centralmente. Consulte
+[ADR-0044](../adr/0044-recorridos-visuales-purchasing.md) y
+[J11-S9-05](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md).
+
+El código está implementado y validado automáticamente dentro del corte no
+compuesto, y aún no forma parte del WAR ni del migrador. La composición física,
+los gates runtime/Playwright y la demo corresponden a J11-S9-06. La validación
+independiente permanece pendiente.
+
 ADR-0027, ADR-0030, ADR-0032, ADR-0033 y ADR-0034 ampliaron el roadmap a
 diecinueve plugins ERP reutilizables, más una personalización obligatoria
 y distinta por empresa. `vehicle_telemetry` ocupa el orden 7;
@@ -804,6 +866,98 @@ distribución con todos ellos.
 diferencia de las familias futuras, su primer corte sí está en el reactor: API
 pura, descriptor funcional, V1 privada, pantalla autorizada y consumo desde socios
 y catálogo. La publicación mundial completa continúa planificada.
+
+[ADR-0040](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+agrega `legacy_migration` y eleva el catálogo global futuro a treinta
+reutilizables. Es un plugin técnico transversal y opcional, sin orden ERP; no está
+en el reactor ni cambia la secuencia funcional 1–19. LM-00/LM-01 deberá resolver,
+junto con `support_connector`, una evolución compatible de `PluginKind` a
+`TECHNICAL` antes de publicar cualquier descriptor.
+
+La frontera técnica planificada se divide en dos procesos:
+
+- un runner externo efímero inspecciona Oracle Forms/Reports y la base con acceso
+  de solo lectura, usa herramientas y drivers licenciados fuera del WAR y produce
+  un paquete inmutable con manifiesto y checksums;
+- el plugin Jakarta administra metadatos, mapeos versionados, corridas,
+  cuarentena, reconciliación y aprobación de corte dentro de su esquema privado.
+
+El flujo obligatorio es extracción reproducible, landing inmutable, perfilado,
+normalización, mapeo, `dry-run`, importación idempotente, cuarentena,
+reconciliación y corte aprobado. Los adaptadores llaman comandos o puertos
+públicos de cada plugin funcional; se prohíbe JPA/SQL cruzado y ningún destino
+depende de la implementación de migración. `legacy_migration` conserva
+procedencia, claves de idempotencia y evidencia, pero no se convierte en fuente
+de verdad operativa.
+
+Oracle Forms Migration Assistant sirve para inventariar incompatibilidades y
+reglas; no autoriza transpilar automáticamente Forms, triggers o PL/SQL a
+Jakarta Faces/Java. `Forms2XML` y `rwconverter` producen representaciones de
+análisis cuando la versión y licencia del cliente lo permiten. La base del perfil,
+las pantallas futuras y la matriz LM-00–LM-09 están en la
+[épica de migración](../backlog/epica-migracion-legados-oracle-forms-reports.md) y
+el [perfil de origen](../knowledge-base/legacy-migration/oracle-forms-reports-source-profile.md).
+
+[ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) agrega después
+`business_process_management` y eleva el catálogo global futuro a treinta y un
+reutilizables. Es un plugin `FUNCTIONAL` transversal, reutilizable, opcional y
+activable por empresa; no recibe orden ERP, no pertenece al kernel y ningún
+dominio funcional depende de su implementación.
+
+La frontera técnica planificada separa:
+
+- definiciones de proceso y versiones publicadas inmutables;
+- instancias, tokens, tareas, temporizadores, inbox e incidentes durables;
+- un contrato Java puro de eventos y acciones públicas allowlist;
+- adaptadores de cada dominio que revalidan empresa, permiso, versión e
+  idempotencia antes de mutar su propio agregado;
+- proyecciones de SLA y métricas sin joins a esquemas privados.
+
+BPMN 2.0.2 orientará un subconjunto explícito; elementos no soportados bloquean
+la publicación. DMN queda para una fase posterior. Se prohíben scripts, SQL, EL,
+reflexión, nombres de clases y HTTP arbitrario configurables. BPM-00 debe comparar
+un motor acotado propio con una biblioteca embebida detrás de puertos; ni Spring,
+ni un servicio externo, ni una biblioteca visual quedan autorizados sin la
+evaluación y el ADR correspondientes.
+
+El primer piloto, después de componer Compras, usará un evento público de solicitud
+enviada y un comando público de aprobación. Así materializará ADR-0013 sin hacer
+que `purchasing` dependa de BPM. La [épica BPM](../backlog/epica-gestion-procesos-negocio-bpm.md)
+define BPM-D01 a BPM-D12, BPM-00 a BPM-08 y las pruebas de reinicio, duplicados,
+temporizadores, seguridad, composición y Playwright.
+
+[ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md) agrega
+después la familia vertical Flota y eleva el catálogo global futuro a treinta y
+tres reutilizables. Usa orden interno F1 `fleet_maintenance` y F2
+`automotive_workshop`; no recibe números ERP, no modifica 1–19 y no está en el
+reactor.
+
+La frontera técnica de F1 exige:
+
+- `logistics-api` como propietario de `VehicleId`, categoría y referencia pública;
+- planes/versiones, solicitudes, defectos, checklists y OT en
+  `plg_fleet_maintenance`;
+- lecturas opcionales de Telemetría aceptadas por fuente, unidad, calidad,
+  secuencia y plausibilidad;
+- reservas/consumos en Inventario y compras/terceros en Compras mediante comandos
+  públicos idempotentes;
+- asignaciones/tiempos por `ActorId`, sin poseer empleado;
+- eventos de restricción/liberación técnica; Logística decide disponibilidad
+  operacional.
+
+F2 conserva recepción, autorización y entrega en
+`plg_automotive_workshop`. Usa la única OT pública de F1, un presupuesto/pedido de
+Ventas y una factura/nota de Documentos Comerciales. No posee precio, stock,
+factura, pago, deuda ni asiento. F1 debe operar con F2, Telemetría y BPM ausentes o
+inactivos; Logística debe operar sin toda la familia.
+
+Los futuros módulos API serán Java puro y no expondrán entidades, Jakarta, HTML,
+tokens o clases internas. Checklists usan tipos cerrados/versionados y el acceso
+móvil/externo exige concesión autenticada, expirable y revocable. Consulte las
+épicas de [mantenimiento de flota](../backlog/epica-mantenimiento-flota.md) y
+[taller automotriz comercial](../backlog/epica-taller-automotriz-comercial.md),
+además de la
+[caracterización](../knowledge-base/vehicle-maintenance/legacy-characterization.md).
 
 El perfil cooperativo reutilizará `business-partners-api`, `treasury-api` y
 `accounting-api` cuando sus contratos estén estables. La frontera esencial para
@@ -1013,8 +1167,12 @@ y la [épica de remediación](../backlog/epica-gobierno-selectores-datos-adminis
 País y moneda pertenecen a `reference_data`; V4 conserva el seed histórico y
 publica 248 países y 178 códigos únicos de moneda o fondo. Ambos selectores usan
 `SEARCH_ON_DEMAND` y páginas máximas de 50. Sus gates runtime y la recongelación
-están verdes; la decisión del instalador quedó registrada como `NO`. No se inicia
-`purchasing` mientras falte G7 independiente.
+están verdes; la decisión del instalador quedó registrada como `NO`. Producto
+autorizó abrir Sprint 9 para caracterizar `purchasing`. El 2026-08-11 aclaró que
+sólo se difiere la validación independiente de otra persona; las pruebas
+automatizadas son obligatorias. J11-S9-05 dejó verdes módulo, PostgreSQL,
+ArchUnit y `mvn verify`; los gates de composición y promoción continúan
+pendientes.
 
 ## 25. Referencias internas
 
@@ -1029,6 +1187,22 @@ están verdes; la decisión del instalador quedó registrada como `NO`. No se in
 - [Topología de Sprint 7](../sprints/sprint-07/estructura-plugins-y-dependencias.md)
 - [ADR-0028 — Gobierno de selectores](../adr/0028-gobierno-de-selectores-y-datos-administrables.md)
 - [ADR-0038 — Datos de referencia normativos](../adr/0038-plugin-datos-referencia-normativos.md)
+- [ADR-0040 — Migración de legados Oracle Forms & Reports](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+- [ADR-0045 — Plugin de gestión de procesos de negocio BPM](../adr/0045-plugin-gestion-procesos-negocio-bpm.md)
+- [Épica — Gestión de procesos de negocio BPM](../backlog/epica-gestion-procesos-negocio-bpm.md)
+- [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
+- [Épica — Mantenimiento de flota](../backlog/epica-mantenimiento-flota.md)
+- [Épica — Taller automotriz comercial](../backlog/epica-taller-automotriz-comercial.md)
+- [ADR-0041 — Modelo de `purchasing`](../adr/0041-modelo-purchasing-y-contratos-publicos.md)
+- [J11-S9-02 — Dominio y contratos de `purchasing`](../sprints/sprint-09/J11-S9-02-dominio-contratos-purchasing.md)
+- [ADR-0042 — Persistencia privada de `purchasing`](../adr/0042-persistencia-privada-purchasing.md)
+- [J11-S9-03 — Persistencia de `purchasing`](../sprints/sprint-09/J11-S9-03-persistencia-purchasing.md)
+- [ADR-0043 — Aplicación JTA de `purchasing`](../adr/0043-aplicacion-jta-idempotencia-purchasing.md)
+- [J11-S9-04 — Aplicación de `purchasing`](../sprints/sprint-09/J11-S9-04-aplicacion-purchasing.md)
+- [ADR-0044 — Recorridos visuales de `purchasing`](../adr/0044-recorridos-visuales-purchasing.md)
+- [J11-S9-05 — Interfaz de `purchasing`](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md)
+- [Épica de migración de legados](../backlog/epica-migracion-legados-oracle-forms-reports.md)
+- [Perfil Oracle Forms & Reports](../knowledge-base/legacy-migration/oracle-forms-reports-source-profile.md)
 - [ADR-0029 — Confirmación del instalador](../adr/0029-confirmacion-instalador-por-cierre-sprint.md)
 - [ADR-0030 — Recursos humanos, nómina y Paraguay](../adr/0030-familia-recursos-humanos-nomina-paraguay.md)
 - [ADR-0031 — Facturación masiva en documentos comerciales](../adr/0031-facturacion-masiva-en-documentos-comerciales.md)

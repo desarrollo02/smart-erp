@@ -74,6 +74,28 @@ class ModuleBoundariesArchitectureTest {
                     "py.com.logixone.kernel.api.company..");
 
     @ArchTest
+    static final ArchRule purchasingApiUsesOnlyJavaAndCompanyIdentity = noClasses()
+            .that().resideInAPackage("py.com.logixone.plugins.purchasing.api..")
+            .should().dependOnClassesThat().resideOutsideOfPackages(
+                    "java..",
+                    "py.com.logixone.plugins.purchasing.api..",
+                    "py.com.logixone.kernel.api.company..");
+
+    @ArchTest
+    static final ArchRule purchasingDomainUsesOnlyJavaAndPublicContracts = noClasses()
+            .that().resideInAPackage("py.com.logixone.plugins.purchasing.domain..")
+            .should().dependOnClassesThat().resideOutsideOfPackages(
+                    "java..",
+                    "py.com.logixone.plugins.purchasing.domain..",
+                    "py.com.logixone.plugins.purchasing.api..",
+                    "py.com.logixone.plugins.businesspartners.api..",
+                    "py.com.logixone.plugins.commercialcatalog.api..",
+                    "py.com.logixone.plugins.referencedata.api..",
+                    "py.com.logixone.plugins.inventory.api..",
+                    "py.com.logixone.kernel.api.company..",
+                    "py.com.logixone.kernel.api.security..");
+
+    @ArchTest
     static final ArchRule neutralContractsAndDomainDoNotUseFrameworks = noClasses()
             .that().resideInAnyPackage(
                     "py.com.logixone.plugin.api..",
@@ -87,6 +109,8 @@ class ModuleBoundariesArchitectureTest {
                     "py.com.logixone.plugins.inventory.api..",
                     "py.com.logixone.plugins.inventory.domain..",
                     "py.com.logixone.plugins.inventory.application..",
+                    "py.com.logixone.plugins.purchasing.api..",
+                    "py.com.logixone.plugins.purchasing.domain..",
                     "py.com.logixone.plugins.businesspartners.api..",
                     "py.com.logixone.plugins.businesspartners.domain..",
                     "py.com.logixone.plugins.businesspartners.application..")
@@ -130,6 +154,24 @@ class ModuleBoundariesArchitectureTest {
                     "py.com.logixone.plugins.commercialcatalog.infrastructure..");
 
     @ArchTest
+    static final ArchRule purchasingDoesNotReachDependencyImplementations = noClasses()
+            .that().resideInAnyPackage(
+                    "py.com.logixone.plugins.purchasing.api..",
+                    "py.com.logixone.plugins.purchasing.domain..")
+            .should().dependOnClassesThat().resideInAnyPackage(
+                    "py.com.logixone.plugins.businesspartners.domain..",
+                    "py.com.logixone.plugins.businesspartners.application..",
+                    "py.com.logixone.plugins.businesspartners.infrastructure..",
+                    "py.com.logixone.plugins.commercialcatalog.domain..",
+                    "py.com.logixone.plugins.commercialcatalog.application..",
+                    "py.com.logixone.plugins.commercialcatalog.infrastructure..",
+                    "py.com.logixone.plugins.referencedata.application..",
+                    "py.com.logixone.plugins.referencedata.infrastructure..",
+                    "py.com.logixone.plugins.inventory.domain..",
+                    "py.com.logixone.plugins.inventory.application..",
+                    "py.com.logixone.plugins.inventory.infrastructure..");
+
+    @ArchTest
     static final ArchRule businessPartnersApplicationDoesNotReachInfrastructure = noClasses()
             .that().resideInAPackage("py.com.logixone.plugins.businesspartners.application..")
             .should().dependOnClassesThat().resideInAPackage(
@@ -148,13 +190,20 @@ class ModuleBoundariesArchitectureTest {
                     "py.com.logixone.plugins.inventory.infrastructure..");
 
     @ArchTest
+    static final ArchRule purchasingApplicationDoesNotReachInfrastructure = noClasses()
+            .that().resideInAPackage("py.com.logixone.plugins.purchasing.application..")
+            .should().dependOnClassesThat().resideInAPackage(
+                    "py.com.logixone.plugins.purchasing.infrastructure..");
+
+    @ArchTest
     static final ArchRule jpaEntitiesStayInsideTheirOwnerPersistenceInfrastructure = classes()
             .that().areAnnotatedWith("jakarta.persistence.Entity")
             .should().resideInAnyPackage(
                     "py.com.logixone.kernel.infrastructure.jakarta.persistence..",
                     "py.com.logixone.plugins.businesspartners.infrastructure.persistence..",
                     "py.com.logixone.plugins.commercialcatalog.infrastructure.persistence..",
-                    "py.com.logixone.plugins.inventory.infrastructure.persistence..");
+                    "py.com.logixone.plugins.inventory.infrastructure.persistence..",
+                    "py.com.logixone.plugins.purchasing.infrastructure.persistence..");
 
     @ArchTest
     static final ArchRule kernelDoesNotDependOnPluginImplementations = noClasses()

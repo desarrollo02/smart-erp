@@ -12,6 +12,20 @@
 - Pendiente transversal: validación independiente G7 de la guía candidata
 - ADR rector: [ADR-0011](../../adr/0011-roadmap-dependencias-plugins-productivos.md)
 
+## Continuidad excepcional autorizada
+
+El responsable de producto autorizó el 2026-08-11 iniciar la planificación y
+caracterización de `purchasing`, siguiente plugin del roadmap. Posteriormente
+aclaró que sólo se difiere la validación independiente de otra persona: los gates
+automatizados aplicables deben ejecutarse. La autorización no cierra Sprint 8, no
+cambia sus resultados ya verdes, no completa G7 independiente y no permite
+promover, etiquetar ni presentar este baseline como comercializable.
+
+Toda historia posterior con cambios ejecutables debe cumplir el flujo incremental
+de pruebas automatizadas. Puede quedar `Implementada y validada automáticamente;
+validación independiente pendiente`, estado que no equivale a aceptación ni a
+una candidata comercializable.
+
 ## Objetivo
 
 Construir `inventory` como tercer plugin productivo y primera capacidad operativa.
@@ -51,8 +65,11 @@ La estrategia Git aprobada el 2026-08-05 usa `main` como baseline aceptado, una
 única rama `sprint/*` activa y ramas cortas `story/*`, `fix/*` o `chore/*`. Como el
 primer commit Git importó el estado abierto de Sprint 8, se registra una excepción
 transitoria: `main` permanece congelada en `166c5e1` y el cierre continúa en
-`sprint/08-cierre`. No se creará `sprint/09-purchasing` hasta completar todos los
-gates, integrar el cierre en `main` y crear el tag anotado `sprint-08`.
+`sprint/08-cierre`. La decisión de producto del 2026-08-11 permite abrir la
+documentación de Sprint 9 y continuar `purchasing` con gates automatizados obligatorios,
+pero no autoriza integrar el cierre en `main`, crear el tag `sprint-08` ni presentar
+una rama posterior como baseline aceptado. La regularización Git queda pendiente
+de una decisión explícita antes del primer cambio de código de `purchasing`.
 
 La adopción, las protecciones, los checks y la higiene no destructiva del índice
 se detallan en [J11-S8-C04](J11-S8-C04-gobierno-git-ramas.md). El responsable de
@@ -125,8 +142,9 @@ quedaron verdes. El gate de selectores y los gates técnicos C06/C07 también es
 verdes. La fotografía y el PDF se recongelaron contra C07. Producto respondió
 `NO` al instalador por no existir aún una versión comercializable útil para un tipo
 de negocio; `current` queda intacto y no representa este baseline. Falta completar
-G7 independiente. No se autoriza iniciar el siguiente plugin ni declarar cerrado
-el Sprint hasta resolver los gates aplicables.
+G7 independiente. La continuidad excepcional del 2026-08-11 autoriza planificar y
+construir `purchasing` con sus pruebas acumuladas, pero no declarar cerrado este
+Sprint, promover su baseline ni etiquetarlo hasta resolver los gates aplicables.
 
 ADR-0027 agregó históricamente `point_of_sale` como décimo plugin futuro, después
 de `treasury`. ADR-0033 insertó luego `recurring_billing` como orden 8 y desplazó
@@ -241,8 +259,9 @@ pasa a 18 nativos y 73 de plugins, 91/91 con fuente y propietario.
 renumera ERP 1–19. Docker/Compose, health/OIDC y Playwright responsive de C03
 quedaron verdes. C07 agrega V3–V4, `reference-data-api` 1.1.0 y `plugin-api` 0.4.3;
 su gate integral y runtime quedaron verdes. Faltan los gates formales de
-recongelación/cierre. Sprint 8
-continúa abierto y no se autoriza iniciar `purchasing`.
+recongelación/cierre. Sprint 8 continúa abierto. Producto autorizó el 2026-08-11
+iniciar `purchasing` como continuidad excepcional, con toda prueba nueva marcada y
+acumulada hasta la candidata comercializable.
 G0 del decimosexto corte validó 280 Markdown sin enlaces rotos, errores UTF-8,
 mojibake ni filtraciones de secretos. G0 del decimonoveno corte repitió el control
 sobre 287 Markdown y 1.330 enlaces locales, también sin hallazgos. G0 del vigésimo

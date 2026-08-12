@@ -3,7 +3,7 @@
 - Artifact Maven: `commercial-catalog`
 - Plugin ID: `commercial_catalog`
 - Tipo: `FUNCTIONAL`
-- Version inicial: `1.0.0`
+- Versión actual: `1.1.0` (versión inicial `1.0.0`)
 - Compatibilidad Plugin API: `[0.4.0,0.5.0)`
 
 Este es un plugin funcional distinto de `business_partners`. El módulo
@@ -30,6 +30,11 @@ transacción. El borrado físico continúa fuera del alcance.
 J11-S8-C03 conecta la moneda de cada lista a `reference-data-api`, revalida el
 código dentro de la transacción y declara `reference_data` 1.x como dependencia
 funcional requerida. No consulta su esquema privado.
+
+J11-S9-05 eleva el contrato público a `1.1.0`: `CatalogSearchCriteria` admite
+alcances comerciales y JPA aplica ese filtro antes del total y la paginación. El
+selector de Compras puede solicitar únicamente artículos `PURCHASE` sin cargar ni
+descartar páginas del lado consumidor.
 
 ## Prueba local
 

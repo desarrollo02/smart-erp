@@ -14,6 +14,8 @@ import py.com.logixone.kernel.api.company.CompanyId;
 import py.com.logixone.plugin.api.ContributionId;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogUnitConversionRequest;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogUnitConversions;
+import py.com.logixone.plugins.commercialcatalog.api.CatalogItemId;
+import py.com.logixone.plugins.inventory.api.CatalogStockMovementRequest;
 import py.com.logixone.plugins.inventory.api.MovementQuantity;
 import py.com.logixone.plugins.inventory.api.StockKey;
 import py.com.logixone.plugins.inventory.api.StockMovementDirection;
@@ -73,7 +75,43 @@ public final class InventoryMovementService {
 
     public InventoryOperationResult<StockMovementReference> post(
             InventoryOperationContext context, StockMovementRequest request) {
-        return post(context, request, permissionFor(request), false, "POST_STOCK_MOVEMENT");
+        return post(context, request, permissionFor(request), false, false,
+                "POST_STOCK_MOVEMENT");
+    }
+
+    public InventoryOperationResult<StockMovementReference> postCatalog(
+            InventoryOperationContext context, CatalogStockMovementRequest request) {
+        Objects.requireNonNull(request, "request");
+        if (!InventoryApplicationSupport.authorized(
+                context, InventoryPermissions.PURCHASE_MOVEMENTS_POST)) {
+            return audit.rejected(
+                    context,
+                    InventoryPermissions.PURCHASE_MOVEMENTS_POST,
+                    "POST_PURCHASE_MOVEMENT",
+                    MOVEMENT,
+                    Optional.empty(),
+                    Optional.empty(),
+                    InventoryResultCode.ACCESS_DENIED);
+        }
+        CompanyId companyId = company(context);
+        InventoryItem item = items.findByCatalogItemId(
+                        companyId, new CatalogItemId(request.catalogItemId()))
+                .orElse(null);
+        if (item == null) {
+            return rejected(
+                    context,
+                    InventoryPermissions.PURCHASE_MOVEMENTS_POST,
+                    "POST_PURCHASE_MOVEMENT",
+                    Optional.empty(),
+                    InventoryResultCode.NOT_FOUND);
+        }
+        return post(
+                context,
+                request.resolve(item.id()),
+                InventoryPermissions.PURCHASE_MOVEMENTS_POST,
+                false,
+                true,
+                "POST_PURCHASE_MOVEMENT");
     }
 
     InventoryOperationResult<StockMovementReference> postCountAdjustment(
@@ -82,7 +120,7 @@ public final class InventoryMovementService {
             throw new IllegalArgumentException("A count may only post an ADJUSTMENT movement");
         }
         return post(context, request, InventoryPermissions.ADJUSTMENTS_POST,
-                true, "POST_STOCK_COUNT_ADJUSTMENT");
+                true, false, "POST_STOCK_COUNT_ADJUSTMENT");
     }
 
     private InventoryOperationResult<StockMovementReference> post(
@@ -90,6 +128,7 @@ public final class InventoryMovementService {
             StockMovementRequest request,
             ContributionId permission,
             boolean bypassCountLock,
+            boolean useHistoricalConversion,
             String operation) {
         Objects.requireNonNull(request, "request");
         if (!InventoryApplicationSupport.authorized(context, permission)) {
@@ -112,7 +151,8 @@ public final class InventoryMovementService {
 
         try {
             validateReversal(companyId, request);
-            PreparedMovement prepared = prepare(companyId, request, bypassCountLock);
+            PreparedMovement prepared = prepare(
+                    companyId, request, bypassCountLock, useHistoricalConversion);
             persistBalances(prepared.balances());
             StockMovement movement = StockMovement.post(
                     companyId, ids.nextMovementId(), request, clock.instant());
@@ -142,7 +182,10 @@ public final class InventoryMovementService {
     }
 
     private PreparedMovement prepare(
-            CompanyId companyId, StockMovementRequest request, boolean bypassCountLock) {
+            CompanyId companyId,
+            StockMovementRequest request,
+            boolean bypassCountLock,
+            boolean useHistoricalConversion) {
         Map<py.com.logixone.plugins.inventory.api.InventoryItemId, InventoryItem> itemSnapshots =
                 new LinkedHashMap<>();
         Map<StockKey, BalanceChange> changes = new LinkedHashMap<>();
@@ -150,7 +193,8 @@ public final class InventoryMovementService {
             InventoryItem item = itemSnapshots.computeIfAbsent(
                     line.key().inventoryItemId(), id -> items.findById(companyId, id)
                             .orElseThrow(() -> new MovementFailure(InventoryResultCode.NOT_FOUND)));
-            validateLine(companyId, request, line, item, bypassCountLock);
+            validateLine(companyId, request, line, item,
+                    bypassCountLock, useHistoricalConversion);
             BigDecimal signed = line.direction() == StockMovementDirection.INCREASE
                     ? line.quantity().baseQuantity()
                     : line.quantity().baseQuantity().negate();
@@ -167,17 +211,21 @@ public final class InventoryMovementService {
             StockMovementRequest request,
             StockMovementLine line,
             InventoryItem item,
-            boolean bypassCountLock) {
+            boolean bypassCountLock,
+            boolean useHistoricalConversion) {
         if (!item.active()) {
             throw new MovementFailure(InventoryResultCode.REFERENCE_CONFLICT);
         }
         item.validateKey(line.key());
         item.validateMovementQuantity(line.quantity().baseQuantity());
+        if (!item.baseUnitCode().equals(line.quantity().baseUnitCode())) {
+            throw new MovementFailure(InventoryResultCode.REFERENCE_CONFLICT);
+        }
         validateWarehouse(companyId, line.key());
         if (!bypassCountLock && counts.blocks(companyId, line.key())) {
             throw new MovementFailure(InventoryResultCode.SCOPE_LOCKED);
         }
-        if (request.type() != StockMovementType.REVERSAL) {
+        if (request.type() != StockMovementType.REVERSAL && !useHistoricalConversion) {
             validateConversion(companyId, item, line.quantity());
         }
     }

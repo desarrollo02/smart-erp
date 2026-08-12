@@ -8,4 +8,7 @@ public interface BusinessPartnerDirectory {
 
     Optional<BusinessPartnerReference> findById(
             CompanyId companyId, BusinessPartnerId businessPartnerId);
+
+    BusinessPartnerSearchPage search(
+            CompanyId companyId, BusinessPartnerSearchQuery query);
 }

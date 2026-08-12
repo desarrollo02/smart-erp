@@ -12,6 +12,8 @@ public final class InventoryPermissions {
             new ContributionId("inventory.items.manage");
     public static final ContributionId MOVEMENTS_POST =
             new ContributionId("inventory.movements.post");
+    public static final ContributionId PURCHASE_MOVEMENTS_POST =
+            new ContributionId("inventory.movements.purchase.post");
     public static final ContributionId RESERVATIONS_MANAGE =
             new ContributionId("inventory.reservations.manage");
     public static final ContributionId COUNTS_MANAGE =
@@ -28,6 +30,7 @@ public final class InventoryPermissions {
                 STORAGE_MANAGE,
                 ITEMS_MANAGE,
                 MOVEMENTS_POST,
+                PURCHASE_MOVEMENTS_POST,
                 RESERVATIONS_MANAGE,
                 COUNTS_MANAGE,
                 ADJUSTMENTS_POST);

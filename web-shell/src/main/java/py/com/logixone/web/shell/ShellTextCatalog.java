@@ -373,6 +373,113 @@ public class ShellTextCatalog {
         inventoryElement(texts, "counts", "review_count", "Enviar a revisión", "Exige que todas las líneas tengan cantidad contada.");
         inventoryElement(texts, "counts", "post_count", "Contabilizar", "Genera el ajuste inmutable con permiso específico.");
         inventoryElement(texts, "counts", "cancel_count", "Cancelar", "Finaliza el conteo sin generar ajustes.");
+
+        texts.put("purchasing.menu.requests", "Solicitudes de compra");
+        texts.put("purchasing.menu.orders", "Órdenes de compra");
+        texts.put("purchasing.menu.receipts", "Recepciones");
+        texts.put("purchasing.menu.returns", "Devoluciones");
+        texts.put("purchasing.menu.tracking", "Seguimiento");
+
+        purchasingElement(texts, "requests", "request_search_text", "Número o descripción", "Busca solicitudes dentro de la empresa activa.");
+        purchasingElement(texts, "requests", "request_search_state", "Estado", "Filtra borradores, pendientes, aprobadas, rechazadas o canceladas.");
+        purchasingElement(texts, "requests", "request_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
+        purchasingElement(texts, "requests", "request_results", "Solicitudes", "Muestra fecha, estado y cantidad de líneas.");
+        purchasingElement(texts, "requests", "select_request", "Abrir", "Muestra las líneas y las acciones autorizadas.");
+        purchasingElement(texts, "requests", "request_number", "Número", "Código único de la solicitud dentro de la empresa.");
+        purchasingElement(texts, "requests", "request_date", "Fecha solicitada", "Fecha en formato AAAA-MM-DD.");
+        purchasingElement(texts, "requests", "request_kind", "Tipo de línea", "Producto de stock o servicio sin movimiento de inventario.");
+        purchasingElement(texts, "requests", "request_item", "Artículo o servicio", "Selecciona un concepto activo del catálogo cuando corresponda.");
+        purchasingElement(texts, "requests", "request_description", "Descripción", "Explica con precisión qué se necesita comprar.");
+        purchasingElement(texts, "requests", "request_unit", "Unidad", "Unidad en que se expresa la cantidad solicitada.");
+        purchasingElement(texts, "requests", "request_quantity", "Cantidad", "Valor positivo con hasta seis decimales.");
+        purchasingElement(texts, "requests", "request_expected_price", "Precio esperado", "Estimación opcional; no compromete una orden.");
+        purchasingElement(texts, "requests", "request_currency", "Moneda estimada", "Moneda habilitada para el precio esperado.");
+        purchasingElement(texts, "requests", "create_request", "Preparar solicitud", "Crea un borrador con su primera línea.");
+        purchasingElement(texts, "requests", "request_add_kind", "Tipo de línea", "Define si la línea adicional es producto o servicio.");
+        purchasingElement(texts, "requests", "request_add_item", "Artículo o servicio", "Concepto activo relacionado con la nueva línea.");
+        purchasingElement(texts, "requests", "request_add_description", "Descripción", "Texto que verá quien revise y compre.");
+        purchasingElement(texts, "requests", "request_add_unit", "Unidad", "Unidad de la cantidad adicional.");
+        purchasingElement(texts, "requests", "request_add_quantity", "Cantidad", "Cantidad positiva solicitada.");
+        purchasingElement(texts, "requests", "request_add_expected_price", "Precio esperado", "Estimación opcional para la línea adicional.");
+        purchasingElement(texts, "requests", "request_add_currency", "Moneda estimada", "Completa junto con el precio cuando corresponda.");
+        purchasingElement(texts, "requests", "add_request_line", "Agregar línea", "Reemplaza el borrador por una versión que conserva las líneas anteriores y agrega la nueva.");
+        purchasingElement(texts, "requests", "request_reason", "Motivo", "Explica un rechazo o una cancelación.");
+        purchasingElement(texts, "requests", "submit_request", "Enviar a aprobación", "Cambia el borrador a pendiente de aprobación.");
+        purchasingElement(texts, "requests", "approve_request", "Aprobar", "Autoriza la solicitud para usarla en órdenes.");
+        purchasingElement(texts, "requests", "reject_request", "Rechazar", "Finaliza la solicitud y conserva el motivo.");
+        purchasingElement(texts, "requests", "cancel_request", "Cancelar", "Impide continuar el documento y conserva el motivo.");
+        purchasingElement(texts, "requests", "request_clone_number", "Número de la copia", "Número único que tendrá el nuevo borrador.");
+        purchasingElement(texts, "requests", "request_clone_date", "Fecha de la copia", "Fecha solicitada del nuevo borrador en formato AAAA-MM-DD.");
+        purchasingElement(texts, "requests", "clone_request", "Clonar", "Crea otra solicitud en borrador con las mismas líneas.");
+
+        purchasingElement(texts, "orders", "order_search_text", "Número o proveedor", "Busca órdenes dentro de la empresa activa.");
+        purchasingElement(texts, "orders", "order_search_state", "Estado", "Filtra borradores, emitidas, cerradas o canceladas.");
+        purchasingElement(texts, "orders", "order_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
+        purchasingElement(texts, "orders", "order_results", "Órdenes", "Muestra proveedor, moneda, estado y cantidad de líneas.");
+        purchasingElement(texts, "orders", "select_order", "Abrir", "Muestra importes, cumplimiento y acciones autorizadas.");
+        purchasingElement(texts, "orders", "order_number", "Número", "Código único de la orden dentro de la empresa.");
+        purchasingElement(texts, "orders", "order_supplier", "Proveedor", "Socio comercial activo con rol proveedor.");
+        purchasingElement(texts, "orders", "order_currency", "Moneda", "Moneda habilitada en que se expresan los precios.");
+        purchasingElement(texts, "orders", "order_justification", "Justificación de compra directa", "Obligatoria cuando alguna cantidad no proviene de una solicitud aprobada.");
+        purchasingElement(texts, "orders", "order_kind", "Tipo de línea", "Producto de stock o servicio.");
+        purchasingElement(texts, "orders", "order_item", "Artículo o servicio", "Concepto activo del catálogo comercial.");
+        purchasingElement(texts, "orders", "order_description", "Descripción", "Snapshot que se conservará en la orden.");
+        purchasingElement(texts, "orders", "order_unit", "Unidad", "Unidad contractual de la cantidad ordenada.");
+        purchasingElement(texts, "orders", "order_quantity", "Cantidad", "Cantidad positiva ordenada.");
+        purchasingElement(texts, "orders", "order_price", "Precio unitario", "Importe unitario en la moneda de la orden.");
+        purchasingElement(texts, "orders", "order_request", "Solicitud aprobada", "Origen opcional para justificar la necesidad.");
+        purchasingElement(texts, "orders", "order_request_line", "Línea solicitada", "Debe pertenecer a la solicitud seleccionada.");
+        purchasingElement(texts, "orders", "order_allocation_quantity", "Cantidad asignada", "Parte de la orden imputada a la línea solicitada.");
+        purchasingElement(texts, "orders", "create_order", "Preparar orden", "Crea la orden en borrador con su primera línea.");
+        purchasingElement(texts, "orders", "order_add_kind", "Tipo de línea", "Producto o servicio de la línea adicional.");
+        purchasingElement(texts, "orders", "order_add_item", "Artículo o servicio", "Concepto activo relacionado con la línea adicional.");
+        purchasingElement(texts, "orders", "order_add_description", "Descripción", "Texto contractual conservado en la orden.");
+        purchasingElement(texts, "orders", "order_add_unit", "Unidad", "Unidad de la cantidad adicional.");
+        purchasingElement(texts, "orders", "order_add_quantity", "Cantidad", "Cantidad positiva adicional.");
+        purchasingElement(texts, "orders", "order_add_price", "Precio unitario", "Importe unitario adicional.");
+        purchasingElement(texts, "orders", "add_order_line", "Agregar línea", "Solo está disponible mientras la orden permanezca en borrador.");
+        purchasingElement(texts, "orders", "order_reason", "Motivo", "Explica la cancelación o el cierre con faltante.");
+        purchasingElement(texts, "orders", "issue_order", "Emitir orden", "Formaliza el compromiso con el proveedor.");
+        purchasingElement(texts, "orders", "cancel_order", "Cancelar orden", "Cancela cuando el estado y las recepciones lo permiten.");
+        purchasingElement(texts, "orders", "close_order_short", "Cerrar con faltante", "Cierra todas las cantidades todavía pendientes y conserva el motivo.");
+
+        purchasingElement(texts, "receipts", "receipt_search_text", "Número u orden", "Busca recepciones dentro de la empresa activa.");
+        purchasingElement(texts, "receipts", "receipt_search_state", "Estado", "Filtra borradores o confirmadas.");
+        purchasingElement(texts, "receipts", "receipt_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
+        purchasingElement(texts, "receipts", "receipt_results", "Recepciones", "Muestra orden, estado y cantidad de líneas.");
+        purchasingElement(texts, "receipts", "select_receipt", "Abrir", "Muestra trazabilidad y confirmación disponible.");
+        purchasingElement(texts, "receipts", "receipt_number", "Número", "Código único de la recepción dentro de la empresa.");
+        purchasingElement(texts, "receipts", "receipt_order", "Orden emitida", "Orden que entrega el proveedor.");
+        purchasingElement(texts, "receipts", "receipt_order_line", "Línea ordenada", "Línea y cantidad pendiente que se reciben.");
+        purchasingElement(texts, "receipts", "receipt_quantity", "Cantidad recibida", "No puede superar la cantidad pendiente.");
+        purchasingElement(texts, "receipts", "receipt_warehouse", "Depósito", "Obligatorio para productos de stock.");
+        purchasingElement(texts, "receipts", "receipt_location", "Ubicación", "Debe estar activa y pertenecer al depósito seleccionado.");
+        purchasingElement(texts, "receipts", "receipt_lot", "Lote", "Completa cuando el producto se controla por lote.");
+        purchasingElement(texts, "receipts", "receipt_serial", "Número de serie", "Completa cuando el producto se controla por serie.");
+        purchasingElement(texts, "receipts", "receipt_expiry", "Fecha de vencimiento", "Formato AAAA-MM-DD cuando corresponda.");
+        purchasingElement(texts, "receipts", "receipt_condition", "Condición", "Disponible, cuarentena o dañado al ingresar.");
+        purchasingElement(texts, "receipts", "create_receipt", "Preparar recepción", "Crea un comprobante interno todavía sin afectar inventario.");
+        purchasingElement(texts, "receipts", "confirm_receipt", "Confirmar recepción", "Actualiza cumplimiento y publica el ingreso de stock cuando corresponde.");
+
+        purchasingElement(texts, "returns", "return_search_text", "Número, orden o causa", "Busca devoluciones dentro de la empresa activa.");
+        purchasingElement(texts, "returns", "return_search_state", "Estado", "Filtra borradores o confirmadas.");
+        purchasingElement(texts, "returns", "return_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
+        purchasingElement(texts, "returns", "return_results", "Devoluciones", "Muestra orden, causa, estado y cantidad de líneas.");
+        purchasingElement(texts, "returns", "select_return", "Abrir", "Muestra el origen y la confirmación disponible.");
+        purchasingElement(texts, "returns", "return_number", "Número", "Código único de la devolución dentro de la empresa.");
+        purchasingElement(texts, "returns", "return_order", "Orden", "Orden emitida o cerrada a la que pertenece la devolución.");
+        purchasingElement(texts, "returns", "return_receipt", "Recepción confirmada", "Comprobante que prueba la cantidad recibida.");
+        purchasingElement(texts, "returns", "return_receipt_line", "Línea recibida", "Línea exacta desde la que se devuelve.");
+        purchasingElement(texts, "returns", "return_quantity", "Cantidad devuelta", "No puede superar la cantidad confirmada todavía no devuelta.");
+        purchasingElement(texts, "returns", "return_reason", "Causa", "Explica por qué la mercadería o el servicio se devuelve.");
+        purchasingElement(texts, "returns", "create_return", "Preparar devolución", "Crea un borrador relacionado con la recepción.");
+        purchasingElement(texts, "returns", "confirm_return", "Confirmar devolución", "Actualiza cumplimiento y publica la salida de stock cuando corresponde.");
+
+        purchasingElement(texts, "tracking", "tracking_search_text", "Número o proveedor", "Busca órdenes para consultar su cumplimiento.");
+        purchasingElement(texts, "tracking", "tracking_search_state", "Estado", "Filtra órdenes por su etapa vigente.");
+        purchasingElement(texts, "tracking", "tracking_search", "Buscar", "Actualiza el seguimiento con los filtros actuales.");
+        purchasingElement(texts, "tracking", "tracking_results", "Cumplimiento de órdenes", "Resume las órdenes disponibles para seguimiento.");
+        purchasingElement(texts, "tracking", "select_tracking_order", "Ver seguimiento", "Muestra cantidades pedidas, recibidas, devueltas y pendientes.");
         return Map.copyOf(texts);
     }
 
@@ -416,6 +523,17 @@ public class ShellTextCatalog {
             String label,
             String help) {
         String key = "inventory." + screen + "." + elementId;
+        texts.put(key + ".label", label);
+        texts.put(key + ".help", help);
+    }
+
+    private static void purchasingElement(
+            Map<String, String> texts,
+            String screen,
+            String elementId,
+            String label,
+            String help) {
+        String key = "purchasing." + screen + "." + elementId;
         texts.put(key + ".label", label);
         texts.put(key + ".help", help);
     }

@@ -14,6 +14,7 @@ import py.com.logixone.plugin.api.PluginId;
 import py.com.logixone.plugin.api.PluginKind;
 import py.com.logixone.plugin.api.SemanticVersion;
 import py.com.logixone.plugin.api.VersionRange;
+import py.com.logixone.plugins.commercialcatalog.api.CatalogContractVersion;
 import py.com.logixone.plugins.commercialcatalog.application.CommercialCatalogIdentity;
 import py.com.logixone.plugins.commercialcatalog.application.CommercialCatalogPermissions;
 
@@ -27,7 +28,7 @@ public class CommercialCatalogPluginDefinition implements PluginDefinition {
     private static final PluginDescriptor DESCRIPTOR = new PluginDescriptor(
             ID,
             PluginKind.FUNCTIONAL,
-            SemanticVersion.parse("1.0.0"),
+            SemanticVersion.parse(CatalogContractVersion.CURRENT),
             new VersionRange(
                     SemanticVersion.parse("0.4.0"),
                     SemanticVersion.parse("0.5.0")),

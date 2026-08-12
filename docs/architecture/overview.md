@@ -1,9 +1,9 @@
 # Vista general de arquitectura
 
-- Versión: 52
-- Fecha: 2026-08-05
-- Estado: J11-S8-C07 implementado y validado; publicaciones completas, unidad menor opcional, búsqueda paginada, contrato/renderer, ciclos empresariales, cuatro clases de definiciones de socios, revisión e historial append-only y asignación versionada de familias a artículos; gates técnicos, recongelación y PDF verdes; producto decidió `NO` crear instalador para este baseline; G7 independiente pendiente
-- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08` y `J11-S8-C01` a `J11-S8-C07`; ADR-0009 a ADR-0039
+- Versión: 60
+- Fecha: 2026-08-12
+- Estado: J11-S9-05 agrega cinco pantallas, handlers, directorios y selectores de `purchasing`, validados mediante módulo, PostgreSQL, ArchUnit y `mvn verify`, aún fuera de la composición ejecutable; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045 y la familia Flota F1/F2 por ADR-0046; composición/runtime/Playwright y G7 independiente pendientes
+- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07` y J11-S9-00 a J11-S9-05; ADR-0009 a ADR-0046
 
 ## Objetivo
 
@@ -20,9 +20,13 @@ Definir la forma inicial de Smart ERP y los límites que deben permanecer cierto
 4. Propiedad exclusiva de código y datos por dominio.
 5. Infraestructura reproducible y promoción del mismo digest.
 6. Seguridad y contexto empresarial verificados en el servidor.
-7. Ninguna historia se declara terminada sin sus pruebas y evidencia; las excepciones de Sprint 3/4 solo permiten estados implementados pendientes hasta el gate acumulado correspondiente.
-8. El legado aporta conocimiento, no dependencias de ejecución.
+7. Ninguna historia se declara verde o terminada sin sus pruebas y evidencia; la aclaración del 2026-08-11 difiere sólo la validación independiente de otra persona y mantiene obligatorios todos los gates automatizados aplicables.
+8. El legado aporta conocimiento y datos mediante procesos aislados de migración; nunca se convierte en dependencia del runtime operativo.
 9. Cada empresa tiene una personalización propia, obligatoria y aplicada como última capa mediante contratos públicos.
+10. La coordinación configurable nunca reemplaza autoridad, invariantes o
+    autorización del dominio propietario.
+11. El mantenimiento técnico no posee el vehículo ni la venta; la recepción y
+    comercialización de taller no duplican la orden técnica.
 
 ## Vista de contenedores y componentes
 
@@ -46,6 +50,80 @@ flowchart TB
 ```
 
 El diagrama representa límites de propiedad. Que los esquemas compartan inicialmente una instancia PostgreSQL no autoriza acceso cruzado.
+
+## Extensión planificada para migración de legados
+
+ADR-0040 planifica `legacy_migration` como plugin técnico opcional. No está
+implementado ni forma parte del baseline ejecutable actual. Un runner externo de
+vida acotada inspeccionará Oracle Forms/Reports o paquetes exportados; el plugin
+gobernará inventario, mapeos, ejecuciones, cuarentena, conciliación y corte.
+
+```mermaid
+flowchart LR
+    O["Oracle Forms/Reports y base Oracle"] -->|"solo lectura"| R["Runner externo controlado"]
+    R --> P["Paquete inmutable + manifiesto/checksum"]
+    P --> LM["legacy_migration"]
+    LM -->|"contratos públicos tipados"| BP["Plugins funcionales destino"]
+    LM --> E["Conciliación, aprobación y evidencia"]
+```
+
+El runner no vive dentro del WAR y las herramientas/drivers Oracle no se
+redistribuyen sin licencia. `legacy_migration` nunca escribe esquemas privados; el
+plugin funcional propietario valida e importa sus datos. Después del corte, el
+módulo puede desactivarse o retirarse sin eliminar evidencia ni datos importados.
+
+## Extensión planificada para gestión de procesos BPM
+
+ADR-0045 planifica `business_process_management` como plugin funcional
+transversal, reutilizable, opcional y activable por empresa. No está implementado
+ni forma parte del reactor actual. Coordinará definiciones versionadas, instancias,
+tareas humanas, temporizadores, incidentes, SLA y métricas sin poseer agregados de
+otros dominios.
+
+```mermaid
+flowchart LR
+    D["Plugin funcional propietario"] -->|"evento público / outbox"| B["business_process_management"]
+    B --> T["Tarea humana, plazo y escalamiento"]
+    T -->|"acción pública tipada"| D
+    D -->|"acepta o rechaza con autorización propia"| B
+    B --> H[("Definiciones, instancias e historia BPM")]
+```
+
+El piloto propuesto coordina la aprobación de solicitudes de Compras después de
+J11-S9-06. `purchasing` conserva sus estados, separación de funciones y permiso
+de aprobación; funciona también con BPM ausente o inactivo. Antes del código se
+deben resolver BPM-D01 a BPM-D12, el subconjunto BPMN 2.0.2, el contrato neutral
+de acciones y la selección reproducible de motor.
+
+## Extensión planificada para mantenimiento y taller automotriz
+
+ADR-0046 planifica una familia vertical opcional con F1 `fleet_maintenance` y F2
+`automotive_workshop`. No está implementada, no forma parte del reactor y no
+renumera ERP 1–19. El catálogo global futuro aumenta a treinta y tres
+reutilizables.
+
+```mermaid
+flowchart LR
+    L["logistics / VehicleId"] --> F1["F1 fleet_maintenance"]
+    T["vehicle_telemetry"] -. "lecturas aceptadas" .-> F1
+    F1 -->|"reservas y consumos públicos"| I["inventory"]
+    F1 -->|"repuestos o terceros"| P["purchasing"]
+    F2["F2 automotive_workshop"] -->|"única OT técnica"| F1
+    F2 -->|"presupuesto/pedido"| S["sales"]
+    F2 -->|"factura/notas"| D["commercial_documents"]
+```
+
+Logística conserva el maestro y decide disponibilidad operativa; Telemetría
+conserva dispositivos/observaciones; Inventario conserva stock; Compras conserva
+órdenes/recepciones; Ventas conserva presupuesto/pedido y Documentos conserva la
+factura. F1 posee planes, solicitudes, checklists y OT técnica. F2 posee
+recepción, autorización y entrega comercial. Ambos usan IDs opacos, contratos
+públicos y eventos, sin relaciones JPA o tablas cruzadas.
+
+F1 sólo puede comenzar después de estabilizar `logistics-api`; Telemetría y BPM
+son opcionales. F2 requiere F1, `sales` y `commercial_documents`. Producto aprobó
+FM-D01 a FM-D12 y AW-D01 a AW-D10 el 2026-08-12, pero no autorizó código: J11-S9-06
+continúa siendo el siguiente trabajo.
 
 ## Extensión aceptada para Sprint 2
 
@@ -98,6 +176,8 @@ smart-erp/
 │   ├── commercial-catalog/
 │   ├── inventory-api/
 │   ├── inventory/
+│   ├── purchasing-api/
+│   ├── purchasing/
 │   ├── reference-plugin/
 │   ├── reference-customization-a/
 │   └── reference-customization-b/
@@ -133,10 +213,12 @@ La estructura de módulos y sus POM quedó materializada en `J11-S1-02`. `J11-S1
 | `<plugin>-impl` | Dominio, casos de uso y adaptadores propios | su API, `plugin-api`, `kernel-api`; Jakarta solo en adaptadores |
 | `reference-data-api` | publicaciones, países y monedas públicos `1.1.0` | Java estándar y `CompanyId` |
 | `reference-data` | procedencia, políticas empresariales y consulta normativa | su API, `plugin-api`, `kernel-api`; Jakarta sólo en adaptadores CDI/JPA/UI |
-| `commercial-catalog-api` | referencias, conversión y cotización públicas `1.0.0` | Java estándar y `CompanyId` |
+| `commercial-catalog-api` | referencias, búsqueda por alcance, conversión y cotización públicas `1.1.0` | Java estándar y `CompanyId` |
 | `commercial-catalog` | descriptor y dominio privado de ítems/listas | su API, `plugin-api`, `kernel-api`; Jakarta solo en el descriptor CDI |
-| `inventory-api` | disponibilidad, movimientos y reservas públicas `1.0.0` | Java estándar y `CompanyId` |
+| `inventory-api` | disponibilidad, movimientos, reservas y directorio de almacenamiento públicos `1.1.0` | Java estándar y `CompanyId` |
 | `inventory` | dominio, aplicación, persistencia y handlers neutrales de depósitos, saldos, movimientos, reservas y conteos | su API, API pública de catálogo, `plugin-api`, `kernel-api`; Jakarta solo en adaptadores CDI/JTA/JPA/UI |
+| `purchasing-api` | identidades, consultas e importación controlada de documentos abiertos `1.1.0` | Java estándar y `CompanyId` |
+| `purchasing` | descriptor, dominio, V1–V2, aplicación JTA, directorios y handlers de solicitudes, órdenes, recepciones, devoluciones y seguimiento | su API y las APIs públicas de socios, catálogo, referencia e inventario; Jakarta sólo en infraestructura |
 | `logixone-plugin-set` | Selección física única por perfil; sin lógica | plugins seleccionados |
 | `migrator` | Descubrimiento y ejecución ordenada de migraciones | aplicación neutral del kernel, plugin set, Flyway y pgJDBC |
 | `logixone-war` | Composición física web; no lógica de negocio | kernel, shell y plugin set |
@@ -533,7 +615,13 @@ productivos, sin implicar que todos estén activos para cada empresa.
 [ADR-0036](../adr/0036-operaciones-proveedor-soporte-lanzamientos-conector.md)
 agrega tres plugins en perfiles de proveedor/cliente y
 [ADR-0037](../adr/0037-familia-cooperativa-ahorro-credito-paraguay.md) agrega una
-familia vertical de seis plugins. El catálogo futuro general contiene veintinueve
+familia vertical de seis plugins y
+[ADR-0040](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+agrega un técnico transversal opcional y
+[ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) agrega un funcional
+transversal opcional y
+[ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md) agrega la
+familia vertical Flota F1–F2. El catálogo futuro general contiene treinta y tres
 reutilizables, pero no existe una composición objetivo que los empaquete a todos.
 La secuencia ERP 1–19 conserva su numeración.
 
@@ -644,8 +732,10 @@ generación `MAX + 1`, el SQL concatenado, la baja física normal y la duplicaci
 RUC, cédula, dirección o canales entre columnas y colecciones.
 
 BP-D01 a BP-D10 fueron aceptadas sin cambios y ADR-0014 materializó la frontera en
-dos módulos. `business-partners-api` publica versión `1.0.0`, ID UUID, tipo, estado,
-roles, referencia mínima y `BusinessPartnerDirectory` por `CompanyId`. El módulo
+dos módulos. `business-partners-api` nació en versión `1.0.0` con ID UUID, tipo,
+estado, roles, referencia mínima y `BusinessPartnerDirectory` por `CompanyId`.
+J11-S9-05 eleva el contrato a `1.1.0` con búsqueda paginada y filtrable de
+referencias para el selector público de proveedores. El módulo
 `business-partners` conserva descriptor, agregado y detalles internos.
 
 El agregado permite cero roles o cliente/proveedor coexistentes, estado
@@ -712,8 +802,9 @@ la variante base limpia, idempotencia y conservación de datos. Las fuentes traz
 
 CC-D01 a CC-D10 y [ADR-0019](../adr/0019-modelo-catalogo-comercial-y-contratos-publicos.md)
 materializan `commercial_catalog` como otro plugin funcional, no como una carpeta
-de `business_partners`. `commercial-catalog-api@1.0.0` separa directorio,
-conversiones y cotizaciones por empresa. La implementación conserva un agregado
+de `business_partners`. `commercial-catalog-api` nació en `1.0.0` separando
+directorio, conversiones y cotizaciones por empresa; J11-S9-05 lo eleva a `1.1.0`
+para filtrar alcances comerciales en servidor antes del total y la página. La implementación conserva un agregado
 común de producto/servicio, identificadores, unidades, clasificación, perfil
 tributario interno, variante, reemplazo y versión; listas y entradas fijan moneda,
 modo tributario, vigencia y redondeo con `BigDecimal`.
@@ -820,6 +911,51 @@ WAR/migrador coinciden dentro de sus imágenes, dos migraciones sucesivas aplica
 cero cambios y recrear sólo `app` conserva los nueve conteos registrados. El
 baseline técnico queda congelado para J11-S8-08; esto no equivale al cierre formal
 del Sprint ni autoriza producción.
+
+### Dominio neutral de `purchasing`
+
+PU-D01 a PU-D10 y
+[ADR-0041](../adr/0041-modelo-purchasing-y-contratos-publicos.md) crean
+`purchasing-api@1.1.0` y `purchasing@1.1.0` como módulos separados. El descriptor
+declara dependencias `REQUIRED` 1.x de socios, catálogo, referencia e inventario;
+no importa sus implementaciones y todavía no forma parte del WAR o migrador.
+
+La solicitud puede existir sin proveedor, admite líneas de catálogo o libres y
+separa solicitante de aprobador. La orden exige snapshots de proveedor y moneda,
+permite asignación parcial y exige justificación para cantidades directas. Su
+cumplimiento conserva ordenado, recibido, devuelto, faltante cerrado y pendiente
+sin reescribir documentos confirmados. Recepción y devolución son agregados
+append-only; las líneas `STOCK` exigen ubicación y movimiento público de
+inventario, mientras servicio y no-stock no cambian existencias.
+
+`PurchasingImports` admite únicamente solicitudes u órdenes abiertas con
+procedencia verificable. Esto prepara un adaptador futuro de `legacy_migration`
+sin dependencia inversa ni SQL privado.
+
+J11-S9-03 y [ADR-0042](../adr/0042-persistencia-privada-purchasing.md) agregan
+`plg_purchasing` V1. Nueve tablas separan las cuatro cabeceras, sus líneas y la
+asignación solicitud→orden; todas las referencias externas son UUID/snapshots y
+las FKs permanecen dentro del esquema. Las cuatro raíces usan `@Version`. Triggers
+impiden mutar solicitudes finalizadas o recepciones/devoluciones confirmadas y
+exigen `StockMovementId` antes de confirmar una línea de stock.
+
+J11-S9-04 y [ADR-0043](../adr/0043-aplicacion-jta-idempotencia-purchasing.md)
+agregan dos tablas V2, doce permisos, servicios auditados, contratos CDI y una
+frontera JTA. Compras publica movimientos por `CatalogItemId` mediante
+`inventory-api@1.1.0`; Inventario resuelve su identidad privada. Unidad
+presentada/base, factor y trazabilidad quedan congelados con el documento.
+
+J11-S9-05 y [ADR-0044](../adr/0044-recorridos-visuales-purchasing.md) agregan cinco
+`ScreenDefinition`, handlers, menús, directorios paginados y fuentes gobernadas.
+El shell registra las rutas y conserva toda la presentación Jakarta Faces. Para
+los selectores, `business-partners-api@1.1.0` publica búsqueda de referencias e
+`inventory-api@1.1.0` publica almacenamiento autorizado; no aparecen accesos
+cruzados a tablas.
+
+El descriptor ya aporta la ubicación Flyway y los contratos visuales, pero el
+plugin continúa fuera del WAR y migrador. Las pruebas de J11-S9-02 a J11-S9-05
+están escritas y pendientes del gate acumulado autorizado; composición y demo
+candidata corresponden a J11-S9-06.
 
 ## Datos y transacciones
 
@@ -1072,6 +1208,7 @@ completa y búsqueda paginada; sus gates técnicos y la recongelación están ve
 | Transporte y materialización física del outbox | Primera historia con productor, consumidor y evento reales; contrato rector en ADR-0013 |
 | Plugin propietario, versión SIFEN, XSD y catálogos aplicables | Antes de implementar el primer documento comercial |
 | Propietario compartido de países y monedas normativos | Antes de implementar la remediación SEL-06 o un consumidor nuevo |
+| Motor, subconjunto BPMN, contrato de acciones y modelador | BPM-00/BPM-01, antes de implementar `business_process_management` |
 
 Estas decisiones no autorizan valores implícitos. Deben documentarse y probarse en la historia indicada.
 
@@ -1096,6 +1233,9 @@ Estas decisiones no autorizan valores implícitos. Deben documentarse y probarse
 - [ADR-0034 — Plugin de telemetría vehicular y seguimiento GPS](../adr/0034-plugin-telemetria-vehicular.md)
 - [ADR-0036 — Operaciones del proveedor, soporte y conector seguro](../adr/0036-operaciones-proveedor-soporte-lanzamientos-conector.md)
 - [ADR-0037 — Familia para cooperativas de ahorro y crédito](../adr/0037-familia-cooperativa-ahorro-credito-paraguay.md)
+- [ADR-0040 — Módulo técnico de migración de legados](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+- [ADR-0045 — Plugin de gestión de procesos de negocio BPM](../adr/0045-plugin-gestion-procesos-negocio-bpm.md)
+- [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
 - [ADR-0012 — Composición física única y migraciones de plugins](../adr/0012-composicion-unica-y-migraciones-de-plugins.md)
 - [ADR-0014 — Modelo de participante comercial y contrato público](../adr/0014-modelo-participante-comercial-y-contrato-publico.md)
 - [ADR-0015 — Persistencia privada de participantes comerciales](../adr/0015-persistencia-privada-business-partners.md)

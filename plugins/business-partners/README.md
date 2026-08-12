@@ -3,7 +3,7 @@
 - Artifact Maven: `business-partners`
 - Plugin ID: `business_partners`
 - Tipo: `FUNCTIONAL`
-- Versión inicial: `1.0.0`
+- Versión vigente: `1.1.0`
 - Compatibilidad Plugin API: `[0.4.0,0.5.0)`
 
 Este módulo fue creado por el generador versionado de Logixone. `J11-S6-02`
@@ -14,7 +14,9 @@ tipos/propósitos de dirección y tipos de canal, con ciclo versionado, revisió
 nombre e historial visible append-only. J11-S8-C03 conecta el país de
 identificación a `reference-data-api` y exige `reference_data` 1.x.
 
-- `business-partners-api` contiene el contrato público Java puro `1.0.0`.
+- `business-partners-api` contiene el contrato público Java puro `1.1.0`; desde
+  esta versión ofrece búsqueda paginada por texto, rol y estado para selectores
+  de plugins consumidores.
 - este JAR contiene descriptor, dominio, aplicación, puertos, JPA y handler visual;
 - declara dos capacidades, cuatro permisos, dos menús, pantallas `directory` y
   `definitions`, y dos slots por pantalla;
@@ -42,8 +44,8 @@ revisable de composición y requiere reconstrucción/redespliegue.
 - un primario activo por categoría/finalidad dentro del agregado;
 - inactivación sin baja física.
 
-El puerto público `BusinessPartnerDirectory` sólo devuelve
-`BusinessPartnerReference`; no expone hijos, documentos completos, datos
+El puerto público `BusinessPartnerDirectory` sólo devuelve páginas o resultados
+de `BusinessPartnerReference`; no expone hijos, documentos completos, datos
 financieros ni clases internas.
 
 ## Persistencia

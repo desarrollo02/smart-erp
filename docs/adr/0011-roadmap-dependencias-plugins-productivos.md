@@ -3,7 +3,10 @@
 - Estado: Aceptado; cantidad y orden ERP ampliados por ADR-0027, ADR-0030,
   ADR-0032, ADR-0033 y ADR-0034; alcance offline de POS ampliado por ADR-0035;
   familia separada de operaciones del proveedor agregada por ADR-0036 y familia
-  vertical cooperativa agregada por ADR-0037
+  vertical cooperativa agregada por ADR-0037; módulo técnico transversal de
+  migración planificado por ADR-0040; plugin funcional transversal BPM
+  planificado por ADR-0045; familia vertical de mantenimiento de flota y taller
+  automotriz planificada por ADR-0046
 - Fecha: 2026-07-28
 - Decisión de producto: construir doce plugins reutilizables y una personalización distinta por empresa
 - Inicio condicionado: reemplazado parcialmente por ADR-0012; los habilitadores
@@ -44,6 +47,31 @@
 > reutilizables. La familia es un perfil vertical separado que reutiliza
 > `business_partners`, `treasury` y `accounting`; no recibe órdenes 20–25, no
 > renumera ERP 1–19 y no autoriza implementación durante Sprint 8.
+
+> [ADR-0040](0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+> planifica `legacy_migration` como plugin técnico opcional, con Oracle Forms &
+> Reports como primer perfil. Eleva el catálogo global planificado a treinta
+> reutilizables, no recibe un orden ERP y no desplaza ningún plugin funcional.
+
+> [ADR-0045](0045-plugin-gestion-procesos-negocio-bpm.md) planifica
+> `business_process_management` como plugin funcional transversal, reutilizable y
+> opcional por empresa. Eleva el catálogo global planificado a treinta y un
+> reutilizables, no recibe orden ERP y no vuelve dependientes del motor BPM a los
+> dominios operativos.
+
+> [ADR-0046](0046-familia-mantenimiento-flota-taller-automotriz.md) planifica la
+> familia vertical Flota: F1 `fleet_maintenance` y F2 `automotive_workshop`.
+> Eleva el catálogo global planificado a treinta y tres reutilizables, no renumera
+> ERP 1–19 y separa la orden técnica de la recepción, autorización y venta del
+> servicio. F1 comienza después de estabilizar `logistics-api`; F2 requiere F1,
+> `sales` y `commercial_documents`.
+
+> Nota de ejecución del 2026-08-11: producto autorizó abrir Sprint 9 con
+> `purchasing`, cuarto plugin de este orden, aunque Sprint 8 conserve pendientes
+> formales. La aclaración posterior mantiene obligatorias las pruebas
+> automatizadas y difiere únicamente la validación independiente de otra persona;
+> no cambia el grafo, los criterios de aceptación, la Definition of Done ni
+> permite declarar cerrados o promover los Sprints abiertos.
 
 ## Contexto
 
@@ -190,6 +218,22 @@ instancia central del proveedor; el tercero es técnico, opcional y vive en la
 instalación cliente. No constituyen un CRM general, no cambian el orden 1–19 y no
 se implementan durante Sprint 8.
 
+ADR-0045 planifica también fuera de la secuencia ERP
+`business_process_management`. Coordina tareas, responsables, plazos, eventos y
+métricas mediante contratos públicos, pero no reemplaza las reglas ni la
+autorización de Compras, Ventas u otros dominios. Su implementación requiere una
+iteración propia después de resolver BPM-D01 a BPM-D12; no forma parte de
+J11-S9-06.
+
+ADR-0046 planifica también fuera de la secuencia ERP la familia vertical Flota.
+`fleet_maintenance` posee planes, solicitudes, defectos, checklists y órdenes
+técnicas sobre un `VehicleId` público; no posee vehículo, telemetría, stock,
+compras, empleado ni contabilidad. `automotive_workshop` agrega recepción,
+autorización y entrega comercial para vehículos de clientes, pero referencia la
+única OT técnica de F1 y conserva presupuestos, facturas, pagos y deuda en sus
+dominios propietarios. La familia usa orden interno F1–F2, no altera J11-S9-06 y
+no está implementada.
+
 ## Consecuencias
 
 ### Positivas
@@ -200,6 +244,10 @@ se implementan durante Sprint 8.
 - contabilidad no dirige reglas operativas;
 - la personalización se implementa sobre contratos ya estabilizados;
 - cada incremento puede terminar con demo visual y prueba aislada del plugin.
+- los procesos configurables pueden evolucionar por empresa sin trasladar reglas
+  de dominio al kernel ni bifurcar plugins funcionales.
+- mantenimiento técnico puede evolucionar sin contaminar Logística o Telemetría,
+  y la venta de taller queda separada del costo y la ejecución de la OT.
 
 ### Costes y riesgos
 
@@ -211,6 +259,11 @@ se implementan durante Sprint 8.
   empresas a contratar todo;
 - la personalización puede descubrir tarde que falta un punto de extensión; en ese
   caso se versiona el contrato propietario, no se accede a internos.
+- BPM agrega estado durable, temporizadores, seguridad y versionado que deben
+  acotarse a un subconjunto explícito antes de seleccionar un motor.
+- la familia Flota agrega dos esquemas y contratos; lecturas, consumos,
+  indisponibilidad y autorizaciones externas exigen idempotencia y seguridad
+  específicas.
 
 ## Alternativas descartadas
 
@@ -262,4 +315,7 @@ Cada épica o Sprint de plugin deberá:
 - [ADR-0034 - Plugin de telemetría vehicular y seguimiento GPS](0034-plugin-telemetria-vehicular.md)
 - [ADR-0036 - Operaciones del proveedor, soporte y conector seguro](0036-operaciones-proveedor-soporte-lanzamientos-conector.md)
 - [ADR-0037 — Familia para cooperativas de ahorro y crédito](0037-familia-cooperativa-ahorro-credito-paraguay.md)
+- [ADR-0040 — Módulo técnico de migración de legados](0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+- [ADR-0045 — Plugin de gestión de procesos de negocio BPM](0045-plugin-gestion-procesos-negocio-bpm.md)
+- [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](0046-familia-mantenimiento-flota-taller-automotriz.md)
 - [Épica del roadmap de plugins](../backlog/epica-roadmap-plugins-productivos.md)

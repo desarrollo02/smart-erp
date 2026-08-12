@@ -50,6 +50,17 @@ public class ShellScreenRegistry {
     private static final ScreenId INVENTORY_WAREHOUSES =
             new ScreenId(INVENTORY_PLUGIN, "warehouses");
     private static final ScreenId INVENTORY_COUNTS = new ScreenId(INVENTORY_PLUGIN, "counts");
+    private static final PluginId PURCHASING_PLUGIN = new PluginId("purchasing");
+    private static final ScreenId PURCHASING_REQUESTS =
+            new ScreenId(PURCHASING_PLUGIN, "requests");
+    private static final ScreenId PURCHASING_ORDERS =
+            new ScreenId(PURCHASING_PLUGIN, "orders");
+    private static final ScreenId PURCHASING_RECEIPTS =
+            new ScreenId(PURCHASING_PLUGIN, "receipts");
+    private static final ScreenId PURCHASING_RETURNS =
+            new ScreenId(PURCHASING_PLUGIN, "returns");
+    private static final ScreenId PURCHASING_TRACKING =
+            new ScreenId(PURCHASING_PLUGIN, "tracking");
     private static final ScreenRegionId MAIN_REGION = new ScreenRegionId("main");
     private static final ScreenRegionId ACTIONS_REGION = new ScreenRegionId("actions");
     private static final ScreenSlotId EXTENSIONS_SLOT = new ScreenSlotId("dashboard_extensions");
@@ -73,7 +84,12 @@ public class ShellScreenRegistry {
                     COMMERCIAL_CATALOG_TAX_PROFILES),
             Map.entry(new RouteKey(INVENTORY_PLUGIN, "/inventory"), INVENTORY_STOCK),
             Map.entry(new RouteKey(INVENTORY_PLUGIN, "/inventory/warehouses"), INVENTORY_WAREHOUSES),
-            Map.entry(new RouteKey(INVENTORY_PLUGIN, "/inventory/counts"), INVENTORY_COUNTS));
+            Map.entry(new RouteKey(INVENTORY_PLUGIN, "/inventory/counts"), INVENTORY_COUNTS),
+            Map.entry(new RouteKey(PURCHASING_PLUGIN, "/purchasing/requests"), PURCHASING_REQUESTS),
+            Map.entry(new RouteKey(PURCHASING_PLUGIN, "/purchasing/orders"), PURCHASING_ORDERS),
+            Map.entry(new RouteKey(PURCHASING_PLUGIN, "/purchasing/receipts"), PURCHASING_RECEIPTS),
+            Map.entry(new RouteKey(PURCHASING_PLUGIN, "/purchasing/returns"), PURCHASING_RETURNS),
+            Map.entry(new RouteKey(PURCHASING_PLUGIN, "/purchasing/tracking"), PURCHASING_TRACKING));
 
     private static final Map<ScreenFragmentId, FragmentPresentation> FRAGMENTS = Map.of(
             new ScreenFragmentId(new PluginId("reference_custom_a"), "tax_notice"),
@@ -133,6 +149,21 @@ public class ShellScreenRegistry {
         }
         if (INVENTORY_COUNTS.equals(screen.id())) {
             return renderEntity(screen, textCatalog, inventoryCountsSpec());
+        }
+        if (PURCHASING_REQUESTS.equals(screen.id())) {
+            return renderEntity(screen, textCatalog, purchasingRequestsSpec());
+        }
+        if (PURCHASING_ORDERS.equals(screen.id())) {
+            return renderEntity(screen, textCatalog, purchasingOrdersSpec());
+        }
+        if (PURCHASING_RECEIPTS.equals(screen.id())) {
+            return renderEntity(screen, textCatalog, purchasingReceiptsSpec());
+        }
+        if (PURCHASING_RETURNS.equals(screen.id())) {
+            return renderEntity(screen, textCatalog, purchasingReturnsSpec());
+        }
+        if (PURCHASING_TRACKING.equals(screen.id())) {
+            return renderEntity(screen, textCatalog, purchasingTrackingSpec());
         }
         return Optional.empty();
     }
@@ -431,6 +462,39 @@ public class ShellScreenRegistry {
                     sectionSpec("create", "create_actions", "create", "Preparar conteo",
                             "Define un depósito completo o limita el alcance a una ubicación."));
         }
+        if (PURCHASING_REQUESTS.equals(screenId)) {
+            return List.of(
+                    sectionSpec("search", "search_actions", "search", "Buscar solicitudes",
+                            "Filtra por número, descripción o estado dentro de la empresa activa."),
+                    sectionSpec("create", "create_actions", "create", "Preparar solicitud",
+                            "Registra el documento con su primera línea de producto o servicio."));
+        }
+        if (PURCHASING_ORDERS.equals(screenId)) {
+            return List.of(
+                    sectionSpec("search", "search_actions", "search", "Buscar órdenes",
+                            "Filtra por número, proveedor o estado dentro de la empresa activa."),
+                    sectionSpec("create", "create_actions", "create", "Preparar orden",
+                            "Define proveedor, moneda y la primera línea, con asignación opcional a solicitud."));
+        }
+        if (PURCHASING_RECEIPTS.equals(screenId)) {
+            return List.of(
+                    sectionSpec("search", "search_actions", "search", "Buscar recepciones",
+                            "Filtra por número, orden o estado del comprobante interno."),
+                    sectionSpec("create", "create_actions", "create", "Preparar recepción",
+                            "Registra una línea recibida; los productos de stock requieren ubicación."));
+        }
+        if (PURCHASING_RETURNS.equals(screenId)) {
+            return List.of(
+                    sectionSpec("search", "search_actions", "search", "Buscar devoluciones",
+                            "Filtra por número, orden, causa o estado."),
+                    sectionSpec("create", "create_actions", "create", "Preparar devolución",
+                            "Relaciona la cantidad con una línea de recepción confirmada."));
+        }
+        if (PURCHASING_TRACKING.equals(screenId)) {
+            return List.of(sectionSpec(
+                    "search", "search_actions", "search", "Seguir cumplimiento",
+                    "Consulta cantidades pedidas, recibidas, devueltas y pendientes por orden."));
+        }
         throw new IllegalArgumentException("Unsupported entity screen");
     }
 
@@ -570,6 +634,35 @@ public class ShellScreenRegistry {
                             "Registra la cantidad observada para cada línea iniciada."),
                     sectionSpec("lifecycle", "lifecycle_actions", "lifecycle", "Flujo controlado",
                             "Inicia, revisa, contabiliza o cancela respetando estado, permiso y versión."));
+        }
+        if (PURCHASING_REQUESTS.equals(screenId)) {
+            return List.of(
+                    sectionSpec("lines", "lines_actions", "lines", "Líneas solicitadas",
+                            "Agrega productos o servicios mientras el documento esté en borrador."),
+                    sectionSpec("lifecycle", "lifecycle_actions", "lifecycle", "Aprobación",
+                            "Envía, aprueba, rechaza o cancela con permiso y versión vigentes."),
+                    sectionSpec("clone", "clone_actions", "clone", "Clonar solicitud",
+                            "Crea un borrador nuevo conservando las líneas del documento seleccionado."));
+        }
+        if (PURCHASING_ORDERS.equals(screenId)) {
+            return List.of(
+                    sectionSpec("lines", "lines_actions", "lines", "Líneas ordenadas",
+                            "Agrega líneas directas mientras la orden esté en borrador."),
+                    sectionSpec("lifecycle", "lifecycle_actions", "lifecycle", "Ciclo de la orden",
+                            "Emite, cancela o cierra faltantes con control de versión."));
+        }
+        if (PURCHASING_RECEIPTS.equals(screenId)) {
+            return List.of(sectionSpec(
+                    "lifecycle", "lifecycle_actions", "lifecycle", "Confirmación",
+                    "La confirmación afecta el cumplimiento y, para productos, publica el movimiento de inventario."));
+        }
+        if (PURCHASING_RETURNS.equals(screenId)) {
+            return List.of(sectionSpec(
+                    "lifecycle", "lifecycle_actions", "lifecycle", "Confirmación",
+                    "La confirmación reduce lo recibido y, para productos, publica la salida de inventario."));
+        }
+        if (PURCHASING_TRACKING.equals(screenId)) {
+            return List.of();
         }
         throw new IllegalArgumentException("Unsupported entity screen");
     }
@@ -834,6 +927,85 @@ public class ShellScreenRegistry {
                         new DetailTabSpec("lines", "Líneas"),
                         new DetailTabSpec("capture", "Captura"),
                         new DetailTabSpec("lifecycle", "Flujo")));
+    }
+
+    private static EntityScreenSpec purchasingRequestsSpec() {
+        return new EntityScreenSpec(
+                "Solicitudes de compra",
+                "Prepara necesidades internas y controla su aprobación antes de ordenar.",
+                purchasingPresentation(
+                        "Nueva solicitud", "Registra la necesidad y su primera línea.",
+                        "Nueva solicitud", "Volver a solicitudes",
+                        "Consulta las líneas y ejecuta únicamente la transición autorizada."),
+                Set.of("search", "create", "lines", "lifecycle", "clone"),
+                Set.of("search_actions", "create_actions", "lines_actions",
+                        "lifecycle_actions", "clone_actions"),
+                List.of(new DetailTabSpec("lines", "Líneas"),
+                        new DetailTabSpec("lifecycle", "Aprobación"),
+                        new DetailTabSpec("clone", "Clonar")));
+    }
+
+    private static EntityScreenSpec purchasingOrdersSpec() {
+        return new EntityScreenSpec(
+                "Órdenes de compra",
+                "Formaliza compromisos con proveedores y controla su cumplimiento.",
+                purchasingPresentation(
+                        "Nueva orden", "Define proveedor, moneda y su primera línea.",
+                        "Nueva orden", "Volver a órdenes",
+                        "Consulta importes, cantidades y estado antes de operar."),
+                Set.of("search", "create", "lines", "lifecycle"),
+                Set.of("search_actions", "create_actions", "lines_actions", "lifecycle_actions"),
+                List.of(new DetailTabSpec("lines", "Líneas"),
+                        new DetailTabSpec("lifecycle", "Estado")));
+    }
+
+    private static EntityScreenSpec purchasingReceiptsSpec() {
+        return new EntityScreenSpec(
+                "Recepciones de compra",
+                "Registra y confirma cantidades entregadas por el proveedor.",
+                purchasingPresentation(
+                        "Nueva recepción", "Selecciona una orden emitida y la cantidad recibida.",
+                        "Nueva recepción", "Volver a recepciones",
+                        "Consulta la trazabilidad antes de confirmar el documento."),
+                Set.of("search", "create", "lifecycle"),
+                Set.of("search_actions", "create_actions", "lifecycle_actions"),
+                List.of(new DetailTabSpec("lifecycle", "Confirmar")));
+    }
+
+    private static EntityScreenSpec purchasingReturnsSpec() {
+        return new EntityScreenSpec(
+                "Devoluciones a proveedores",
+                "Prepara y confirma cantidades devueltas desde una recepción comprobable.",
+                purchasingPresentation(
+                        "Nueva devolución", "Selecciona recepción, línea, cantidad y causa.",
+                        "Nueva devolución", "Volver a devoluciones",
+                        "Consulta el origen antes de confirmar el documento."),
+                Set.of("search", "create", "lifecycle"),
+                Set.of("search_actions", "create_actions", "lifecycle_actions"),
+                List.of(new DetailTabSpec("lifecycle", "Confirmar")));
+    }
+
+    private static EntityScreenSpec purchasingTrackingSpec() {
+        return new EntityScreenSpec(
+                "Seguimiento de compras",
+                "Consulta el avance de cada orden sin modificar documentos.",
+                purchasingPresentation(
+                        "Seguimiento", "Usa los filtros para localizar una orden.",
+                        "Buscar", "Volver al seguimiento",
+                        "Compara cantidades pedidas, recibidas, devueltas y pendientes."),
+                Set.of("search"), Set.of("search_actions"), List.of());
+    }
+
+    private static ShellEntityPresentation purchasingPresentation(
+            String formTitle,
+            String formDescription,
+            String formAction,
+            String backAction,
+            String detailDescription) {
+        return new ShellEntityPresentation(
+                "Compras", formTitle, formDescription, formAction, backAction,
+                detailDescription,
+                "Documento y cantidades vigentes dentro de la empresa activa.");
     }
 
     private static Variant variant(List<ShellScreenFragmentView> fragments) {

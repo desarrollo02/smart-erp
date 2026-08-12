@@ -2,13 +2,14 @@
 
 Contrato empresarial público y Java puro de `commercial_catalog`.
 
-- Versión: `1.0.0`.
+- Versión: `1.1.0`.
 - Dependencia permitida: `kernel-api` sólo para `CompanyId`.
 - Prohibido: Jakarta, JPA, JDBC, Hibernate, JSF e internos del plugin.
 
 ## Contratos por propósito
 
-- referencia y búsqueda: `CatalogItemDirectory`;
+- referencia y búsqueda: `CatalogItemDirectory`; desde 1.1 la búsqueda filtra
+  también alcances `PURCHASE`/`SALE` antes de paginar;
 - conversión: `CatalogUnitConversions`;
 - cotización explícita: `CatalogPricing`;
 - identidades opacas: `CatalogItemId`, `PriceListId` y `PriceEntryId`;

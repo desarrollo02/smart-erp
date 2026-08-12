@@ -1,7 +1,7 @@
 # Manual de usuario de Smart ERP
 
-- Edición: 0.1-rc28
-- Fecha: 2026-08-05
+- Edición: 0.1-rc33
+- Fecha: 2026-08-12
 - Baseline: J11-S8-C07 implementa publicaciones completas, búsqueda paginada y unidad menor opcional para datos de referencia; J11-S8-C06 mantiene la habilitación empresarial versionada; J11-S8-C02 mantiene familias de variantes y definiciones de socios,
   ciclo activo/inactivo de definiciones simples/perfiles/tipos de canal/familias y revisión explícita
   e historial visible tributarios, revisión/historial visible y reemplazo seguro de definiciones simples,
@@ -13,6 +13,28 @@
 - Estado: manual inicial; producto no autorizado aún para producción
 - Audiencia: operadores, responsables de maestros comerciales y administradores
   autorizados
+
+> **Compras está implementada pero todavía no está compuesta.** J11-S9-05 define
+> sus cinco pantallas, menús, ayuda y manual PDF. La distribución oficial no la
+> hará navegable hasta J11-S9-06. Las pruebas automatizadas de módulo,
+> PostgreSQL, arquitectura y regresión están verdes; Playwright y los gates
+> runtime se ejecutarán al componerla. La validación independiente sigue
+> pendiente; no use estas rutas como si fueran una versión comercializable.
+
+## Manuales independientes por módulo
+
+La edición ampliada y diagramada de cada módulo se encuentra en
+[`docs/user-guide/modules/README.md`](modules/README.md). Allí se entregan siete
+manuales separados en fuente mantenible, ayuda web y PDF: Administración segura,
+Catálogo comercial, Datos de referencia, Inventario, Panel de demostración y
+Socios comerciales, y Compras.
+
+Como documento introductorio previo a esos manuales, la
+[Guía 00 - Plugins y orden de construcción](../output/pdf/00-roadmap-plugins-y-orden-construccion.pdf)
+resume los 33 plugins reutilizables, la secuencia ERP R0/1-19, las familias
+cooperativa C1-C6 y Flota F1-F2, las operaciones del proveedor, Migración, BPM y
+la personalización final de cada empresa. F1 `fleet_maintenance` y F2
+`automotive_workshop` están planificados; todavía no son pantallas utilizables.
 
 ## 1. Qué permite hacer esta edición
 
@@ -29,11 +51,14 @@ Smart ERP es un ERP modular. La candidata actual permite:
   limitaciones descritas en este manual;
 - administrar depósitos y ubicaciones, inscribir productos, consultar existencias,
   contabilizar movimientos, gestionar reservas y ejecutar conteos físicos;
+- preparar solicitudes y órdenes, registrar recepciones/devoluciones y consultar
+  cumplimiento mediante las pantallas definidas de Compras, todavía fuera de la
+  composición y pendientes de pruebas;
 - activar plugins y administrar permisos desde pantallas restringidas;
 - conservar separados los datos y accesos de cada empresa.
 
 La candidata desplegable permite demostrar inventario con datos ficticios, pero
-todavía no permite compras, ventas, logística, costos, valoración, facturas, notas
+todavía no compone Compras ni permite ventas, logística, costos, valoración, facturas, notas
 de crédito, remisiones, SIFEN, tesorería ni contabilidad. No registre datos reales
 con fines fiscales o productivos en el ambiente de demostración.
 

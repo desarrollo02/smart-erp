@@ -47,12 +47,15 @@ class CatalogReferenceAndSearchTest {
     @Test
     void searchCriteriaAndPageAreBoundedAndImmutable() {
         CatalogSearchCriteria criteria = new CatalogSearchCriteria(
-                " demo ", Set.of(), Set.of(CatalogItemState.ACTIVE), 0, 25);
+                " demo ", Set.of(), Set.of(CatalogItemState.ACTIVE),
+                Set.of(CatalogItemScope.PURCHASE), 0, 25);
         ArrayList<CatalogItemReference> mutable = new ArrayList<>();
         CatalogSearchPage page = new CatalogSearchPage(mutable, 0, 0, 25);
         mutable.add(null);
 
         assertEquals("demo", criteria.query());
+        assertEquals(Set.of(CatalogItemScope.PURCHASE), criteria.scopes());
+        assertEquals("1.1.0", CatalogContractVersion.CURRENT);
         assertEquals(List.of(), page.items());
         assertThrows(
                 IllegalArgumentException.class,

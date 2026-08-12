@@ -1,10 +1,10 @@
 # Contrato del plugin `inventory`
 
-- Plugin: `inventory@1.0.0`
-- Contrato público: `inventory-api@1.0.0`
+- Plugin: `inventory@1.1.0`
+- Contrato público: `inventory-api@1.1.0`
 - Plugin API compatible: `[0.4.0,0.5.0)`
 - Dependencia requerida: `commercial_catalog@[1.0.0,2.0.0)`
-- Estado: dominio, persistencia, aplicación e interfaz neutral verdes; composición pendiente
+- Estado: baseline `1.0.0` validado; ampliación `1.1.0` para Compras implementada pendiente de pruebas; composición pendiente
 
 ## Propiedad
 
@@ -19,6 +19,8 @@ valoración o contabilidad.
 |---|---|
 | `InventoryAvailability` | consultar físico, reservado y disponible de una clave exacta |
 | `InventoryMovements` | contabilizar un movimiento idempotente con fuente y motivo |
+| `InventoryPurchaseMovements` | publicar una entrada/salida de Compras por identidad pública de catálogo |
+| `CatalogStockMovementRequest` | publicar una entrada/salida por identidad pública de catálogo sin revelar el ítem local |
 | `InventoryReservations` | reservar, consumir, liberar o expirar una cantidad con versión esperada |
 | `StockKey` | ítem local, depósito, ubicación, trazabilidad y condición |
 | `MovementQuantity` | snapshot reproducible de unidad, factor y versión de catálogo |
@@ -45,7 +47,7 @@ exista un consumidor real y se versionará conforme a ADR-0013.
 El módulo puede importar `commercial-catalog-api`, pero nunca paquetes de dominio,
 aplicación o infraestructura del catálogo. No existen relaciones JPA o SQL entre
 plugins. El descriptor publica tres capacidades (`availability`, `movements` y
-`reservations`), siete permisos, tres menús, tres pantallas y las migraciones V1–V2
+`reservations`), ocho permisos, tres menús, tres pantallas y las migraciones V1–V2
 de `plg_inventory`; no publica overlays. Diez tablas privadas, diez entidades y
 siete repositorios preservan empresa, snapshots, idempotencia y concurrencia sin
 depender de tablas o entidades JPA de catálogo.
@@ -67,3 +69,9 @@ permiso exacto; no aceptan sustituir `CompanyId`. La fachada de aplicación deli
 las mutaciones con JTA y marca rollback si un resultado funcional es fallido. Las
 operaciones de reserva conservan un recibo inmutable por clave idempotente y los
 movimientos físicos permanecen append-only.
+
+El permiso `inventory.movements.purchase.post` está reservado a movimientos de
+recepción/devolución originados en Compras y no habilita movimientos manuales.
+El contrato admite el factor histórico congelado por Compras cuando su aritmética
+es exacta y la unidad base coincide con la inscripción vigente; no acepta mezclar
+unidades base distintas en el mismo saldo.

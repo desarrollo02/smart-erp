@@ -56,6 +56,8 @@
         <module>plugins/inventory</module>
         <module>plugins/business-partners-api</module>
         <module>plugins/business-partners</module>
+        <module>plugins/purchasing-api</module>
+        <module>plugins/purchasing</module>
         <module>kernel-domain</module>
         <module>kernel-application</module>
         <module>kernel-infrastructure-jakarta</module>
@@ -193,6 +195,16 @@
             <dependency>
                 <groupId>py.com.logixone</groupId>
                 <artifactId>business-partners</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>py.com.logixone</groupId>
+                <artifactId>purchasing-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>py.com.logixone</groupId>
+                <artifactId>purchasing</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

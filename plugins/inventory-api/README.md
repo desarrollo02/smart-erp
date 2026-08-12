@@ -1,6 +1,6 @@
 # Inventory API
 
-Contrato público Java puro `1.0.0` del plugin `inventory`.
+Contrato público Java puro `1.1.0` del plugin `inventory`.
 
 Publica identidades opacas, disponibilidad por clave exacta, snapshot de
 conversión, movimientos y reservas. Solo depende de `kernel-api` para `CompanyId`;
@@ -10,3 +10,13 @@ plugin o de `commercial_catalog`.
 Las cantidades admiten hasta 6 decimales y los factores de conversión hasta 12.
 Cada consumidor debe pasar una empresa obtenida de un contexto confiable; el
 contrato no concede autorización por sí mismo.
+
+Desde 1.1, `CatalogStockMovementRequest` permite que Compras publique una entrada
+o salida usando la identidad pública de catálogo. Inventario resuelve su identidad
+local internamente y exige el permiso acotado
+`inventory.movements.purchase.post`.
+
+La misma versión publica `InventoryStorageDirectory`, `WarehouseReference` y
+`StockLocationReference` para que un selector autorizado busque o recupere un
+depósito exacto con sus ubicaciones. Este contrato no concede acceso a tablas ni
+omite la revalidación de empresa y `inventory.view`.

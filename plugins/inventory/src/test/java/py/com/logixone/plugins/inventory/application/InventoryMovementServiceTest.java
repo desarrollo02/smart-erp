@@ -29,6 +29,7 @@ import py.com.logixone.plugins.commercialcatalog.api.CatalogItemState;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogItemType;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogUnitConversionResult;
 import py.com.logixone.plugins.inventory.api.ExpiryPolicy;
+import py.com.logixone.plugins.inventory.api.CatalogStockMovementRequest;
 import py.com.logixone.plugins.inventory.api.InventoryItemId;
 import py.com.logixone.plugins.inventory.api.MovementQuantity;
 import py.com.logixone.plugins.inventory.api.StockCondition;
@@ -119,6 +120,25 @@ class InventoryMovementServiceTest {
         assertEquals(0, new BigDecimal("5").compareTo(
                 balances.find(COMPANY, key()).orElseThrow().physicalQuantity()));
         assertEquals("UNCHANGED", audit.getLast().outcome().name());
+    }
+
+    @Test
+    void resolvesCatalogIdentityInsideInventoryForPurchaseMovement() {
+        CatalogStockMovementRequest request = new CatalogStockMovementRequest(
+                StockMovementType.RECEIPT, "PURCHASE_RECEIPT",
+                new StockSourceReference("PURCHASING_RECEIPT", "receipt-1"),
+                "receipt-line-1", CATALOG_ITEM.value(), WAREHOUSE, LOCATION,
+                Optional.empty(), Optional.empty(), Optional.empty(),
+                StockCondition.AVAILABLE,
+                new MovementQuantity("EA", new BigDecimal("3"), "EA",
+                        BigDecimal.ONE, new BigDecimal("3"), 2));
+
+        var result = service.postCatalog(
+                context(InventoryPermissions.PURCHASE_MOVEMENTS_POST), request);
+
+        assertTrue(result.successful());
+        assertEquals(ITEM, result.value().orElseThrow().lines().getFirst()
+                .key().inventoryItemId());
     }
 
     @Test

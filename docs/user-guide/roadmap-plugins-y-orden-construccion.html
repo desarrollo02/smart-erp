@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="Smart ERP">
+  <meta name="description" content="Catálogo completo y orden de construcción de plugins de Smart ERP">
+  <title>Smart ERP - Plugins y orden de construcción</title>
+  <style>
+    :root {
+      --ink: #162033;
+      --muted: #566177;
+      --primary: #1f4f8f;
+      --primary-soft: #e8f0ff;
+      --secondary: #0f6b61;
+      --secondary-soft: #e3f5f1;
+      --warning: #9a4d00;
+      --warning-soft: #fff0df;
+      --planned: #695485;
+      --planned-soft: #f0eafb;
+      --line: #c7d0df;
+      --surface: #f7f9fc;
+      --white: #ffffff;
+    }
+    * { box-sizing: border-box; }
+    html { font-family: "Segoe UI", Arial, sans-serif; color: var(--ink); background: var(--white); }
+    body { margin: 0; font-size: 9.3pt; line-height: 1.38; }
+    article { width: 100%; }
+    .page { min-height: 258mm; position: relative; padding: 2mm 1mm 12mm; break-after: page; }
+    .page:last-child { break-after: auto; }
+    .cover { min-height: 258mm; display: flex; flex-direction: column; justify-content: center; padding: 12mm 9mm 18mm; }
+    .eyebrow { color: var(--primary); font-size: 10pt; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    h1 { color: #123866; font-size: 33pt; line-height: 1.04; margin: 8mm 0 5mm; max-width: 165mm; }
+    .subtitle { font-size: 15pt; line-height: 1.35; color: #324158; max-width: 160mm; }
+    .cover-rule { width: 52mm; height: 4mm; margin: 8mm 0; border-radius: 5mm; background: linear-gradient(90deg, var(--primary), var(--secondary)); }
+    .cover-meta { margin-top: 16mm; display: grid; grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+    .meta-card { padding: 5mm; border-radius: 4mm; background: var(--primary-soft); border: 1px solid #b7c9e8; }
+    .meta-card strong { display: block; color: var(--primary); font-size: 17pt; line-height: 1.1; }
+    .meta-card span { color: var(--muted); font-size: 8.5pt; }
+    h2 { margin: 0 0 5mm; padding-bottom: 2.5mm; color: #123866; font-size: 21pt; line-height: 1.15; border-bottom: 2px solid #9fb5d7; }
+    h3 { margin: 5mm 0 2.5mm; color: var(--primary); font-size: 13.5pt; }
+    p { margin: 0 0 3mm; }
+    ul, ol { margin: 2mm 0 3mm 5mm; padding-left: 5mm; }
+    li { margin: 1.2mm 0; }
+    code { font-family: Consolas, "Courier New", monospace; font-size: .92em; background: #edf1f7; padding: .2mm 1mm; border-radius: 1mm; }
+    .lead { font-size: 11pt; color: #344158; }
+    .callout { margin: 4mm 0; padding: 4mm 5mm; border-left: 4px solid var(--primary); border-radius: 0 3mm 3mm 0; background: var(--primary-soft); }
+    .callout.warning { border-left-color: var(--warning); background: var(--warning-soft); }
+    .callout.success { border-left-color: var(--secondary); background: var(--secondary-soft); }
+    .metric-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2.5mm; margin: 4mm 0 5mm; }
+    .metric { min-height: 23mm; padding: 3.5mm; border: 1px solid var(--line); border-radius: 3mm; background: var(--surface); }
+    .metric strong { display: block; color: var(--primary); font-size: 18pt; line-height: 1; }
+    .metric span { display: block; margin-top: 1.5mm; color: var(--muted); font-size: 8.2pt; }
+    .tracks { display: grid; gap: 3mm; margin-top: 4mm; }
+    .track { display: grid; grid-template-columns: 31mm 1fr; gap: 3mm; align-items: stretch; }
+    .track-label { display: flex; align-items: center; justify-content: center; padding: 3mm; border-radius: 3mm; color: var(--white); background: var(--primary); font-weight: 750; text-align: center; }
+    .track-flow { display: flex; flex-wrap: wrap; gap: 2mm; align-items: center; padding: 3mm; border: 1px solid var(--line); border-radius: 3mm; background: var(--surface); }
+    .node { padding: 2mm 2.5mm; border-radius: 2mm; background: var(--white); border: 1px solid #9eb0cb; font-size: 8pt; font-weight: 650; }
+    .arrow { color: var(--primary); font-weight: 800; }
+    .track.provider .track-label { background: #6a4b87; }
+    .track.coop .track-label { background: #8b5e12; }
+    .track.fleet .track-label { background: #315f78; }
+    .track.transverse .track-label { background: var(--secondary); }
+    table { width: 100%; border-collapse: collapse; margin: 3mm 0 5mm; font-size: 7.8pt; }
+    thead { display: table-header-group; }
+    th { padding: 2.4mm; color: var(--white); background: var(--primary); border: 1px solid #173e73; text-align: left; }
+    td { padding: 2.1mm 2.4mm; vertical-align: top; border: 1px solid var(--line); }
+    tbody tr:nth-child(even) { background: #f5f7fb; }
+    tr { break-inside: avoid; }
+    .order { width: 12mm; text-align: center; font-weight: 800; color: var(--primary); }
+    .plugin { width: 43mm; font-family: Consolas, "Courier New", monospace; font-size: 7.5pt; font-weight: 700; overflow-wrap: anywhere; }
+    .phase { width: 27mm; color: var(--muted); }
+    .dependency { width: 48mm; color: #3e4c61; }
+    .badge { display: inline-block; padding: .7mm 2mm; border-radius: 5mm; font-size: 7.2pt; font-weight: 750; white-space: nowrap; }
+    .done { color: #0d5548; background: #d9f0e8; }
+    .partial { color: #824000; background: #ffead3; }
+    .planned { color: #593e78; background: var(--planned-soft); }
+    .family-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+    .family-card { border: 1px solid var(--line); border-radius: 4mm; overflow: hidden; break-inside: avoid; }
+    .family-card h3 { margin: 0; padding: 3mm 4mm; color: var(--white); background: #6a4b87; }
+    .family-card.coop h3 { background: #8b5e12; }
+    .family-card .body { padding: 3mm 4mm 4mm; }
+    .mini-list { display: grid; gap: 2mm; }
+    .mini-item { padding: 2.5mm; border: 1px solid var(--line); border-radius: 2mm; background: var(--surface); }
+    .mini-item strong { color: var(--primary); }
+    .sequence-card { margin: 4mm 0; border: 1px solid var(--line); border-radius: 4mm; overflow: hidden; break-inside: avoid; }
+    .sequence-title { display: flex; justify-content: space-between; align-items: center; gap: 4mm; padding: 3mm 4mm; color: var(--white); background: var(--secondary); }
+    .sequence-title h3 { margin: 0; color: var(--white); }
+    .sequence-body { padding: 4mm; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5mm; margin-top: 3mm; }
+    .step { padding: 3mm; border-radius: 3mm; background: var(--secondary-soft); border: 1px solid #98c7bf; }
+    .step b { display: block; color: var(--secondary); }
+    .status-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 5mm; }
+    .status-box { padding: 4mm; border: 1px solid var(--line); border-radius: 4mm; background: var(--surface); }
+    .timeline { margin-top: 3mm; display: grid; gap: 2mm; }
+    .timeline-item { display: grid; grid-template-columns: 28mm 1fr; gap: 3mm; padding: 2.5mm; border-left: 4px solid var(--line); background: var(--white); }
+    .timeline-item.current { border-left-color: var(--warning); background: var(--warning-soft); }
+    .timeline-item.future { border-left-color: var(--planned); background: var(--planned-soft); }
+    .timeline-item strong { color: var(--primary); }
+    .source-list { columns: 2; column-gap: 8mm; }
+    .source-list li { break-inside: avoid; }
+    .footer { position: fixed; left: 13mm; right: 13mm; bottom: 5mm; padding-top: 2mm; border-top: 1px solid #c6cfdd; color: #677084; font-size: 7.2pt; text-align: center; }
+    .footer .page-number::after { content: counter(page); }
+    @page { size: A4; margin: 12mm 13mm 14mm; }
+    @media print {
+      h2, h3 { break-after: avoid; }
+      .callout, .metric, .track, .family-card, .status-box { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+<article>
+  <section class="page cover">
+    <div class="eyebrow">Smart ERP | Guía 00</div>
+    <h1>Plugins y orden de construcción</h1>
+    <div class="cover-rule"></div>
+    <p class="subtitle">Catálogo completo de capacidades reutilizables, secuencia ERP, familias paralelas y plugins transversales.</p>
+    <div class="cover-meta">
+      <div class="meta-card"><strong>33</strong><span>plugins reutilizables planificados</span></div>
+      <div class="meta-card"><strong>1-19</strong><span>secuencia principal de construcción ERP</span></div>
+      <div class="meta-card"><strong>2026-08-12</strong><span>fecha del baseline documentado</span></div>
+    </div>
+    <div class="callout" style="margin-top: 12mm;">
+      <strong>Propósito.</strong> Mostrar qué se construye, en qué orden y para qué sirve cada plugin. Esta guía no convierte capacidades planificadas en implementadas ni modifica las prioridades aprobadas.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>1. Cómo leer el orden</h2>
+    <p class="lead">Smart ERP no tiene una sola fila de 33 posiciones. El catálogo se divide en una secuencia ERP principal, tres familias con perfiles propios y dos capacidades transversales.</p>
+    <div class="metric-row">
+      <div class="metric"><strong>20</strong><span>fundación R0 más 19 plugins ERP</span></div>
+      <div class="metric"><strong>3</strong><span>operaciones del proveedor</span></div>
+      <div class="metric"><strong>6</strong><span>familia cooperativa C1-C6</span></div>
+      <div class="metric"><strong>2</strong><span>transversales: migración y BPM</span></div>
+      <div class="metric"><strong>2</strong><span>familia Flota F1-F2</span></div>
+    </div>
+    <div class="tracks">
+      <div class="track">
+        <div class="track-label">Ruta ERP</div>
+        <div class="track-flow"><span class="node">R0 Datos</span><span class="arrow">&rarr;</span><span class="node">1 Socios</span><span class="arrow">&rarr;</span><span class="node">2 Catálogo</span><span class="arrow">&rarr;</span><span class="node">3 Inventario</span><span class="arrow">&rarr;</span><span class="node">4 Compras</span><span class="arrow">&rarr;</span><span class="node">5-19 Resto ERP</span><span class="arrow">&rarr;</span><span class="node">Personalización</span></div>
+      </div>
+      <div class="track provider">
+        <div class="track-label">Proveedor</div>
+        <div class="track-flow"><span class="node">Gestión de releases</span><span class="node">Soporte al cliente</span><span class="arrow">&rarr;</span><span class="node">Conector seguro opcional</span></div>
+      </div>
+      <div class="track coop">
+        <div class="track-label">Cooperativa</div>
+        <div class="track-flow"><span class="node">C1 Membresía</span><span class="arrow">&rarr;</span><span class="node">C2 Gobierno</span><span class="arrow">&rarr;</span><span class="node">C3 LA/FT</span><span class="arrow">&rarr;</span><span class="node">C4 Ahorros</span><span class="arrow">&rarr;</span><span class="node">C5 Crédito</span><span class="arrow">&rarr;</span><span class="node">C6 Regulación PY</span></div>
+      </div>
+      <div class="track transverse">
+        <div class="track-label">Transversales</div>
+        <div class="track-flow"><span class="node">Migración de legados: cuando existan destinos y proyecto de migración</span><span class="node">BPM: después de Compras compuesta y eventos reales</span></div>
+      </div>
+      <div class="track fleet">
+        <div class="track-label">Flota</div>
+        <div class="track-flow"><span class="node">F1 Mantenimiento de flota: después de VehicleId estable</span><span class="arrow">&rarr;</span><span class="node">F2 Taller comercial: después de F1, Ventas y Documentos</span></div>
+      </div>
+    </div>
+    <div class="callout warning">
+      <strong>Importante.</strong> Los rótulos R0, 1-19, C1-C6 y F1-F2 son órdenes aprobados. Los plugins del proveedor y los transversales no reciben números ERP. Su momento depende de prerrequisitos y de una prioridad explícita de producto.
+    </div>
+    <h3>Reglas que aplican a todos</h3>
+    <ul>
+      <li>Cada plugin tiene propietario, contratos públicos, permisos, esquema y migraciones propios.</li>
+      <li>No se permiten relaciones JPA ni lectura directa de tablas privadas de otro plugin.</li>
+      <li>Un plugin presente se activa por empresa; desactivarlo no elimina datos.</li>
+      <li>La personalización de una empresa se compone al final y nunca dirige el roadmap común.</li>
+    </ul>
+  </section>
+
+  <section class="page">
+    <h2>2. Ruta ERP - Fundación y operación inicial</h2>
+    <p>Esta es la secuencia obligatoria de construcción. El orden estabiliza primero maestros y existencias, y luego agrega operaciones que los consumen por contratos públicos.</p>
+    <table>
+      <thead><tr><th class="order">Orden</th><th class="plugin">Plugin</th><th class="phase">Fase</th><th>Descripción breve</th><th class="dependency">Prerrequisito principal</th></tr></thead>
+      <tbody>
+        <tr><td class="order">R0</td><td class="plugin">reference_data</td><td class="phase">Fundación compartida</td><td>Publica países, monedas, procedencia y políticas normativas por empresa.</td><td class="dependency">Kernel, seguridad y migraciones de plugins.</td></tr>
+        <tr><td class="order">1</td><td class="plugin">business_partners</td><td class="phase">Fundaciones</td><td>Administra clientes, proveedores, contactos, direcciones y definiciones empresariales de socios.</td><td class="dependency"><code>reference_data</code>.</td></tr>
+        <tr><td class="order">2</td><td class="plugin">commercial_catalog</td><td class="phase">Fundaciones</td><td>Administra productos, servicios, unidades, impuestos, precios, variantes y definiciones comerciales.</td><td class="dependency"><code>reference_data</code>; independiente de Socios.</td></tr>
+        <tr><td class="order">3</td><td class="plugin">inventory</td><td class="phase">Operación</td><td>Controla depósitos, ubicaciones, existencias, movimientos, reservas y trazabilidad de stock.</td><td class="dependency">Identidades públicas del Catálogo.</td></tr>
+        <tr><td class="order">4</td><td class="plugin">purchasing</td><td class="phase">Operación</td><td>Gestiona solicitudes, órdenes de compra, recepciones y devoluciones a proveedores.</td><td class="dependency">Socios, Catálogo, Datos e Inventario.</td></tr>
+        <tr><td class="order">5</td><td class="plugin">sales</td><td class="phase">Operación</td><td>Gestiona presupuestos, pedidos, condiciones y compromisos de venta.</td><td class="dependency">Socios, Catálogo e Inventario.</td></tr>
+        <tr><td class="order">6</td><td class="plugin">logistics</td><td class="phase">Operación</td><td>Coordina preparación, despacho, vehículos, rutas, transporte y entrega.</td><td class="dependency">Pedidos, reservas y participantes.</td></tr>
+        <tr><td class="order">7</td><td class="plugin">vehicle_telemetry</td><td class="phase">Operación</td><td>Registra dispositivos, posiciones, recorridos, sensores, geocercas, alertas y seguimiento auditable.</td><td class="dependency">Identidad pública de vehículo de Logística.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout success">
+      <strong>Punto actual.</strong> R0 y los órdenes 1-3 ya tienen implementación en el baseline. Compras, orden 4, tiene dominio, persistencia, aplicación, interfaz y pruebas automatizadas verdes; todavía debe componerse en la distribución y completar sus gates navegables.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>3. Ruta ERP - Documentos, finanzas y personas</h2>
+    <table>
+      <thead><tr><th class="order">Orden</th><th class="plugin">Plugin</th><th class="phase">Fase</th><th>Descripción breve</th><th class="dependency">Prerrequisito principal</th></tr></thead>
+      <tbody>
+        <tr><td class="order">8</td><td class="plugin">commercial_documents</td><td class="phase">Documentos</td><td>Conserva factura, notas, remisión, snapshots históricos, impuestos, pagos, totales y emisión masiva recuperable.</td><td class="dependency">Participantes, Catálogo, Ventas y Logística.</td></tr>
+        <tr><td class="order">9</td><td class="plugin">recurring_billing</td><td class="phase">Servicios</td><td>Administra planes, suscripciones, prorrateo, consumo medido y corridas de cargos reproducibles.</td><td class="dependency">Publica candidatos a Documentos; no posee facturas.</td></tr>
+        <tr><td class="order">10</td><td class="plugin">sifen</td><td class="phase">Fiscal</td><td>Adapta documentos canónicos a firma, transmisión, respuestas y eventos fiscales SIFEN versionados.</td><td class="dependency">Proyección pública de Documentos.</td></tr>
+        <tr><td class="order">11</td><td class="plugin">treasury</td><td class="phase">Finanzas</td><td>Administra cajas, bancos, cobros, pagos, movimientos y conciliaciones de dinero.</td><td class="dependency">Eventos y referencias de operaciones/documentos.</td></tr>
+        <tr><td class="order">12</td><td class="plugin">point_of_sale</td><td class="phase">Canal de venta</td><td>Opera terminales, sesiones de cajero, carrito y checkout rápido, incluido modo offline durable e idempotente.</td><td class="dependency">Catálogo, Inventario, Ventas, Documentos y Tesorería.</td></tr>
+        <tr><td class="order">13</td><td class="plugin">fuel_station</td><td class="phase">Vertical</td><td>Controla tanques, surtidores, picos, turnos, lecturas, despachos y conciliación de inventario húmedo.</td><td class="dependency">Catálogo, Inventario y entrega opcional a POS.</td></tr>
+        <tr><td class="order">14</td><td class="plugin">accounts_receivable</td><td class="phase">Finanzas</td><td>Controla deuda comercial de clientes, cuotas, vencimientos, imputaciones y cobranzas.</td><td class="dependency">Documentos y liquidaciones públicas de Tesorería.</td></tr>
+        <tr><td class="order">15</td><td class="plugin">accounts_payable</td><td class="phase">Finanzas</td><td>Controla obligaciones con proveedores, vencimientos, programación e imputación de pagos.</td><td class="dependency">Compras, Documentos y Tesorería.</td></tr>
+        <tr><td class="order">16</td><td class="plugin">accounting</td><td class="phase">Finanzas</td><td>Administra asientos, períodos, mayores, cierres y proyecciones contables auditables.</td><td class="dependency">Consume eventos; los dominios operativos no dependen de ella.</td></tr>
+        <tr><td class="order">17</td><td class="plugin">human_resources</td><td class="phase">Personas</td><td>Administra legajo, relación laboral, organización, ausencias, novedades y tiempo.</td><td class="dependency">Identidad y referencias, sin confundir empleado con usuario o cliente.</td></tr>
+        <tr><td class="order">18</td><td class="plugin">payroll</td><td class="phase">Personas</td><td>Administra conceptos, períodos, liquidaciones, cálculos y recibos de nómina neutrales.</td><td class="dependency">Contratos públicos de Recursos Humanos.</td></tr>
+        <tr><td class="order">19</td><td class="plugin">payroll_paraguay</td><td class="phase">País</td><td>Versiona reglas, cálculos y artefactos de cumplimiento IPS/MTESS para Paraguay.</td><td class="dependency">Proyecciones públicas de Nómina y fuentes oficiales vigentes.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="page">
+    <h2>4. Familias con secuencia propia</h2>
+    <div class="family-grid">
+      <div class="family-card">
+        <h3>Operaciones del proveedor</h3>
+        <div class="body">
+          <p>No recibe números 20-22. Se construye en perfiles distintos del ERP del cliente.</p>
+          <div class="mini-list">
+            <div class="mini-item"><strong>release_management</strong><br>Registra defectos, mejoras, candidatos, compatibilidad, gates, notas y publicación de releases. Puede comenzar sin depender de Soporte.</div>
+            <div class="mini-item"><strong>customer_support</strong><br>Administra cobertura, instalaciones, tickets, SLA, conversaciones, diagnósticos y resolución. Requiere Socios y puede integrar Releases.</div>
+            <div class="mini-item"><strong>support_connector</strong><br>Conector técnico opcional en el cliente: HTTPS saliente, consentimiento y diagnósticos sanitizados. Se construye después del protocolo central y la decisión <code>TECHNICAL</code>.</div>
+          </div>
+          <div class="callout warning"><strong>Dirección recomendada por dependencias:</strong> Releases y Soporte central pueden avanzar en paralelo; el Conector seguro va después. No es una numeración ERP aprobada.</div>
+        </div>
+      </div>
+      <div class="family-card coop">
+        <h3>Cooperativa de ahorro y crédito</h3>
+        <div class="body">
+          <p>Usa orden interno C1-C6 y requiere Socios, Tesorería y Contabilidad cuando corresponda.</p>
+          <div class="mini-list">
+            <div class="mini-item"><strong>C1 cooperative_membership</strong><br>Socios, admisión, estado, aportes y desvinculación.</div>
+            <div class="mini-item"><strong>C2 cooperative_governance</strong><br>Asambleas, órganos, mandatos, votaciones y decisiones.</div>
+            <div class="mini-item"><strong>C3 aml_compliance</strong><br>Debida diligencia, riesgo, alertas y casos LA/FT.</div>
+            <div class="mini-item"><strong>C4 cooperative_savings</strong><br>Productos, cuentas, submayor, intereses y restricciones de ahorro.</div>
+            <div class="mini-item"><strong>C5 cooperative_credit</strong><br>Solicitud, aprobación, cartera, garantías, mora y cobranza de créditos.</div>
+            <div class="mini-item"><strong>C6 cooperative_regulatory_paraguay</strong><br>Reglas, proyecciones y artefactos INCOOP/SEPRELAD versionados.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      <strong>No se empaqueta todo por defecto.</strong> Los plugins del proveedor pertenecen a su operación central o al conector opcional del cliente. La familia cooperativa se compone sólo para ese perfil vertical y no convierte ahorros en Tesorería ni préstamos en Cuentas por Cobrar comerciales.
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>5. Familia Flota F1-F2</h2>
+    <p class="lead">La familia separa la ejecución técnica del mantenimiento de la venta de servicios a propietarios externos. No renumera ERP 1-19 ni altera el siguiente trabajo autorizado.</p>
+    <div class="sequence-card">
+      <div class="sequence-title" style="background:#315f78"><h3>F1 fleet_maintenance</h3><span class="badge planned">Planificado</span></div>
+      <div class="sequence-body">
+        <p><strong>Qué hace:</strong> administra planes preventivos, solicitudes, defectos, checklists, órdenes técnicas, personal asignado, repuestos requeridos, servicios externos, costos e indisponibilidad.</p>
+        <p><strong>Propiedad:</strong> usa el <code>VehicleId</code> público de Logística. Telemetría aporta lecturas opcionales; Inventario conserva stock; Compras conserva reposición/terceros y RR. HH. conserva empleados.</p>
+        <p><strong>Cuándo se construye:</strong> después de estabilizar <code>logistics-api</code>. Debe operar con Telemetría, BPM y F2 ausentes o inactivos.</p>
+        <div class="steps"><div class="step"><b>1. Prevenir</b>Planes versionados por fecha, kilómetros u horas.</div><div class="step"><b>2. Ejecutar</b>OT, tareas, checklist, tiempos y repuestos.</div><div class="step"><b>3. Mejorar</b>Disponibilidad, costo, duración y reincidencia.</div></div>
+      </div>
+    </div>
+    <div class="sequence-card">
+      <div class="sequence-title" style="background:#76531a"><h3>F2 automotive_workshop</h3><span class="badge planned">Planificado</span></div>
+      <div class="sequence-body">
+        <p><strong>Qué hace:</strong> registra recepción y condición del vehículo del cliente, autorización de diagnóstico/reparación, comunicación, seguimiento y entrega.</p>
+        <p><strong>Propiedad:</strong> referencia la única OT técnica de F1, el presupuesto/pedido de Ventas y la factura/nota de Documentos. No posee precio, stock, pago, deuda o asiento.</p>
+        <p><strong>Cuándo se construye:</strong> después de F1, <code>sales</code> y <code>commercial_documents</code>.</p>
+        <div class="callout warning"><strong>Separación obligatoria.</strong> F1 puede operar como taller interno sin F2. Una autorización externa identifica versión y alcance, vence, puede revocarse y nunca concede permisos internos.</div>
+      </div>
+    </div>
+    <div class="callout success"><strong>Decisión aceptada.</strong> Producto aprobó FM-D01 a FM-D12 y AW-D01 a AW-D10 sin cambios el 2026-08-12. La planificación eleva el catálogo 31→33; no agrega código ejecutable.</div>
+  </section>
+
+  <section class="page">
+    <h2>6. Plugins transversales y personalización</h2>
+    <div class="sequence-card">
+      <div class="sequence-title"><h3>legacy_migration</h3><span class="badge planned">Planificado</span></div>
+      <div class="sequence-body">
+        <p><strong>Qué hace:</strong> inventaría sistemas legados, gobierna paquetes y mapeos, ejecuta ensayos, cuarentena, importación idempotente, conciliación, corte y rollback. Oracle Forms &amp; Reports es el primer perfil.</p>
+        <p><strong>Cuándo se construye:</strong> el descubrimiento puede comenzar cuando exista una oportunidad de migración; los adaptadores de carga se terminan después de estabilizar las APIs públicas de los plugins destino. Debe estar probado antes de vender una migración Oracle como comercializable.</p>
+        <div class="steps"><div class="step"><b>1. Descubrir</b>Forms, Reports, PL/SQL, esquemas y volúmenes.</div><div class="step"><b>2. Adaptar</b>Mapeos y comandos públicos por destino.</div><div class="step"><b>3. Cortar</b>Ensayo, conciliación, go/no-go y rollback.</div></div>
+      </div>
+    </div>
+    <div class="sequence-card">
+      <div class="sequence-title"><h3>business_process_management</h3><span class="badge planned">Planificado</span></div>
+      <div class="sequence-body">
+        <p><strong>Qué hace:</strong> administra procesos versionados por empresa, tareas humanas, responsables, plazos, temporizadores, incidentes, SLA, métricas y cuellos de botella.</p>
+        <p><strong>Cuándo se construye:</strong> después de componer Compras y de materializar eventos/outbox con un productor y consumidor reales. Antes del código deben resolverse BPM-D01 a BPM-D12 y el spike de motor. El piloto será la aprobación de solicitudes de Compras.</p>
+        <div class="callout warning"><strong>BPM coordina; el dominio decide.</strong> No puede ejecutar SQL, scripts o HTTP arbitrario, ni reemplazar permisos, estados o invariantes de Compras, Ventas u otro plugin.</div>
+      </div>
+    </div>
+    <div class="sequence-card">
+      <div class="sequence-title" style="background:#31506f"><h3>&lt;empresa&gt;_customization</h3><span class="badge" style="background:#dce8f4;color:#274761">Uno por empresa</span></div>
+      <div class="sequence-body">
+        <p><strong>No integra el conteo de 33 reutilizables.</strong> Cada empresa operativa tiene una personalización propia. Se construye al final, después de estabilizar los contratos y pantallas que modifica. Nunca es compartida por varias empresas ni puede relajar guardas del servidor.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="page">
+    <h2>7. Estado actual y siguiente construcción</h2>
+    <div class="status-grid">
+      <div class="status-box">
+        <h3 style="margin-top:0">Situación al 2026-08-12</h3>
+        <div class="timeline">
+          <div class="timeline-item"><strong>R0</strong><span><span class="badge done">Implementado</span> Datos de referencia en el reactor y consumido por fundaciones.</span></div>
+          <div class="timeline-item"><strong>ERP 1-3</strong><span><span class="badge done">Implementados</span> Socios, Catálogo e Inventario con demos oficiales y gates técnicos ejecutados.</span></div>
+          <div class="timeline-item current"><strong>ERP 4</strong><span><span class="badge partial">En curso</span> Compras tiene código y pruebas automatizadas verdes; falta composición, runtime, Playwright y demo navegable.</span></div>
+          <div class="timeline-item future"><strong>ERP 5-19</strong><span><span class="badge planned">Planificados</span> Continúan desde Ventas según el orden aprobado.</span></div>
+          <div class="timeline-item future"><strong>Otras rutas</strong><span><span class="badge planned">Planificadas</span> Proveedor, Cooperativa, Migración, BPM y Flota requieren prioridad e iteración propias.</span></div>
+        </div>
+      </div>
+      <div class="status-box">
+        <h3 style="margin-top:0">Siguiente paso autorizado</h3>
+        <p class="lead"><strong>J11-S9-06:</strong> componer <code>purchasing</code> en WAR y migrador, integrar la distribución y ejecutar Docker/Compose, health, OIDC y Playwright sobre rutas navegables.</p>
+        <div class="callout success"><strong>Después:</strong> completar el cierre técnico de Compras y continuar con <code>sales</code>, salvo que producto abra explícitamente una iteración transversal que ya cumpla sus prerrequisitos.</div>
+        <div class="callout warning"><strong>No confundir elegibilidad con prioridad.</strong> BPM será técnicamente elegible después de Compras compuesta, pero no se convierte automáticamente en el siguiente Sprint.</div>
+      </div>
+    </div>
+    <h3>Resumen del orden de lectura y construcción</h3>
+    <ol>
+      <li>Fundación R0 y ERP 1-19, sin saltar predecesores con fallos.</li>
+      <li>Personalización real de cada empresa, sólo al estabilizar los contratos utilizados.</li>
+      <li>Familias del proveedor o cooperativa únicamente para sus perfiles y prioridades.</li>
+      <li>Migración y BPM cuando sus prerrequisitos y una decisión de producto habiliten la iteración.</li>
+      <li>Flota F1 después de <code>VehicleId</code> estable; F2 después de F1, Ventas y Documentos.</li>
+    </ol>
+    <h3>Fuentes canónicas</h3>
+    <ul class="source-list">
+      <li>ADR-0011 - Roadmap y dependencias de plugins.</li>
+      <li>ADR-0027 - Terminal de punto de venta.</li>
+      <li>ADR-0030 - Recursos humanos y nómina.</li>
+      <li>ADR-0032 - Estaciones de servicio.</li>
+      <li>ADR-0033 - Facturación recurrente.</li>
+      <li>ADR-0034 - Telemetría vehicular.</li>
+      <li>ADR-0036 - Operaciones del proveedor.</li>
+      <li>ADR-0037 - Familia cooperativa.</li>
+      <li>ADR-0038 - Datos de referencia.</li>
+      <li>ADR-0040 - Migración de legados.</li>
+      <li>ADR-0045 - Gestión de procesos BPM.</li>
+      <li>ADR-0046 - Mantenimiento de flota y taller automotriz.</li>
+      <li>Épica de roadmap de plugins productivos.</li>
+    </ul>
+    <div class="callout"><strong>Alcance.</strong> Este PDF resume el plan vigente. Los ADR y Markdown versionados son la fuente canónica; el PDF es un artefacto derivado para consulta.</div>
+  </section>
+</article>
+<div class="footer">Smart ERP | Guía 00 - Plugins y orden de construcción | página <span class="page-number"></span></div>
+</body>
+</html>

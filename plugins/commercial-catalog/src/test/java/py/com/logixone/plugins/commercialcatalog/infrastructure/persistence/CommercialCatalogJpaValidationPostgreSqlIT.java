@@ -151,7 +151,14 @@ class CommercialCatalogJpaValidationPostgreSqlIT {
         Fixture fixture = fixture();
         inTransaction(entityManager -> {
             seedDefinitions(entityManager, fixture);
-            new JpaCatalogItemRepository(entityManager).insert(completeItem(fixture));
+            JpaCatalogItemRepository items = new JpaCatalogItemRepository(entityManager);
+            items.insert(completeItem(fixture));
+            items.insert(CatalogItem.create(
+                    fixture.companyId(), new CatalogItemId(UUID.randomUUID()),
+                    new CatalogItemCode("SALE-ONLY"), new CatalogItemName("Sale only"),
+                    "Not available for purchasing", CatalogItemType.PRODUCT,
+                    Set.of(CatalogItemScope.SALE), new UnitCode("EA"),
+                    new TaxProfileReference(new TaxProfileId(fixture.taxProfileId()), 0)));
             return null;
         });
         EntityManager firstManager = entityManagerFactory.createEntityManager();
@@ -935,6 +942,12 @@ class CommercialCatalogJpaValidationPostgreSqlIT {
                 new JpaPriceListRepository(entityManager).search(
                         fixture.companyId(), new PriceListSearchCriteria(
                                 "retail", Set.of(PriceListState.ACTIVE), 0, 20)));
+        var purchaseScope = inTransaction(entityManager ->
+                new JpaCatalogItemRepository(entityManager).search(
+                        fixture.companyId(), new CatalogSearchCriteria(
+                                "", Set.of(CatalogItemType.PRODUCT),
+                                Set.of(CatalogItemState.ACTIVE),
+                                Set.of(CatalogItemScope.PURCHASE), 0, 20)));
         var otherCompany = inTransaction(entityManager ->
                 new JpaCatalogItemRepository(entityManager).search(
                         new CompanyId(UUID.randomUUID()), new CatalogSearchCriteria(
@@ -944,6 +957,8 @@ class CommercialCatalogJpaValidationPostgreSqlIT {
         assertEquals(fixture.itemId(), itemPage.items().getFirst().id());
         assertEquals(Set.of(CatalogItemScope.PURCHASE, CatalogItemScope.SALE),
                 itemPage.items().getFirst().scopes());
+        assertEquals(1, purchaseScope.total());
+        assertEquals(fixture.itemId(), purchaseScope.items().getFirst().id());
         assertEquals(1, pricePage.total());
         assertEquals(1, pricePage.items().getFirst().entries());
         assertEquals(1, pricePage.items().getFirst().activeEntries());

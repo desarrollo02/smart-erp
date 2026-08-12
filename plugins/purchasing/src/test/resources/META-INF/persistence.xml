@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_2.xsd"
+             version="3.2">
+    <persistence-unit name="logixone-purchasing-test-pu" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.PurchaseRequestEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.PurchaseRequestLineEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.PurchaseOrderEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.PurchaseOrderLineEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.PurchaseOrderAllocationEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.GoodsReceiptEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.GoodsReceiptLineEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.SupplierReturnEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.SupplierReturnLineEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.PurchasingOperationEntity</class>
+        <class>py.com.logixone.plugins.purchasing.infrastructure.persistence.PurchasingImportEntity</class>
+        <exclude-unlisted-classes>true</exclude-unlisted-classes>
+        <shared-cache-mode>NONE</shared-cache-mode>
+        <validation-mode>NONE</validation-mode>
+        <properties>
+            <property name="jakarta.persistence.schema-generation.database.action" value="none"/>
+            <property name="jakarta.persistence.schema-generation.scripts.action" value="none"/>
+            <property name="hibernate.hbm2ddl.auto" value="validate"/>
+            <property name="hibernate.default_schema" value="plg_purchasing"/>
+            <property name="hibernate.show_sql" value="false"/>
+            <property name="hibernate.cache.use_second_level_cache" value="false"/>
+            <property name="hibernate.cache.use_query_cache" value="false"/>
+            <property name="hibernate.jpa.compliance.query" value="true"/>
+        </properties>
+    </persistence-unit>
+</persistence>

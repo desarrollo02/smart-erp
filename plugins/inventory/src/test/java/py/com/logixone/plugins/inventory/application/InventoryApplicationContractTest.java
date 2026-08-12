@@ -19,8 +19,8 @@ class InventoryApplicationContractTest {
 
     @Test
     void publishesExactlySevenSeparatedPermissions() {
-        assertEquals(7, InventoryPermissions.all().size());
-        assertEquals(7, InventoryPermissions.all().stream().distinct().count());
+        assertEquals(8, InventoryPermissions.all().size());
+        assertEquals(8, InventoryPermissions.all().stream().distinct().count());
         assertTrue(InventoryPermissions.all().stream()
                 .allMatch(permission -> permission.value().startsWith("inventory.")));
     }

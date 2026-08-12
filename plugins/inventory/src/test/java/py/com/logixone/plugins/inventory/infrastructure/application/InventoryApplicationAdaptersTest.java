@@ -21,6 +21,7 @@ import py.com.logixone.kernel.api.security.AuthenticatedActor;
 import py.com.logixone.kernel.api.security.AuthenticatedCompanyContext;
 import py.com.logixone.kernel.api.security.AuthorizedCompanyOperation;
 import py.com.logixone.plugins.inventory.api.MovementQuantity;
+import py.com.logixone.plugins.inventory.api.CatalogStockMovementRequest;
 import py.com.logixone.plugins.inventory.api.StockCondition;
 import py.com.logixone.plugins.inventory.api.StockKey;
 import py.com.logixone.plugins.inventory.api.StockLocationId;
@@ -74,6 +75,31 @@ class InventoryApplicationAdaptersTest {
 
         assertThrows(IllegalStateException.class, () -> adapter.post(COMPANY, adjustment()));
         assertEquals(InventoryPermissions.ADJUSTMENTS_POST.value(), requestedPermissions.getFirst());
+    }
+
+    @Test
+    void cdiAdapterUsesThePurchaseSpecificMovementPermission() {
+        List<String> requestedPermissions = new ArrayList<>();
+        CdiInventoryContracts adapter = new CdiInventoryContracts();
+        adapter.authorization = (plugin, permission) -> {
+            requestedPermissions.add(permission);
+            return authorization(COMPANY, plugin, permission);
+        };
+        adapter.useCases = useCases((method, arguments) ->
+                InventoryOperationResult.failure(InventoryResultCode.INVALID_OPERATION));
+        StockKey key = key();
+        CatalogStockMovementRequest request = new CatalogStockMovementRequest(
+                StockMovementType.RECEIPT, "PURCHASE_RECEIPT",
+                new StockSourceReference("PURCHASING_RECEIPT", "receipt-1"),
+                "receipt-line-1", uuid(50), key.warehouseId(), key.locationId(),
+                key.lotCode(), key.serialNumber(), key.expiryDate(), key.condition(),
+                new MovementQuantity("EA", BigDecimal.ONE, "EA", BigDecimal.ONE,
+                        BigDecimal.ONE, 1));
+
+        assertThrows(IllegalStateException.class,
+                () -> adapter.postCatalogItem(COMPANY, request));
+        assertEquals(InventoryPermissions.PURCHASE_MOVEMENTS_POST.value(),
+                requestedPermissions.getFirst());
     }
 
     @Test

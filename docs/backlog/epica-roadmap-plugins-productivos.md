@@ -1,12 +1,14 @@
 # Épica - Roadmap inicial de plugins productivos
 
 - Estado: En ejecución; una fundación normativa R0 y diecinueve plugins ERP conservan su secuencia, tres
-  plugins de operaciones del proveedor y seis de la familia cooperativa quedan
-  planificados, tres plugins ERP tienen demo oficial y la recongelación de Sprint
-  8 permanece pendiente
+  plugins de operaciones del proveedor, seis de la familia cooperativa y el
+  técnico transversal `legacy_migration` y el funcional transversal
+  `business_process_management`, más F1 `fleet_maintenance` y F2
+  `automotive_workshop`, quedan planificados; tres plugins ERP tienen demo oficial
+  y la recongelación de Sprint 8 permanece pendiente
 - Fecha de incorporación: 2026-07-28
 - Prioridad: habilitadores autorizados mientras la validación independiente del kernel sigue pendiente
-- Decisiones relacionadas: [ADR-0011](../adr/0011-roadmap-dependencias-plugins-productivos.md), [ADR-0027](../adr/0027-terminal-punto-venta-y-ampliacion-roadmap.md), [ADR-0030](../adr/0030-familia-recursos-humanos-nomina-paraguay.md), [ADR-0031](../adr/0031-facturacion-masiva-en-documentos-comerciales.md), [ADR-0032](../adr/0032-plugin-estaciones-servicio-combustible.md), [ADR-0033](../adr/0033-dominio-facturacion-recurrente.md), [ADR-0034](../adr/0034-plugin-telemetria-vehicular.md), [ADR-0035](../adr/0035-operacion-offline-terminal-punto-venta.md), [ADR-0036](../adr/0036-operaciones-proveedor-soporte-lanzamientos-conector.md), [ADR-0037](../adr/0037-familia-cooperativa-ahorro-credito-paraguay.md) y [ADR-0038](../adr/0038-plugin-datos-referencia-normativos.md)
+- Decisiones relacionadas: [ADR-0011](../adr/0011-roadmap-dependencias-plugins-productivos.md), [ADR-0027](../adr/0027-terminal-punto-venta-y-ampliacion-roadmap.md), [ADR-0030](../adr/0030-familia-recursos-humanos-nomina-paraguay.md), [ADR-0031](../adr/0031-facturacion-masiva-en-documentos-comerciales.md), [ADR-0032](../adr/0032-plugin-estaciones-servicio-combustible.md), [ADR-0033](../adr/0033-dominio-facturacion-recurrente.md), [ADR-0034](../adr/0034-plugin-telemetria-vehicular.md), [ADR-0035](../adr/0035-operacion-offline-terminal-punto-venta.md), [ADR-0036](../adr/0036-operaciones-proveedor-soporte-lanzamientos-conector.md), [ADR-0037](../adr/0037-familia-cooperativa-ahorro-credito-paraguay.md), [ADR-0038](../adr/0038-plugin-datos-referencia-normativos.md), [ADR-0040](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md), [ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) y [ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
 
 ## Objetivo
 
@@ -24,11 +26,13 @@ aunque la activación efectiva seguirá siendo independiente por empresa.
 
 El catálogo futuro general incorpora además `customer_support`,
 `release_management` y `support_connector`, más seis plugins para cooperativas de
-ahorro y crédito, llegando a veintinueve reutilizables junto con `reference_data`.
+ahorro y crédito, más `legacy_migration`, `business_process_management` y la
+familia Flota F1–F2, llegando a treinta y tres reutilizables junto con
+`reference_data`.
 Los dos primeros pertenecen
 a la composición central del proveedor, el conector a la instalación cliente y la
-familia cooperativa a un perfil vertical propio. No se pretende empaquetar los
-veintinueve en una única distribución.
+familia cooperativa y Flota a perfiles verticales propios. No se pretende
+empaquetar los treinta y tres en una única distribución.
 
 ## Secuencia aprobada
 
@@ -101,6 +105,62 @@ La secuencia, gates y fuentes oficiales están en
 [épica cooperativa](epica-cooperativa-ahorro-credito-paraguay.md). La planificación
 no autoriza código ni operación financiera durante Sprint 8.
 
+## Módulo técnico transversal de migración
+
+`legacy_migration` no recibe un orden ERP ni desplaza plugins funcionales. Se
+compone sólo en perfiles de descubrimiento, ensayo y corte y puede retirarse del
+runtime normal después de la aceptación. Oracle Forms & Reports es su primer
+perfil de origen.
+
+El módulo inventaría Forms, Reports, PL/SQL y esquemas; gobierna paquetes,
+mapeos, dry-runs, cuarentena, adaptadores públicos, conciliación, cutover y
+rollback. Nunca escribe tablas privadas ni convierte automáticamente Forms a JSF.
+Una oferta que prometa migración Oracle debe completar LM-00 a LM-09 antes de
+considerarse comercializable.
+
+La decisión, historias y criterios están en [ADR-0040](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
+y la [épica de migración](epica-migracion-legados-oracle-forms-reports.md).
+
+## Plugin funcional transversal BPM
+
+`business_process_management` tampoco recibe un orden ERP. Se activa por empresa
+y administra definiciones versionadas, instancias durables, tareas humanas,
+temporizadores, incidentes, SLA y métricas. Coordina únicamente mediante eventos
+y acciones públicas tipadas; no posee solicitudes, órdenes, ventas, empleados ni
+otros agregados operativos.
+
+Su primer piloto planificado es la aprobación de solicitudes de Compras una vez
+compuesto `purchasing`. Compras conserva estados, separación de funciones,
+permisos y autoridad para aceptar o rechazar cada acción. Los dominios no dependen
+de BPM y siguen operando si el plugin está ausente o inactivo.
+
+La decisión, BPM-D01 a BPM-D12, historias y matriz están en
+[ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) y la
+[épica BPM](epica-gestion-procesos-negocio-bpm.md). Esta incorporación es sólo de
+planificación: no autoriza código ni cambia que J11-S9-06 sea el siguiente gate.
+
+## Familia vertical de Flota
+
+La familia usa orden interno F1–F2 y no recibe números ERP 20–21:
+
+| Orden | Plugin | Resultado funcional |
+|---:|---|---|
+| F1 | `fleet_maintenance` | planes, solicitudes, defectos, checklists, OT técnica, personal, repuestos, costos e indisponibilidad |
+| F2 | `automotive_workshop` | recepción y autorización del cliente, correlación comercial, comunicación y entrega |
+
+F1 requiere `VehicleId` público de Logística y puede consumir Telemetría de forma
+opcional. Catálogo, Inventario, Compras, RR. HH. y Contabilidad conservan sus
+fuentes de verdad. F2 comienza después de F1, Ventas y Documentos Comerciales;
+referencia una única OT técnica y no posee presupuesto, factura, pago o deuda.
+
+Producto aceptó FM-D01 a FM-D12 y AW-D01 a AW-D10 sin cambios el 2026-08-12. La
+decisión, límites e historias están en
+[ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md), la
+[épica F1](epica-mantenimiento-flota.md), la
+[épica F2](epica-taller-automotriz-comercial.md) y la
+[caracterización](../knowledge-base/vehicle-maintenance/legacy-characterization.md).
+La planificación no autoriza código ni cambia J11-S9-06.
+
 ## Política de ejecución
 
 1. No se inicia un plugin mientras el anterior deje contratos o pruebas relevantes
@@ -126,6 +186,13 @@ no autoriza código ni operación financiera durante Sprint 8.
 12. La familia cooperativa se planifica como otro perfil vertical; COOP-00 debe
     confirmar tipo, estatuto, fuentes vigentes, seguridad y reconciliación antes
     de crear módulos o tratar datos reales.
+13. `legacy_migration` es transversal: no renumera ERP 1–19, usa origen de solo
+    lectura y carga cada destino exclusivamente por contratos públicos tipados.
+14. `business_process_management` es funcional transversal y opcional: coordina
+    mediante eventos y acciones allowlist, pero cada dominio vuelve a autorizar y
+    conserva sus invariantes y fuente de verdad.
+15. La familia Flota usa F1–F2: F1 no comienza antes de una API pública estable de
+    vehículo y F2 no comienza antes de F1, Ventas y Documentos Comerciales.
 
 ## Dependencias de producto
 
@@ -135,6 +202,17 @@ no autoriza código ni operación financiera durante Sprint 8.
   `reference_data` 1.x y no contienen lógica de ventas o documentos.
 - `inventory` usa IDs y contratos del catálogo, nunca sus entidades.
 - compras y ventas usan participantes, catálogo e inventario mediante contratos.
+- `legacy_migration` depende opcionalmente de APIs públicas de los destinos
+  incluidos en cada proyecto; ningún plugin funcional depende de su
+  implementación y los datos origen nunca se escriben por SQL a esquemas privados.
+- `business_process_management` consume eventos públicos y ejecuta acciones
+  registradas mediante un contrato neutral; ningún plugin funcional depende de
+  BPM y toda acción se reautoriza en el dominio propietario.
+- `fleet_maintenance` usa `VehicleId` público de logística, consume lecturas
+  opcionales de telemetría y solicita repuestos/compras mediante contratos; no
+  posee vehículo, dispositivo, stock, compra, empleado o asiento.
+- `automotive_workshop` usa la OT pública de F1 y referencias de Socios, Ventas y
+  Documentos; no duplica ejecución técnica, presupuesto, factura, pago o deuda.
 - logística se integra con reservas, pedidos y participantes mediante IDs/eventos.
 - telemetría usa el `VehicleId` público de logística y posee dispositivos,
   observaciones, recorridos y tracking lifecycle; logística y documentos operan
@@ -228,7 +306,7 @@ productivos.
 - **CE-16:** la primera versión productiva de `point_of_sale` vende al menos en
   efectivo con una terminal aprovisionada y sin Internet, conserva un diario local
   durable y sincroniza sin duplicar efectos.
-- **CE-17:** el catálogo global planifica veintinueve reutilizables, pero las
+- **CE-17:** el catálogo global planifica treinta y tres reutilizables, pero las
   composiciones de cliente y proveedor no incluyen plugins ajenos a su función.
 - **CE-18:** `customer_support` y `release_management` no forman parte por defecto
   de la distribución enviada a clientes.
@@ -243,6 +321,24 @@ productivos.
   idempotencia y conciliación con tesorería/contabilidad.
 - **CE-23:** reglas y presentaciones paraguayas conservan fuente oficial, versión,
   vigencia y checksum sin afirmar certificación automática.
+- **CE-24:** `legacy_migration` es opcional en operación normal, usa fuentes de
+  solo lectura y conserva manifiestos, mapeos, ejecuciones y conciliación.
+- **CE-25:** una oferta de reemplazo Oracle no se declara comercializable sin
+  inventario Forms/Reports, ensayo repetible, adaptadores públicos, conciliación,
+  idempotencia, seguridad y rollback probados.
+- **CE-26:** `business_process_management` es opcional por empresa, versiona
+  definiciones e instancias y no sustituye permisos, estados o invariantes del
+  dominio coordinado.
+- **CE-27:** eventos duplicados, reinicios, temporizadores y reintentos de BPM no
+  duplican instancias ni efectos y conservan evidencia recuperable.
+- **CE-28:** `fleet_maintenance` referencia el vehículo de Logística y conserva
+  planes/OT sin acceder a tablas de Logística, Telemetría, Inventario o Compras.
+- **CE-29:** la generación preventiva, transiciones y operaciones de repuestos son
+  idempotentes y recuperables ante duplicados, reinicios o rechazo externo.
+- **CE-30:** `automotive_workshop` referencia una única OT de F1 y conserva
+  recepción/autorización/entrega sin poseer presupuesto, factura, pago o deuda.
+- **CE-31:** F1 opera con Telemetría, BPM y F2 ausentes o inactivos; Logística
+  opera con toda la familia Flota ausente o inactiva.
 
 ## Fuera de alcance inicial
 
@@ -331,6 +427,38 @@ cooperativa, pero no se ejecuta ni autoriza un Sprint por este cambio documental
 ADR-0038 agrega `reference_data` como fundación R0 sin renumerar ERP 1–19. El
 primer corte ejecutable incorpora API Java pura, V1 privada con procedencia y
 subconjunto explícito `PY/PYG/USD`, consulta autorizada y consumo transaccional
-desde socios y catálogo. El catálogo global pasa a veintinueve reutilizables. La
-publicación completa, importador, administración de políticas y gates finales de
-RD-06 continúan pendientes antes de iniciar `purchasing`.
+desde socios y catálogo. El catálogo global pasa a veintinueve reutilizables.
+J11-S8-C06/C07 completaron políticas empresariales, publicaciones `FULL` y
+búsqueda paginada. Producto autorizó el 2026-08-11 abrir
+[Sprint 9](../sprints/sprint-09/README.md) para caracterizar `purchasing` y diferir
+la validación independiente hasta una candidata comercializable, sin cerrar
+Sprint 8 ni promover el baseline. Producto aceptó PU-D01 a PU-D10 sin cambios y autorizó la
+rama local `sprint/09-purchasing` el 2026-08-11. J11-S9-02 implementó API y
+dominio; J11-S9-03 implementó V1 privada, JPA y repositorios; J11-S9-04 implementó
+aplicación, permisos, V2, CDI/JTA e integración pública con Inventario; J11-S9-05
+incorporó cinco pantallas neutrales, directorios paginados, selectores gobernados y
+el manual de Compras. J11-S9-02 a J11-S9-05 quedaron validadas automáticamente;
+J11-S9-06 quedó habilitada para composición, runtime, Playwright y demo, mientras
+la validación independiente permanece pendiente.
+
+ADR-0040 agrega documentalmente `legacy_migration` como plugin técnico opcional y
+eleva el catálogo global planificado a treinta reutilizables. No modifica el
+reactor ni renumera ERP 1–19. LM-00 a LM-09 cubren gobierno, extracción Oracle
+Forms/Reports/PLSQL, mapeo, importación por contratos públicos, cuarentena,
+reconciliación, corte reversible y gate comercializable. Sus decisiones LM-D01 a
+LM-D12 permanecen pendientes; no existe todavía descriptor, esquema, pantalla,
+runner o conector ejecutable.
+
+ADR-0045 agrega documentalmente `business_process_management` como funcional
+transversal y eleva el catálogo global planificado a treinta y un reutilizables.
+No modifica el reactor, las migraciones o la composición. BPM-D01 a BPM-D12 y un
+spike de motor deben aceptarse en una iteración propia; J11-S9-06 continúa siendo
+el siguiente trabajo autorizado.
+
+ADR-0046 agrega documentalmente la familia vertical Flota con F1
+`fleet_maintenance` y F2 `automotive_workshop`, elevando el catálogo global
+planificado a treinta y tres reutilizables. FM-D01 a FM-D12 y AW-D01 a AW-D10
+fueron aceptadas sin cambios el 2026-08-12. No modifica reactor, POM, migraciones,
+composición ni el trabajo autorizado: J11-S9-06 continúa siendo el siguiente
+gate. FM-00 sólo podrá abrirse después de estabilizar `logistics-api`; AW-00
+requiere además F1, Ventas y Documentos Comerciales.
