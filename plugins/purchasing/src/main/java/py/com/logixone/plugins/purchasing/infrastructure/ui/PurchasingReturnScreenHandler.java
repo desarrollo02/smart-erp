@@ -3,6 +3,8 @@ package py.com.logixone.plugins.purchasing.infrastructure.ui;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.ALL;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.PAGE_SIZE;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.context;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.canonicalUuid;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.exactOptionPage;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.decimal;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.filter;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.filterEnum;
@@ -60,6 +62,14 @@ public class PurchasingReturnScreenHandler implements ScreenInteraction.Handler 
             ScreenInteraction.SelectorOptionRequest request) {
         PurchasingOperationContext view = context(authorization, PurchasingPermissions.VIEW);
         if (request.elementId().equals(PurchasingScreenContract.RETURN_ORDER)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, useCases.order(view,
+                                new PurchaseOrderId(exactId.orElseThrow())).value()
+                        .filter(value -> value.state() == PurchaseOrderState.ISSUED
+                                || value.state() == PurchaseOrderState.CLOSED)
+                        .map(value -> option(value.id().toString(), value.number())));
+            }
             var page = useCases.searchOrders(view, new PurchasingDirectoryQueries.OrderCriteria(
                     Optional.of(request.query()).filter(value -> !value.isBlank()),
                     Optional.empty(), request.offset(), request.limit())).value().orElseThrow();
@@ -72,6 +82,14 @@ public class PurchasingReturnScreenHandler implements ScreenInteraction.Handler 
                     values, page.total(), page.offset(), page.limit());
         }
         if (request.elementId().equals(PurchasingScreenContract.RETURN_RECEIPT)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, useCases.receiptDetail(view,
+                                new GoodsReceiptId(exactId.orElseThrow())).value()
+                        .filter(value -> value.state() == GoodsReceiptState.CONFIRMED)
+                        .map(value -> option(value.snapshot().id().toString(),
+                                value.snapshot().number())));
+            }
             var page = useCases.searchReceipts(view,
                     new PurchasingDirectoryQueries.ReceiptCriteria(
                             Optional.of(request.query()).filter(value -> !value.isBlank()),

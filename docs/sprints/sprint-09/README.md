@@ -1,6 +1,6 @@
 # Sprint 9 - Compras `purchasing`
 
-- Estado: J11-S9-05 implementada y validada automáticamente; validación independiente pendiente; composición J11-S9-06 habilitada
+- Estado: J11-S9-06 implementada y validada automáticamente; validación independiente pendiente; cierre J11-S9-07 habilitado
 - Fecha de inicio documental: 2026-08-11
 - Dependencia funcional: `business_partners`, `commercial_catalog`, `reference_data` e `inventory`
 - Dependencia de gobierno: Sprint 8 permanece abierto y G7 independiente continúa pendiente
@@ -31,8 +31,9 @@ ejecutables por el agente continúan siendo obligatorias. Por ello:
   pendientes;
 - no se promueven imágenes, no se etiqueta cierre, no se despliega a producción y
   no se entrega un instalador nuevo;
-- J11-S9-07 completa los gates de composición, runtime y Playwright que requieren
-  la aplicación navegable, además de la validación independiente.
+- J11-S9-07 repite la matriz acumulada sobre el baseline de cierre, completa la
+  demo oficial, la fotografía de plugins, el PDF obligatorio y la validación
+  independiente.
 
 La excepción cambia el calendario, no los criterios de aceptación ni la
 Definition of Done.
@@ -47,7 +48,7 @@ Definition of Done.
 | 4 | [J11-S9-03](J11-S9-03-persistencia-purchasing.md) | Implementada y validada automáticamente; validación independiente pendiente | esquema privado, migraciones y repositorios |
 | 5 | [J11-S9-04](J11-S9-04-aplicacion-purchasing.md) | Implementada y validada automáticamente; validación independiente pendiente | aplicación, permisos, auditoría, JTA e idempotencia |
 | 6 | [J11-S9-05](J11-S9-05-interfaz-purchasing.md) | Implementada y validada automáticamente; validación independiente pendiente | pantallas neutrales Material Design 3; Playwright al componerlas |
-| 7 | J11-S9-06 | Pendiente | composición, integraciones y demo candidata |
+| 7 | [J11-S9-06](J11-S9-06-integracion-composicion-purchasing.md) | Implementada y validada automáticamente; validación independiente pendiente | composición, integraciones y demo candidata |
 | 8 | J11-S9-07 | Pendiente | pruebas acumuladas, demo oficial, documentación, PDF y cierre |
 | 9 | J11-S9-08 | Pendiente | decisión de instalador y gate Windows sólo con respuesta `SÍ` |
 
@@ -100,22 +101,24 @@ esta rama de integración sin reescribir ni perder cambios existentes.
 
 ## Estado de pruebas automatizadas
 
-El corte materializado `J11-S9-05-automated` ejecutó el 2026-08-11:
+El corte final de código materializado ejecutó el 2026-08-12:
 
-- unitarias de APIs, plugins y shell: verdes;
-- `purchasing` con PostgreSQL 18.4/Testcontainers, Flyway, JPA y restricciones:
-  19 unitarias y 6 integraciones verdes;
-- módulos proveedores modificados, con PostgreSQL: Catálogo 106, Inventario 71 y
-  Socios 74 pruebas verdes, sin fallos, errores ni omitidas;
-- ArchUnit y composición estática: 24 módulos, 32 pruebas verdes;
-- `mvn verify` completo: 28 módulos verdes, incluido WAR.
+- `mvn verify` con `with-purchasing-demo`: 28 módulos verdes y 535 pruebas
+  unitarias acumuladas;
+- ArchUnit y composición física: 34 pruebas verdes;
+- `purchasing` con PostgreSQL 18.4/Testcontainers: 7 integraciones verdes;
+- migrador final ejecutado dos veces sin migraciones pendientes ni cambios de
+  checksum;
+- runtime: 2 pruebas de health/readiness y 4 de OIDC verdes;
+- Playwright: un recorrido integral verde y 18 capturas en 375/720/1280 px;
+- total materializado: 549 pruebas, cero fallos, errores u omitidas.
 
-Las pruebas detectaron y permitieron corregir dos defectos: inferencia genérica
-incorrecta en dos handlers y un trigger compartido que referenciaba una columna
-inexistente al confirmar recepciones. Docker/Compose runtime, health/OIDC y
-Playwright de Compras no son aplicables todavía porque J11-S9-05 no compone el
-plugin en WAR; pasan a ser gates automatizados obligatorios de J11-S9-06/J11-S9-07.
-La validación funcional independiente continúa pendiente.
+Las pruebas bloquearon el avance y permitieron corregir transacciones de consulta,
+resolución exacta de referencias, búsquedas sin sensibilidad a mayúsculas y la
+preservación/validación de selectores dependientes. La revisión final agregó una
+entrada raíz protegida, mejoró contraste y eliminó ambigüedad en los controles
+Playwright. La validación funcional
+independiente continúa pendiente.
 
 ## Compatibilidad con migración de legados
 
@@ -137,8 +140,8 @@ gate LM-09 además de J11-S9-07.
 ## Compatibilidad futura con BPM
 
 [ADR-0045](../../adr/0045-plugin-gestion-procesos-negocio-bpm.md) agrega al plan
-`business_process_management` como funcional transversal y opcional. No cambia el
-alcance ni el orden de Sprint 9: J11-S9-06 compone Compras y no implementa BPM.
+`business_process_management` como funcional transversal y opcional. No cambió el
+alcance de J11-S9-06 ni adelanta BPM; el siguiente gate sigue siendo J11-S9-07.
 
 La aprobación de solicitudes de Compras es el primer piloto propuesto para una
 iteración BPM propia. El piloto consumirá un evento público de solicitud enviada y
@@ -153,8 +156,8 @@ ADR-0013 con productor y consumidor reales.
 [ADR-0046](../../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
 agrega al plan la familia vertical Flota con F1 `fleet_maintenance` y F2
 `automotive_workshop`. Producto aceptó FM-D01 a FM-D12 y AW-D01 a AW-D10 sin
-cambios el 2026-08-12. La decisión no cambia alcance, código ni orden de Sprint 9:
-J11-S9-06 continúa componiendo Compras.
+cambios el 2026-08-12. La decisión no cambió alcance, código ni orden de Sprint 9;
+tras completar J11-S9-06, el siguiente gate sigue siendo J11-S9-07.
 
 F1 sólo puede comenzar después de estabilizar el `VehicleId` público de
 `logistics-api`; F2 requiere además F1, Ventas y Documentos Comerciales. Compras
@@ -163,10 +166,10 @@ pero no dependerá de la familia ni incorporará lógica de mantenimiento.
 
 ## Próximo gate
 
-PU-D01 a PU-D10 fueron aceptadas sin cambios por producto el 2026-08-11 y la rama
-local `sprint/09-purchasing` está activa. J11-S9-05 implementó cinco pantallas,
-menús, selectores, renderer del shell y el manual PDF 07; sus gates de módulo,
-PostgreSQL, ArchUnit y `mvn verify` están verdes. J11-S9-06 queda habilitada para
-composición, integración de la distribución, Docker/Compose, health y Playwright
-de las rutas ya navegables. La prueba de aceptación por otra persona permanece
-pendiente.
+J11-S9-06 compuso Compras en WAR y migrador, dejó una aplicación navegable en
+`http://localhost:18080/logixone/` y completó Maven, ArchUnit, PostgreSQL,
+Docker/Compose, migraciones, health, OIDC y Playwright. J11-S9-07 queda habilitada
+para congelar el baseline de cierre, repetir la matriz acumulada, completar la
+demo oficial, actualizar la fotografía de plugins y regenerar/revisar el PDF
+obligatorio. La aceptación por otra persona permanece pendiente y Sprint 9 no
+está cerrado.

@@ -39,6 +39,15 @@ class PhysicalPluginSetBuildContractTest {
                     "reference-data",
                     "reference-plugin",
                     "reference-customization-a",
+                    "reference-customization-b"),
+            "with-purchasing-demo", Set.of(
+                    "business-partners",
+                    "commercial-catalog",
+                    "inventory",
+                    "purchasing",
+                    "reference-data",
+                    "reference-plugin",
+                    "reference-customization-a",
                     "reference-customization-b"));
 
     private final Path projectRoot = locateProjectRoot();
@@ -66,6 +75,24 @@ class PhysicalPluginSetBuildContractTest {
                 assertTrue(content.contains("-P" + profile), dockerfile + " " + profile);
             }
         }
+    }
+
+    @Test
+    void runtimeShellScriptsKeepUnixLineEndingsInMaterializedCuts() throws IOException {
+        String attributes = Files.readString(projectRoot.resolve(".gitattributes"));
+
+        for (String relativePath : Set.of(
+                "infra/docker/unzip-with-jar",
+                "infra/docker/logixone-entrypoint.sh",
+                "infra/keycloak/keycloak-entrypoint.sh")) {
+            String content = Files.readString(projectRoot.resolve(relativePath));
+            assertTrue(content.startsWith("#!") && content.indexOf('\n') > 0, relativePath);
+            assertFalse(content.contains("\r"), relativePath + " cannot contain CRLF line endings");
+        }
+        assertTrue(attributes.contains("*.sh text eol=lf"), "Git checkout must preserve Unix shell scripts");
+        assertTrue(
+                attributes.contains("infra/docker/unzip-with-jar text eol=lf"),
+                "Git checkout must preserve Unix line endings for the Docker extractor");
     }
 
     private void assertUsesOnlySharedPluginSet(String relativePom) throws Exception {

@@ -1,10 +1,10 @@
 # Guía de implementación del ERP por empresa
 
-- Estado: Edición candidata; J11-S9-05 implementa cinco pantallas neutrales, directorios paginados, selectores gobernados y manual 07 de `purchasing`, validado automáticamente y aún fuera de la composición; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management` y ADR-0046 la familia vertical Flota F1/F2; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
+- Estado: Edición candidata; J11-S9-06 compone `purchasing` en WAR/migrador y valida sus cinco recorridos con Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management` y ADR-0046 la familia vertical Flota F1/F2; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
   ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo de perfiles tributarios y familias, revisión explícita e historial visible tributario, las cuatro clases empresariales de socios y asignación versionada de familias a artículos validadas; gates técnicos C06/C07 y PDF verdes; producto decidió `NO` crear instalador para este baseline; G7 pendiente
-- Edición: 1.0-rc100
+- Edición: 1.0-rc101
 - Fecha: 2026-08-12
-- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.3`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.1.0` y `purchasing-api = 1.1.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4 implementada con publicaciones `FULL` de 248 países y 178 códigos únicos de moneda/fondo, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 validada en PostgreSQL 18.4/Testcontainers y fixture `plg_reference_plugin` V1; unidades JPA en modo `validate`; casos de uso e interfaz neutral de Compras validados por módulo, ArchUnit y `mvn verify`; Keycloak 26.7.0; WildFly 41 OIDC con logout preview y Jakarta Faces 4.1; composición WAR/migrador `with-inventory-demo` aún sin Compras; sus cinco rutas y los gates runtime/Playwright quedan disponibles al componer el plugin en J11-S9-06; instalador Windows `0.8.0-internal.1` obsoleto para promoción y conservado intacto; validación independiente pendiente; decisión del instalador registrada como `NO`
+- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.3`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.1.0` y `purchasing-api = 1.1.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 validada en PostgreSQL 18.4/Testcontainers y fixture `plg_reference_plugin` V1; unidades JPA en `validate`; perfil físico `with-purchasing-demo` para WAR y migrador; imágenes verificadas `logixone/app:j11-s9-06-purchasing-demo-r5` y `logixone/migrator:j11-s9-06-purchasing-demo`; Keycloak 26.7.0, WildFly 41 OIDC y Jakarta Faces 4.1; Maven, ArchUnit, PostgreSQL, migraciones, health, OIDC y Playwright verdes; instalador Windows `0.8.0-internal.1` obsoleto para promoción y conservado intacto; validación independiente pendiente
 - Audiencia: implementadores funcionales, desarrolladores de plugins, responsables de infraestructura y soporte de puesta en marcha
 - Fuente canónica: este documento versionado junto al código
 
@@ -1271,13 +1271,13 @@ la [caracterización](../knowledge-base/vehicle-maintenance/legacy-characterizat
 la [épica F1](../backlog/epica-mantenimiento-flota.md) y la
 [épica F2](../backlog/epica-taller-automotriz-comercial.md).
 
-### Qué está disponible de Compras en J11-S9-05
+### Qué está disponible de Compras en J11-S9-06
 
-> **Implementada y validada automáticamente:** existen dominio, tablas,
-> repositorios, permisos, aplicación y cinco recorridos visuales neutrales en
-> fuentes. Pruebas de módulo, PostgreSQL, ArchUnit y `mvn verify` están verdes.
-> Todavía no existe una composición navegable de Compras en el WAR oficial; por
-> ello Docker/Compose runtime, health/OIDC y Playwright pertenecen a J11-S9-06.
+> **Compuesta y validada automáticamente:** dominio, tablas, repositorios,
+> permisos, aplicación y cinco recorridos visuales forman parte del WAR y del
+> migrador mediante `with-purchasing-demo`. Maven, PostgreSQL, ArchUnit,
+> Docker/Compose, migraciones, health/OIDC y Playwright están verdes. La
+> validación independiente y el cierre J11-S9-07 siguen pendientes.
 
 El reactor contiene `purchasing-api@1.1.0` y `purchasing@1.1.0`. La API publica
 identidades, consultas y comandos controlados para importar solicitudes u órdenes
@@ -1310,15 +1310,16 @@ antes de confirmar. Consulte el
 permisos y recuperación ante errores.
 
 Un implementador no debe registrar manualmente el descriptor, ejecutar V1/V2
-fuera del migrador oficial ni agregar el JAR al WAR todavía. J11-S9-06 realizará
-la composición física y la demo navegable. Consulte
+fuera del migrador oficial ni copiar JARs al WAR. Debe seleccionar el perfil
+`with-purchasing-demo`, que mantiene aplicación y migrador coherentes. Consulte
 [ADR-0041](../adr/0041-modelo-purchasing-y-contratos-publicos.md),
 [ADR-0042](../adr/0042-persistencia-privada-purchasing.md) y
 [J11-S9-03](../sprints/sprint-09/J11-S9-03-persistencia-purchasing.md),
 [ADR-0043](../adr/0043-aplicacion-jta-idempotencia-purchasing.md) y
 [J11-S9-04](../sprints/sprint-09/J11-S9-04-aplicacion-purchasing.md),
 [ADR-0044](../adr/0044-recorridos-visuales-purchasing.md) y
-[J11-S9-05](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md).
+[J11-S9-05](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md), además de
+[J11-S9-06](../sprints/sprint-09/J11-S9-06-integracion-composicion-purchasing.md).
 
 Este es un orden de construcción. En runtime, `PluginCatalogResolver` valida el
 grafo y calcula el orden topológico. Un plugin declara únicamente dependencias
@@ -1499,6 +1500,12 @@ descubre siete descriptores: cuatro productivos y tres fixtures. Habilite primer
 después debe iniciarse una sesión
 nueva para obtener el snapshot actualizado de autoridades. El shell fusiona sus
 opciones sin importar código privado del plugin.
+
+Desde J11-S9-06, `with-purchasing-demo` extiende esa misma selección con Compras
+y conserva idéntico cierre físico en WAR y migrador. Active sus dependencias antes
+de `purchasing`, conceda los doce permisos según función y renueve la sesión tras
+cambiar autoridades. No combine una aplicación construida con este perfil con un
+migrador de `with-inventory-demo`.
 
 La candidata valida depósito/`GENERAL`, inscripción, entrada 12, reserva 3,
 disponibilidad 9, conteo contabilizado y denegación al desactivar. Se ejecutó en
@@ -1741,7 +1748,7 @@ Docker/Compose y Playwright antes de considerarse cerrada.
 | `business_partners` con API `1.1.0`, V1–V4 privadas, participantes, búsqueda pública paginada y cuatro clases de definiciones por empresa, país resuelto por `reference-data-api`, ciclo activo/inactivo, revisión de nombre e historial append-only versionados, permisos y UI responsive | operaciones futuras sobre datos históricos y pruebas acumuladas de la ampliación 1.1 |
 | `commercial_catalog` con API `1.1.0`, búsqueda paginada por alcance comercial, V1–V4 privadas, repositorios, permisos, casos de uso, auditoría, alta/consulta visual y ciclo activo/inactivo de unidades, categorías, marcas, etiquetas, perfiles tributarios y familias de variantes; revisión/historial append-only y reemplazo seguro de definiciones simples, revisión explícita/historial de perfiles, revisión estructural/historial de familias y asignación versionada a artículos | pruebas acumuladas de la ampliación 1.1 y diecisiete plugins productivos posteriores |
 | `inventory` con API `1.1.0`, V1–V2 privadas, diez entidades, siete repositorios, ocho permisos y movimiento por identidad pública de catálogo; baseline 1.0 previo con perfil físico, imágenes, gate integral, demo oficial y PDF verdes | validar la ampliación 1.1 junto con Compras y dieciséis plugins productivos posteriores |
-| `purchasing-api` y `purchasing` `1.1.0`, V1–V2 privadas de once tablas, JPA, repositorios, doce permisos, aplicación auditada, CDI/JTA y cinco recorridos visuales neutrales con manual 07; módulo, PostgreSQL, ArchUnit y reactor verdes | composición, runtime/Playwright, demo J11-S9-06 y validación independiente |
+| `purchasing-api` y `purchasing` `1.1.0`, V1–V2 privadas de once tablas, JPA, repositorios, doce permisos, aplicación auditada, CDI/JTA, perfil físico WAR/migrador y cinco recorridos visuales; Maven, PostgreSQL, ArchUnit, Docker/Compose, migraciones, health, OIDC y Playwright verdes | gate acumulado J11-S9-07 y validación independiente |
 | Compose con Keycloak 26.7.0, realm declarativo, login/logout y WildFly OIDC | proveedor OIDC y topología de identidad productivos |
 | ADR-0010 y análisis estructural del manual SIFEN v150 | documentos comerciales, adaptador SIFEN y verificación de la especificación oficial vigente |
 | ADR-0031 y caracterización de facturación masiva; portal oficial verificado con MT 150 + NT-027 | lote comercial idempotente dentro de `commercial_documents` y lotes fiscales separados; implementación futura |
@@ -1981,3 +1988,4 @@ interno deberá regenerarse si la matriz o G7 modifica el baseline final de cier
 | 1.0-rc98 | 2026-08-11 | Aclaración de producto: sólo se difiere la validación independiente. Gates automatizados ejecutados sobre corte materializado; se corrigieron dos errores de tipado de handlers y el trigger de confirmación por tabla; Compras 19 unitarias + 6 PostgreSQL, Catálogo 106, Inventario 71, Socios 74, ArchUnit 32 y `mvn verify` de 28 módulos verdes; composición/runtime/Playwright aún corresponden a J11-S9-06 |
 | 1.0-rc99 | 2026-08-11 | ADR-0045: `business_process_management` agregado como plugin funcional transversal planificado; BPMN 2.0.2 acotado, ejecución durable, acciones públicas autorizadas, BPM-D01 a BPM-D12 y piloto futuro con solicitudes de Compras; sin código ni pruebas ejecutables afectadas |
 | 1.0-rc100 | 2026-08-12 | ADR-0046: familia Flota planificada con F1 `fleet_maintenance` y F2 `automotive_workshop`; FM-D01 a FM-D12 y AW-D01 a AW-D10 aceptadas; catálogo 31→33, ERP 1–19 y J11-S9-06 sin cambios; sin código ejecutable afectado |
+| 1.0-rc101 | 2026-08-12 | J11-S9-06: perfil físico `with-purchasing-demo`, WAR/migrador e imagen app final `sha256:4e7e84da913b64ae08cdd72188640af5a023e824db67dfb0aecdc2d40c38fba8`; 549 pruebas materializadas verdes, raíz protegida, migración idempotente, health/OIDC, Playwright integral y 18 capturas responsive; validación independiente y J11-S9-07 pendientes |

@@ -1,0 +1,99 @@
+package py.com.logixone.web.shell;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import org.junit.jupiter.api.Test;
+import py.com.logixone.kernel.application.company.screen.ComposedScreen;
+import py.com.logixone.kernel.application.company.screen.ComposedScreenElement;
+import py.com.logixone.plugin.api.ScreenDefinition;
+import py.com.logixone.plugins.purchasing.PurchasingPluginDefinition;
+import py.com.logixone.plugins.purchasing.PurchasingScreenContract;
+
+class PurchasingScreenRendererTest {
+
+    @Test
+    void rendersRequestsWithLinesApprovalAndCloneJourneys() {
+        ShellScreenView view = render(
+                PurchasingScreenContract.REQUESTS_ROUTE,
+                PurchasingScreenContract.REQUESTS,
+                PurchasingScreenContract.requestsDefinition());
+
+        assertEquals("Solicitudes de compra", view.getTitle());
+        assertEquals(List.of("lines", "lifecycle", "clone"), detailTabs(view));
+        assertTrue(view.isCreateAction(PurchasingScreenContract.CREATE_REQUEST.value()));
+        assertTrue(view.acceptsAction(PurchasingScreenContract.APPROVE_REQUEST.value()));
+        assertTrue(view.acceptsAction(PurchasingScreenContract.CLONE_REQUEST.value()));
+    }
+
+    @Test
+    void rendersOrdersReceiptsReturnsAndTrackingAsSeparateJourneys() {
+        ShellScreenView orders = render(
+                PurchasingScreenContract.ORDERS_ROUTE,
+                PurchasingScreenContract.ORDERS,
+                PurchasingScreenContract.ordersDefinition());
+        assertEquals("Órdenes de compra", orders.getTitle());
+        assertEquals(List.of("lines", "lifecycle"), detailTabs(orders));
+        assertTrue(orders.acceptsAction(PurchasingScreenContract.ISSUE_ORDER.value()));
+
+        ShellScreenView receipts = render(
+                PurchasingScreenContract.RECEIPTS_ROUTE,
+                PurchasingScreenContract.RECEIPTS,
+                PurchasingScreenContract.receiptsDefinition());
+        assertEquals("Recepciones de compra", receipts.getTitle());
+        assertEquals(List.of("lifecycle"), detailTabs(receipts));
+        assertTrue(receipts.acceptsAction(PurchasingScreenContract.CONFIRM_RECEIPT.value()));
+
+        ShellScreenView returns = render(
+                PurchasingScreenContract.RETURNS_ROUTE,
+                PurchasingScreenContract.RETURNS,
+                PurchasingScreenContract.returnsDefinition());
+        assertEquals("Devoluciones a proveedores", returns.getTitle());
+        assertEquals(List.of("lifecycle"), detailTabs(returns));
+        assertTrue(returns.acceptsAction(PurchasingScreenContract.CONFIRM_RETURN.value()));
+
+        ShellScreenView tracking = render(
+                PurchasingScreenContract.TRACKING_ROUTE,
+                PurchasingScreenContract.TRACKING,
+                PurchasingScreenContract.trackingDefinition());
+        assertEquals("Seguimiento de compras", tracking.getTitle());
+        assertTrue(tracking.isSearchAction(PurchasingScreenContract.TRACKING_SEARCH.value()));
+        assertFalse(tracking.isCreateAction(PurchasingScreenContract.TRACKING_SEARCH.value()));
+    }
+
+    private static ShellScreenView render(
+            String route,
+            py.com.logixone.plugin.api.ScreenId screenId,
+            ScreenDefinition definition) {
+        ShellScreenRegistry registry = new ShellScreenRegistry();
+        assertEquals(screenId,
+                registry.screenFor(PurchasingPluginDefinition.ID, route).orElseThrow());
+        return registry.render(composed(definition), new ShellTextCatalog()).orElseThrow();
+    }
+
+    private static List<String> detailTabs(ShellScreenView view) {
+        return view.getDetailTabs().stream().map(ShellDetailTabView::getId).toList();
+    }
+
+    private static ComposedScreen composed(ScreenDefinition definition) {
+        return new ComposedScreen(
+                definition.id(),
+                definition.contractVersion(),
+                definition.elements().stream()
+                        .map(element -> new ComposedScreenElement(
+                                element.id(),
+                                element.type(),
+                                element.regionId(),
+                                element.order(),
+                                element.labelKey(),
+                                element.helpKey(),
+                                element.visible(),
+                                element.enabled(),
+                                element.required()))
+                        .toList(),
+                definition.slots(),
+                List.of());
+    }
+}

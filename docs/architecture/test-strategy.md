@@ -1,9 +1,9 @@
 # Estrategia y matriz de pruebas
 
-- Versión: 23
-- Fecha: 2026-08-01
+- Versión: 24
+- Fecha: 2026-08-12
 - Estado: Aceptada
-- Historia: `J11-S1-01`, Sprint 2, `J11-S3-00` a `J11-S3-08`, `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-02`/`J11-S6-03` y `J11-S8-02` a `J11-S8-06`; [ADR-0007](../adr/0007-material-design-responsive-sobre-jsf.md), [ADR-0008](../adr/0008-logout-oidc-estabilidad-preview-wildfly.md), [ADR-0028](../adr/0028-gobierno-de-selectores-y-datos-administrables.md) y [ADR-0029](../adr/0029-confirmacion-instalador-por-cierre-sprint.md); reglas transversales de demo visual, PDF, selectores y decisión de instalador al cerrar cada Sprint
+- Historia: `J11-S1-01`, Sprint 2, `J11-S3-00` a `J11-S3-08`, `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-02`/`J11-S6-03`, `J11-S8-02` a `J11-S8-06` y `J11-S9-06`; [ADR-0007](../adr/0007-material-design-responsive-sobre-jsf.md), [ADR-0008](../adr/0008-logout-oidc-estabilidad-preview-wildfly.md), [ADR-0028](../adr/0028-gobierno-de-selectores-y-datos-administrables.md) y [ADR-0029](../adr/0029-confirmacion-instalador-por-cierre-sprint.md); reglas transversales de demo visual, PDF, selectores y decisión de instalador al cerrar cada Sprint
 
 ## Regla principal
 
@@ -530,3 +530,26 @@ físicos. Sus gates específicos cubren:
 
 El importador de publicaciones completas y la reconciliación de códigos no se
 simulan: permanecen como continuidad RD-04 a RD-06.
+
+## Corte de composición y demo J11-S9-06
+
+La selección `with-purchasing-demo` agrega Compras a la composición acumulada y
+usa la misma lista física en WAR, migrador y Dockerfiles. El gate exige:
+
+- prueba contractual del perfil presente y ausente, orden de dependencias y
+  finales de línea reproducibles;
+- `mvn verify` de 28 módulos y ArchUnit;
+- Flyway V1–V2 y JPA sobre PostgreSQL 18.4/Testcontainers, incluida búsqueda de
+  números comerciales sin sensibilidad a mayúsculas;
+- dos ejecuciones idempotentes del migrador final;
+- health/readiness y matriz OIDC negativa sobre la imagen desplegada;
+- `PurchasingVisualIT` con dos identidades, separación solicitante/aprobador,
+  proveedor/catálogos/depósito ficticios, solicitud, orden, recepción, devolución,
+  seguimiento, desactivación y restauración;
+- responsive 375/720/1280 y límites 599/600/839/840, con evidencia visual.
+
+El corte materializado registró 549 pruebas, cero fallos, errores u omitidas. Los
+fallos intermedios bloquearon el avance hasta corregir transacciones de consulta,
+resolución exacta, preservación de selectores dependientes, entrada raíz y
+selectores E2E ambiguos. La aceptación humana
+independiente no se sustituye por esta matriz y continúa pendiente para J11-S9-07.

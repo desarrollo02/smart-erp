@@ -83,6 +83,24 @@ final class PurchasingScreenSupport {
         return new ScreenInteraction.Option(value, label);
     }
 
+    static Optional<UUID> canonicalUuid(String value) {
+        try {
+            UUID parsed = UUID.fromString(value);
+            return parsed.toString().equals(value) ? Optional.of(parsed) : Optional.empty();
+        } catch (IllegalArgumentException invalid) {
+            return Optional.empty();
+        }
+    }
+
+    static ScreenInteraction.SelectorOptionPage exactOptionPage(
+            ScreenInteraction.SelectorOptionRequest request,
+            Optional<ScreenInteraction.Option> option) {
+        long total = option.isPresent() ? 1 : 0;
+        int offset = request.offset() == 0 ? 0 : (int) total;
+        List<ScreenInteraction.Option> options = offset == 0 ? option.stream().toList() : List.of();
+        return new ScreenInteraction.SelectorOptionPage(options, total, offset, request.limit());
+    }
+
     static String operationKey(
             PurchasingOperationContext context, ScreenElementId action, String... values) {
         String canonical = context.companyContext().companyId() + "|"

@@ -40,6 +40,9 @@ public class ShellViewBean {
     private static final Logger LOGGER = System.getLogger(ShellViewBean.class.getName());
     private static final int MAX_ROUTE_LENGTH = 160;
     private static final String SELECTOR_OPTION_PARAMETER_PREFIX = "selectorOption:";
+    private static final String SELECTOR_SEARCH_PARAMETER_PREFIX = "selectorSearch:";
+    private static final String SELECTOR_QUERY_PARAMETER_PREFIX = "selectorQuery:";
+    private static final String SELECTOR_VALUE_PARAMETER_PREFIX = "selectorValue:";
     private static final Set<String> SCREEN_MODES = Set.of("directory", "create", "detail");
 
     @Inject
@@ -91,9 +94,8 @@ public class ShellViewBean {
     private Map<String, String> selectorSearchValues = new HashMap<>();
     private Map<String, Integer> selectorSearchOffsets = new HashMap<>();
     private Map<String, ShellSelectorOptionPageView> selectorOptionPages = new HashMap<>();
-    private String requestedSelectorFieldId;
-    private int requestedSelectorPageDirection;
     private boolean selectorSelectionProcessed;
+    private boolean selectorSearchProcessed;
     private int tableOffset;
     private int tablePageSize = 50;
     private int requestedTablePageDirection;
@@ -340,6 +342,7 @@ public class ShellViewBean {
         try {
             prepared = false;
             prepare();
+            mergeSubmittedSelectorValues(submittedInputs);
             inputValues.putAll(submittedInputs);
             selectedResourceId = submittedResourceId;
             selectedResourceVersion = submittedResourceVersion;
@@ -376,16 +379,46 @@ public class ShellViewBean {
         }
     }
 
-    public String searchSelectorOptions() {
+    public void searchRequestedSelectorOptions() {
+        if (selectorSearchProcessed) {
+            return;
+        }
+        selectorSearchProcessed = true;
+        var searches = request.getParameterMap().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(SELECTOR_SEARCH_PARAMETER_PREFIX))
+                .toList();
+        if (searches.isEmpty()) {
+            return;
+        }
+        if (searches.size() != 1) {
+            state = ShellState.DENIED;
+            return;
+        }
+        String parameterName = searches.getFirst().getKey();
+        String fieldId = parameterName.substring(SELECTOR_SEARCH_PARAMETER_PREFIX.length());
+        int direction;
+        try {
+            direction = Integer.parseInt(request.getParameter(parameterName));
+        } catch (NumberFormatException invalid) {
+            state = ShellState.DENIED;
+            return;
+        }
         Map<String, String> submittedInputs = new HashMap<>(inputValues);
         Map<String, String> submittedSearches = new HashMap<>(selectorSearchValues);
         Map<String, Integer> submittedOffsets = new HashMap<>(selectorSearchOffsets);
-        String fieldId = requestedSelectorFieldId;
-        int direction = requestedSelectorPageDirection;
+        String submittedQuery = request.getParameter(SELECTOR_QUERY_PARAMETER_PREFIX + fieldId);
+        if (submittedQuery == null || submittedQuery.length() > 100) {
+            state = ShellState.DENIED;
+            return;
+        }
+        submittedSearches.put(fieldId, submittedQuery);
         try {
             prepared = false;
             prepare();
+            mergeSubmittedSelectorValues(submittedInputs);
             inputValues.putAll(submittedInputs);
+            prepared = false;
+            prepare();
             selectorSearchValues.putAll(submittedSearches);
             selectorSearchOffsets.putAll(submittedOffsets);
             ScreenElementId elementId = new ScreenElementId(fieldId);
@@ -396,7 +429,7 @@ public class ShellViewBean {
                     || source.loadingStrategy() != SelectorLoadingStrategy.SEARCH_ON_DEMAND
                     || (direction < -1 || direction > 1)) {
                 state = ShellState.DENIED;
-                return null;
+                return;
             }
             int currentOffset = selectorSearchOffsets.getOrDefault(fieldId, 0);
             int offset = switch (direction) {
@@ -410,19 +443,30 @@ public class ShellViewBean {
                             selectorSearchValues.getOrDefault(fieldId, ""),
                             offset,
                             50));
+            LOGGER.log(Level.INFO,
+                    "event=shell_selector_search_succeeded field_id={0} query_length={1} "
+                            + "total={2} offset={3}",
+                    fieldId,
+                    selectorSearchValues.getOrDefault(fieldId, "").length(),
+                    page.total(),
+                    page.offset());
             selectorSearchOffsets.put(fieldId, page.offset());
             selectorOptionPages.put(fieldId, new ShellSelectorOptionPageView(page));
-            return null;
+            return;
         } catch (TrustedWebAccessException | IllegalArgumentException denied) {
             state = ShellState.DENIED;
-            return null;
         } catch (RuntimeException unexpected) {
             LOGGER.log(Level.ERROR,
                     "event=shell_selector_search_failed type={0}",
                     unexpected.getClass().getName());
             state = ShellState.ERROR;
-            return null;
         }
+    }
+
+    public boolean isSelectorInteractionRequested() {
+        return request.getParameterMap().keySet().stream().anyMatch(parameter ->
+                parameter.startsWith(SELECTOR_SEARCH_PARAMETER_PREFIX)
+                        || parameter.startsWith(SELECTOR_OPTION_PARAMETER_PREFIX));
     }
 
     public void selectRequestedSelectorOption() {
@@ -443,6 +487,7 @@ public class ShellViewBean {
         try {
             prepared = false;
             prepare();
+            mergeSubmittedSelectorValues(submittedInputs);
             inputValues.putAll(submittedInputs);
             selectorSearchValues.putAll(submittedSearches);
             selectorSearchOffsets.putAll(submittedOffsets);
@@ -474,6 +519,8 @@ public class ShellViewBean {
             }
             inputValues.put(fieldId, selected);
             selectorOptionPages.remove(fieldId);
+            prepared = false;
+            prepare();
         } catch (TrustedWebAccessException | IllegalArgumentException denied) {
             state = ShellState.DENIED;
         } catch (RuntimeException unexpected) {
@@ -481,6 +528,69 @@ public class ShellViewBean {
                     "event=shell_selector_selection_failed type={0}",
                     unexpected.getClass().getName());
             state = ShellState.ERROR;
+        }
+    }
+
+    private void mergeSubmittedSelectorValues(Map<String, String> submittedInputs) {
+        Map<ScreenElementId, String> submittedSelectors = new HashMap<>();
+        request.getParameterMap().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(SELECTOR_VALUE_PARAMETER_PREFIX))
+                .forEach(entry -> {
+                    if (entry.getValue().length != 1) {
+                        throw new IllegalArgumentException(
+                                "Exactly one selector value is required");
+                    }
+                    String fieldId = entry.getKey().substring(
+                            SELECTOR_VALUE_PARAMETER_PREFIX.length());
+                    ScreenElementId elementId = new ScreenElementId(fieldId);
+                    if (!activeSelectorSources.containsKey(elementId)) {
+                        throw new IllegalArgumentException("Unsupported selector value");
+                    }
+                    String value = entry.getValue()[0] == null
+                            ? "" : entry.getValue()[0].strip();
+                    submittedSelectors.put(elementId, value);
+                });
+
+        submittedSelectors.forEach((elementId, value) -> {
+            SelectorSourceDefinition source = activeSelectorSources.get(elementId);
+            if (source.loadingStrategy() != SelectorLoadingStrategy.SEARCH_ON_DEMAND) {
+                return;
+            }
+            validateSearchSelectorValue(elementId, value);
+            submittedInputs.put(elementId.value(), value);
+        });
+
+        ScreenInteraction.Result contextual = activeInteractionHandler.interact(
+                new ScreenInteraction.Request(
+                        Optional.empty(), typedInputs(submittedInputs),
+                        Optional.ofNullable(selectedResourceId),
+                        Optional.ofNullable(selectedResourceVersion)));
+        submittedSelectors.forEach((elementId, value) -> {
+            SelectorSourceDefinition source = activeSelectorSources.get(elementId);
+            if (source.loadingStrategy() == SelectorLoadingStrategy.SEARCH_ON_DEMAND) {
+                return;
+            }
+            if (!value.isEmpty() && contextual.options()
+                    .getOrDefault(elementId, List.of()).stream()
+                    .noneMatch(option -> option.value().equals(value))) {
+                throw new IllegalArgumentException("Invalid selector value");
+            }
+            submittedInputs.put(elementId.value(), value);
+        });
+    }
+
+    private void validateSearchSelectorValue(ScreenElementId elementId, String value) {
+        if (value.isEmpty()) {
+            return;
+        }
+        String canonical = new ScreenInteraction.Option(value, value).value();
+        ScreenInteraction.SelectorOptionPage verification =
+                activeInteractionHandler.searchOptions(
+                        new ScreenInteraction.SelectorOptionRequest(
+                                elementId, canonical, 0, 50));
+        if (verification.options().stream()
+                .noneMatch(option -> option.value().equals(canonical))) {
+            throw new IllegalArgumentException("Invalid selector value");
         }
     }
 
@@ -715,6 +825,7 @@ public class ShellViewBean {
         try {
             prepared = false;
             prepare();
+            mergeSubmittedSelectorValues(submittedInputs);
             inputValues.putAll(submittedInputs);
             selectedResourceId = submittedResourceId;
             selectedResourceVersion = submittedResourceVersion;
@@ -969,22 +1080,6 @@ public class ShellViewBean {
 
     public Map<String, ShellSelectorOptionPageView> getSelectorOptionPages() {
         return selectorOptionPages;
-    }
-
-    public String getRequestedSelectorFieldId() {
-        return requestedSelectorFieldId;
-    }
-
-    public void setRequestedSelectorFieldId(String requestedSelectorFieldId) {
-        this.requestedSelectorFieldId = requestedSelectorFieldId;
-    }
-
-    public int getRequestedSelectorPageDirection() {
-        return requestedSelectorPageDirection;
-    }
-
-    public void setRequestedSelectorPageDirection(int requestedSelectorPageDirection) {
-        this.requestedSelectorPageDirection = requestedSelectorPageDirection;
     }
 
     public int getTableOffset() {

@@ -20,12 +20,23 @@ class SelectorReturnResourceTest {
         assertEquals(5, occurrences(source,
                 "action=\"#{shellView.openSelectorManagement(field.id)}\""));
         assertEquals(3, occurrences(source, "name=\"selectorDraft\""));
-        assertEquals(6, occurrences(source, "pt:data-screen-input=\"#{field.id}\""));
+        assertEquals(4, occurrences(source, "pt:data-screen-input=\"#{field.id}\""));
+        assertEquals(6, occurrences(source, "data-screen-input=\"#{field.id}\""));
+        assertTrue(source.contains("<select id=\"create-select-#{field.id}\""));
+        assertTrue(source.contains("<select id=\"detail-select-#{field.id}\""));
         assertEquals(5, occurrences(source, "immediate=\"true\""));
         assertEquals(5, occurrences(source,
                 "onclick=\"LogixoneSelectorReturn.capture(this);\""));
-        assertEquals(6, occurrences(source,
-                "action=\"#{shellView.searchSelectorOptions}\""));
+        assertEquals(6, occurrences(source, "name=\"selectorSearch:#{field.id}\""));
+        assertEquals(2, occurrences(source, "name=\"selectorQuery:#{field.id}\""));
+        assertEquals(4, occurrences(source, "name=\"selectorValue:#{field.id}\""));
+        assertTrue(source.contains(
+                "listener=\"#{shellView.searchRequestedSelectorOptions}\""));
+        assertTrue(source.contains("aria-required=\"#{field.required}\""));
+        assertEquals(2, occurrences(source,
+                "selected=\"#{shellView.inputValues[field.id] eq option.value ? 'selected' : null}\""));
+        assertTrue(source.contains("id=\"create-selector-field\""));
+        assertTrue(source.contains("id=\"detail-selector-field\""));
         assertEquals(2, occurrences(source,
                 "name=\"selectorOption:#{field.id}\""));
         assertTrue(source.contains(
@@ -40,10 +51,9 @@ class SelectorReturnResourceTest {
         assertFalse(source.matches("(?s).*<f:param[^>]+inputValues.*"));
 
         String normalized = source.replaceAll("\\s+", " ");
-        assertFalse(normalized.contains(
-                "value=\"#{shellView.selectorSearchValues[field.id]}\" immediate=\"true\""));
-        assertFalse(normalized.contains(
-                "action=\"#{shellView.searchSelectorOptions}\" immediate=\"true\""));
+        assertFalse(normalized.contains("<f:ajax"));
+        assertFalse(source.contains("requestedSelectorFieldId"));
+        assertFalse(source.contains("requestedSelectorPageDirection"));
         assertFalse(normalized.contains(
                 "name=\"selectorOption:#{field.id}\" immediate=\"true\""));
     }

@@ -7,6 +7,7 @@ import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import jakarta.transaction.Transactional.TxType;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -183,7 +184,8 @@ public class JpaPurchasingDirectoryRepository implements PurchasingDirectoryRepo
     private static void bind(
             Query query, CompanyId companyId, Optional<String> text, Optional<?> state) {
         query.setParameter("company", Objects.requireNonNull(companyId, "companyId").value());
-        text.ifPresent(value -> query.setParameter("pattern", "%" + value + "%"));
+        text.ifPresent(value -> query.setParameter(
+                "pattern", "%" + value.toLowerCase(Locale.ROOT) + "%"));
         state.ifPresent(value -> query.setParameter("state", value));
     }
 

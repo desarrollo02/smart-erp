@@ -3,6 +3,8 @@ package py.com.logixone.plugins.purchasing.infrastructure.ui;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.ALL;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.PAGE_SIZE;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.context;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.canonicalUuid;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.exactOptionPage;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.decimal;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.enumValue;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.filter;
@@ -77,6 +79,15 @@ public class PurchasingOrderScreenHandler implements ScreenInteraction.Handler {
         PurchasingOperationContext view = context(authorization, PurchasingPermissions.VIEW);
         var company = view.companyContext().companyId();
         if (request.elementId().equals(PurchasingScreenContract.ORDER_SUPPLIER)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, partners.findById(company,
+                                new BusinessPartnerId(exactId.orElseThrow()))
+                        .filter(value -> value.state() == BusinessPartnerState.ACTIVE)
+                        .filter(value -> value.roles().contains(BusinessPartnerRole.SUPPLIER))
+                        .map(value -> option(value.id().toString(),
+                                value.code() + " Â· " + value.displayName())));
+            }
             var page = partners.search(company, new BusinessPartnerSearchQuery(
                     Optional.of(request.query()).filter(value -> !value.isBlank()),
                     Optional.of(BusinessPartnerRole.SUPPLIER),
@@ -96,6 +107,18 @@ public class PurchasingOrderScreenHandler implements ScreenInteraction.Handler {
         }
         if (request.elementId().equals(PurchasingScreenContract.ORDER_ITEM)
                 || request.elementId().equals(PurchasingScreenContract.ORDER_ADD_ITEM)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, catalog.findById(company,
+                                new py.com.logixone.plugins.commercialcatalog.api.CatalogItemId(
+                                        exactId.orElseThrow()))
+                        .filter(item -> item.state() == CatalogItemState.ACTIVE)
+                        .filter(item -> item.scopes().contains(CatalogItemScope.PURCHASE))
+                        .filter(item -> item.type() == CatalogItemType.PRODUCT
+                                || item.type() == CatalogItemType.SERVICE)
+                        .map(item -> option(item.id().toString(),
+                                item.code() + " Â· " + item.displayName())));
+            }
             var page = catalog.search(company, new CatalogSearchCriteria(
                     request.query(), java.util.Set.of(CatalogItemType.PRODUCT, CatalogItemType.SERVICE),
                     java.util.Set.of(CatalogItemState.ACTIVE),
@@ -106,6 +129,14 @@ public class PurchasingOrderScreenHandler implements ScreenInteraction.Handler {
                     values, page.total(), page.offset(), page.limit());
         }
         if (request.elementId().equals(PurchasingScreenContract.ORDER_REQUEST)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, useCases.request(view,
+                                new py.com.logixone.plugins.purchasing.api.PurchaseRequestId(
+                                        exactId.orElseThrow())).value()
+                        .filter(value -> value.state() == PurchaseRequestState.APPROVED)
+                        .map(value -> option(value.id().toString(), value.number())));
+            }
             var page = useCases.searchRequests(view,
                     new PurchasingDirectoryQueries.RequestCriteria(
                             Optional.of(request.query()).filter(value -> !value.isBlank()),

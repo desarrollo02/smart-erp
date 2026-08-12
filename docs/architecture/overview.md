@@ -1,9 +1,9 @@
 # Vista general de arquitectura
 
-- Versión: 60
+- Versión: 61
 - Fecha: 2026-08-12
-- Estado: J11-S9-05 agrega cinco pantallas, handlers, directorios y selectores de `purchasing`, validados mediante módulo, PostgreSQL, ArchUnit y `mvn verify`, aún fuera de la composición ejecutable; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045 y la familia Flota F1/F2 por ADR-0046; composición/runtime/Playwright y G7 independiente pendientes
-- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07` y J11-S9-00 a J11-S9-05; ADR-0009 a ADR-0046
+- Estado: J11-S9-06 compone `purchasing` en WAR/migrador y valida Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045 y la familia Flota F1/F2 por ADR-0046; J11-S9-07 y validación independiente pendientes
+- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07` y J11-S9-00 a J11-S9-06; ADR-0009 a ADR-0046
 
 ## Objetivo
 
@@ -952,10 +952,15 @@ los selectores, `business-partners-api@1.1.0` publica búsqueda de referencias e
 `inventory-api@1.1.0` publica almacenamiento autorizado; no aparecen accesos
 cruzados a tablas.
 
-El descriptor ya aporta la ubicación Flyway y los contratos visuales, pero el
-plugin continúa fuera del WAR y migrador. Las pruebas de J11-S9-02 a J11-S9-05
-están escritas y pendientes del gate acumulado autorizado; composición y demo
-candidata corresponden a J11-S9-06.
+J11-S9-06 agrega `with-purchasing-demo` a la selección física única consumida por
+WAR, migrador y ambos Dockerfiles. Las consultas se ejecutan dentro de la frontera
+transaccional del servidor. El shell transmite selectores mediante campos
+semánticos, revalida opciones exactas en su propietario y recalcula dependencias
+antes de una acción. Una entrada física controlada y un servlet limitado a la
+raíz redirigen `/logixone/` a la vista Faces protegida. El corte superó 549
+pruebas materializadas, migración idempotente, health/OIDC y Playwright completo;
+J11-S9-07 y la validación
+independiente permanecen pendientes.
 
 ## Datos y transacciones
 

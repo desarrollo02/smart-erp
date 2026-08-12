@@ -3,6 +3,8 @@ package py.com.logixone.plugins.purchasing.infrastructure.ui;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.ALL;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.PAGE_SIZE;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.context;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.canonicalUuid;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.exactOptionPage;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.date;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.decimal;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.enumValue;
@@ -72,6 +74,19 @@ public class PurchasingRequestScreenHandler implements ScreenInteraction.Handler
         PurchasingOperationContext view = context(authorization, PurchasingPermissions.VIEW);
         if (request.elementId().equals(PurchasingScreenContract.REQUEST_ITEM)
                 || request.elementId().equals(PurchasingScreenContract.REQUEST_ADD_ITEM)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, catalog.findById(
+                                view.companyContext().companyId(),
+                                new py.com.logixone.plugins.commercialcatalog.api.CatalogItemId(
+                                        exactId.orElseThrow()))
+                        .filter(item -> item.state() == CatalogItemState.ACTIVE)
+                        .filter(item -> item.scopes().contains(CatalogItemScope.PURCHASE))
+                        .filter(item -> item.type() == CatalogItemType.PRODUCT
+                                || item.type() == CatalogItemType.SERVICE)
+                        .map(item -> option(item.id().toString(),
+                                item.code() + " Â· " + item.displayName())));
+            }
             var page = catalog.search(view.companyContext().companyId(), new CatalogSearchCriteria(
                     request.query(), java.util.Set.of(CatalogItemType.PRODUCT, CatalogItemType.SERVICE),
                     java.util.Set.of(CatalogItemState.ACTIVE),

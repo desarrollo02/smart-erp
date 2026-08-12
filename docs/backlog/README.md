@@ -51,13 +51,12 @@ aceptó sin cambios y autorizó la rama local
 `sprint/09-purchasing` el 2026-08-11. J11-S9-02 implementó API y dominio;
 J11-S9-03 implementó V1 privada, JPA y repositorios; J11-S9-04 implementó
 aplicación, permisos, V2, CDI/JTA e integración con Inventario; J11-S9-05 agregó
-cinco pantallas, directorios, selectores y el manual 07. Las cuatro historias
-quedaron validadas automáticamente mediante pruebas de módulo, PostgreSQL,
-ArchUnit y `mvn verify`; J11-S9-06 quedó habilitada. La aclaración de producto
-difiere sólo la validación independiente de otra persona. Docker/Compose runtime,
-health/OIDC y Playwright de Compras se ejecutarán cuando J11-S9-06 componga las
-rutas navegables. Esto no cierra Sprint 8 o Sprint 9 ni permite promover o
-desplegar el baseline.
+cinco pantallas, directorios, selectores y el manual 07. J11-S9-06 compuso Compras
+en WAR/migrador y dejó verdes Maven, ArchUnit, PostgreSQL, migraciones,
+Docker/Compose, health, OIDC y Playwright. La aclaración de producto difiere sólo
+la validación independiente de otra persona. J11-S9-07 es el siguiente gate de
+cierre; Sprint 8 y Sprint 9 continúan abiertos y el baseline no se promueve a
+producción.
 
 La candidata visual de [Sprint 3](../sprints/sprint-03/README.md) está disponible y
 sus gates técnicos G2-G6 quedaron verdes; G7 independiente continúa pendiente. El
@@ -132,7 +131,7 @@ declararse comercializable.
 
 [ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) agrega al plan
 `business_process_management` como plugin funcional transversal, reutilizable y
-opcional por empresa. No recibe un orden ERP ni altera que J11-S9-06 sea el
+opcional por empresa. No recibe un orden ERP ni altera que J11-S9-07 sea el
 siguiente incremento. Eleva el catálogo global planificado a treinta y un
 reutilizables y propone la aprobación de solicitudes de Compras como primer
 piloto, después de resolver BPM-D01 a BPM-D12 en su
@@ -142,7 +141,7 @@ piloto, después de resolver BPM-D01 a BPM-D12 en su
 la familia vertical Flota con orden interno F1 `fleet_maintenance` y F2
 `automotive_workshop`. Producto aprobó FM-D01 a FM-D12 y AW-D01 a AW-D10 sin
 cambios el 2026-08-12. La familia no renumera ERP 1–19, eleva el catálogo global
-planificado a treinta y tres reutilizables y mantiene J11-S9-06 como siguiente
+planificado a treinta y tres reutilizables y mantiene J11-S9-07 como siguiente
 incremento. F1 requiere una identidad pública estable de vehículo en Logística;
 F2 se construye después de F1, Ventas y Documentos Comerciales. Consulte las
 épicas de [mantenimiento de flota](epica-mantenimiento-flota.md) y

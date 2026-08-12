@@ -33,7 +33,7 @@
 
             <ui:fragment rendered="#{shellView.ready}">
                 <div class="session-panel">
-                    <div class="identity-copy">
+                    <div class="identity-copy" data-company-id="#{shellView.selectedCompanyId}">
                         <strong>#{shellView.actorDisplayName}</strong>
                         <span>#{shellView.companyDisplayName}</span>
                     </div>

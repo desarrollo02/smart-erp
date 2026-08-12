@@ -4,7 +4,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.TransactionSynchronizationRegistry;
 import jakarta.transaction.Transactional;
-import jakarta.transaction.Transactional.TxType;
 import java.time.Clock;
 import py.com.logixone.kernel.api.audit.TechnicalAudit;
 import py.com.logixone.plugins.businesspartners.api.BusinessPartnerDirectory;
@@ -124,57 +123,57 @@ public class TransactionalPurchasingUseCases implements PurchasingUseCases {
             PurchasingOperationContext context, PurchasingCommands.ConfirmSupplierReturn command) {
         return mutation(fulfillment().confirmSupplierReturn(context, command));
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchaseRequestReference> request(
             PurchasingOperationContext context, PurchaseRequestId id) {
         return queries().request(context, id);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchaseOrderReference> order(
             PurchasingOperationContext context, PurchaseOrderId id) {
         return queries().order(context, id);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchaseRequest> requestDetail(
             PurchasingOperationContext context, PurchaseRequestId id) {
         return queries().requestDetail(context, id);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchaseOrder> orderDetail(
             PurchasingOperationContext context, PurchaseOrderId id) {
         return queries().orderDetail(context, id);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<GoodsReceipt> receiptDetail(
             PurchasingOperationContext context,
             py.com.logixone.plugins.purchasing.api.GoodsReceiptId id) {
         return queries().receiptDetail(context, id);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<SupplierReturn> returnDetail(
             PurchasingOperationContext context,
             py.com.logixone.plugins.purchasing.api.SupplierReturnId id) {
         return queries().returnDetail(context, id);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchasingDirectoryQueries.Page<
             PurchasingDirectoryQueries.RequestSummary>> searchRequests(
             PurchasingOperationContext context, PurchasingDirectoryQueries.RequestCriteria criteria) {
         return queries().requests(context, criteria);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchasingDirectoryQueries.Page<
             PurchasingDirectoryQueries.OrderSummary>> searchOrders(
             PurchasingOperationContext context, PurchasingDirectoryQueries.OrderCriteria criteria) {
         return queries().orders(context, criteria);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchasingDirectoryQueries.Page<
             PurchasingDirectoryQueries.ReceiptSummary>> searchReceipts(
             PurchasingOperationContext context, PurchasingDirectoryQueries.ReceiptCriteria criteria) {
         return queries().receipts(context, criteria);
     }
-    @Override @Transactional(TxType.SUPPORTS)
+    @Override
     public PurchasingOperationResult<PurchasingDirectoryQueries.Page<
             PurchasingDirectoryQueries.ReturnSummary>> searchReturns(
             PurchasingOperationContext context, PurchasingDirectoryQueries.ReturnCriteria criteria) {

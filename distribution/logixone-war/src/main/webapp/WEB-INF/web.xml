@@ -25,6 +25,11 @@
         <url-pattern>/faces/*</url-pattern>
     </servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>/index.xhtml</url-pattern>
+    </servlet-mapping>
+
     <session-config>
         <cookie-config>
             <http-only>true</http-only>
@@ -33,6 +38,7 @@
     </session-config>
 
     <welcome-file-list>
+        <welcome-file>index.xhtml</welcome-file>
         <welcome-file>faces/app/index.xhtml</welcome-file>
     </welcome-file-list>
 

@@ -116,6 +116,8 @@ a { color: inherit; }
 .identity-copy strong { font-size: 0.9rem; }
 .identity-copy span { margin-top: 0.2rem; color: #c7d8d4; font-size: 0.78rem; }
 .company-switcher { display: flex; gap: 0.4rem; align-items: center; }
+.topbar .native-selector-source small { color: #c7d8d4; }
+.topbar .selector-management-link { color: #8ff3e8; }
 
 .mobile-navigation { display: none; }
 

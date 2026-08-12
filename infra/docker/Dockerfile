@@ -3,8 +3,10 @@ FROM docker.io/library/eclipse-temurin:21.0.11_10-jdk-noble@sha256:15ec53e5373fb
 WORKDIR /workspace
 
 COPY --chmod=0755 mvnw ./mvnw
+COPY .gitattributes ./.gitattributes
 COPY .mvn/ ./.mvn/
-COPY infra/docker/Dockerfile infra/docker/Dockerfile.migrator ./infra/docker/
+COPY infra/docker/Dockerfile infra/docker/Dockerfile.migrator infra/docker/unzip-with-jar infra/docker/logixone-entrypoint.sh ./infra/docker/
+COPY infra/keycloak/keycloak-entrypoint.sh ./infra/keycloak/
 COPY --chmod=0755 infra/docker/unzip-with-jar /usr/local/bin/unzip
 COPY pom.xml ./pom.xml
 COPY platform-bom/ ./platform-bom/
@@ -36,12 +38,14 @@ RUN --mount=type=cache,id=logixone-maven-tools-3.9.16,target=/workspace/.tools,s
         verified:with-business-partners-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-business-partners-demo verify ;; \
         verified:with-commercial-catalog-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-commercial-catalog-demo verify ;; \
         verified:with-inventory-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-inventory-demo verify ;; \
+        verified:with-purchasing-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -Pwith-purchasing-demo verify ;; \
         visual-candidate:none) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests package ;; \
         visual-candidate:with-reference-plugin) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-reference-plugin package ;; \
         visual-candidate:with-screen-customization-plugins) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-screen-customization-plugins package ;; \
         visual-candidate:with-business-partners-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-business-partners-demo package ;; \
         visual-candidate:with-commercial-catalog-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-commercial-catalog-demo package ;; \
         visual-candidate:with-inventory-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-inventory-demo package ;; \
+        visual-candidate:with-purchasing-demo) MAVEN_USER_HOME=/workspace/.tools/maven-wrapper-home ./mvnw -B -DskipTests -Pwith-purchasing-demo package ;; \
         *) echo "Unsupported LOGIXONE_BUILD_MODE or LOGIXONE_MAVEN_PROFILE" >&2; exit 64 ;; \
     esac \
     && test -s distribution/logixone-war/target/logixone.war \

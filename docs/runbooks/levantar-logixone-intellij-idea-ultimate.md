@@ -5,7 +5,7 @@
 - IDE verificado: IntelliJ IDEA Ultimate 2026.2
 - Sistema de ejemplo: Windows 11 con PowerShell
 - Baseline: Java 21, Maven Wrapper 3.9.16, Docker/Compose, PostgreSQL, Keycloak 26.7.0 y WildFly 41
-- Distribución de demo: perfil Maven `with-inventory-demo`, baseline J11-S8-07
+- Distribución de demo: perfil Maven `with-purchasing-demo`, baseline J11-S9-06
 - Instalador: `0.8.0-internal.1` disponible sólo para evaluación interna; no
   sustituye la preparación del entorno de desarrollo
 - PDF del baseline anterior: [guia-levantar-logixone-intellij-idea-ultimate.pdf](../output/pdf/guia-levantar-logixone-intellij-idea-ultimate.pdf); conserva la marca Logixone y se regenerará en el gate documental de cierre
@@ -183,7 +183,7 @@ Para validar el baseline candidato con cuatro plugins productivos, incluida la
 fundación `reference_data`:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-inventory-demo clean verify
+.\mvnw.cmd -B -Pwith-purchasing-demo clean verify
 ```
 
 La segunda ejecución es más larga. Debe terminar con `BUILD SUCCESS`. Una prueba
@@ -282,7 +282,7 @@ Desde la terminal de IntelliJ:
 ```powershell
 docker build --platform linux/amd64 `
   --build-arg LOGIXONE_BUILD_MODE=verified `
-  --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo `
   --tag logixone/app:local-intellij `
   --file infra/docker/Dockerfile .
 ```
@@ -292,7 +292,7 @@ Después:
 ```powershell
 docker build --platform linux/amd64 `
   --build-arg LOGIXONE_BUILD_MODE=verified `
-  --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo `
   --tag logixone/migrator:local-intellij `
   --file infra/docker/Dockerfile.migrator .
 ```
@@ -403,7 +403,7 @@ Crear una configuración **Maven**:
 
 - nombre: `Smart ERP - Verify demo`;
 - directorio: raíz del repositorio;
-- comando: `-B -Pwith-inventory-demo clean verify`;
+- comando: `-B -Pwith-purchasing-demo clean verify`;
 - Maven: Wrapper;
 - JRE: Project SDK 21.
 
@@ -421,7 +421,7 @@ Después de cambiar un único módulo:
 Al completar un corte coherente:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-inventory-demo clean verify
+.\mvnw.cmd -B -Pwith-purchasing-demo clean verify
 ```
 
 Si el cambio debe observarse en la aplicación:
@@ -599,7 +599,7 @@ Por lo tanto:
 - [ ] `compose.env.local` existe y no contiene secretos.
 - [ ] Los cuatro secretos existen y no fueron sobrescritos.
 - [ ] Compose valida con código `0`.
-- [ ] Las imágenes app y migrator usan `with-inventory-demo`.
+- [ ] Las imágenes app y migrator usan `with-purchasing-demo`.
 - [ ] Migrator terminó con código `0`.
 - [ ] PostgreSQL, Keycloak y app están saludables.
 - [ ] Liveness y readiness responden `UP`.

@@ -50,10 +50,10 @@ Para la demo reproducible de Socios Comerciales:
   -pl migrator,distribution/logixone-war -am clean package
 ```
 
-Para la candidata actual con cuatro plugins productivos:
+Para la candidata actual con Compras y sus dependencias:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-inventory-demo `
+.\mvnw.cmd -B -Pwith-purchasing-demo `
   -pl migrator,distribution/logixone-war -am clean package
 ```
 
@@ -91,8 +91,8 @@ Resultado: `event=configuration_failed code=MISSING_DB_URL`, código 2.
 ```powershell
 docker build --check --file infra/docker/Dockerfile.migrator .
 docker build --pull --file infra/docker/Dockerfile.migrator `
-  --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo `
-  --tag logixone/migrator:j11-s8-c02-partner-definitions .
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo `
+  --tag logixone/migrator:j11-s9-06-purchasing-demo .
 ```
 
 BuildKit debe terminar sin advertencias. La imagen final debe ser `linux/amd64`, usar `10001:10001` y no contener `/workspace` ni `.tools`.

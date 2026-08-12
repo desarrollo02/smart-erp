@@ -47,6 +47,22 @@ class SmartErpBrandingResourceTest {
         assertFalse(source.contains("SmartErpSelectorReturn"));
     }
 
+    @Test
+    void workspaceExposesTheServerValidatedCompanyContext() throws IOException {
+        String source = resource("app/index.xhtml");
+
+        assertTrue(source.contains(
+                "class=\"identity-copy\" data-company-id=\"#{shellView.selectedCompanyId}\""));
+    }
+
+    @Test
+    void workspaceKeepsSelectorHelpReadableOnTheDarkTopbar() throws IOException {
+        String source = resource("resources/logixone/shell.css");
+
+        assertTrue(source.contains(".topbar .native-selector-source small { color: #c7d8d4; }"));
+        assertTrue(source.contains(".topbar .selector-management-link { color: #8ff3e8; }"));
+    }
+
     private String resource(String relativePath) throws IOException {
         String classpath = "/META-INF/resources/" + relativePath;
         try (InputStream input = getClass().getResourceAsStream(classpath)) {

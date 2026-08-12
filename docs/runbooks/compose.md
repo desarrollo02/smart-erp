@@ -85,9 +85,10 @@ La salida debe mostrar `jta => true`, el JNDI estable, el pool esperado y expres
 
 ## Migración actual
 
-El corte `J11-S8-C02` incorpora `core` V6, `plg_business_partners` V1–V4,
-`plg_commercial_catalog` V1–V4 y `plg_inventory` V1–V2 mediante el perfil
-`with-inventory-demo`; readiness exige V6 del núcleo. Una base vacía
+El corte `J11-S9-06` incorpora `core` V6, `plg_reference_data` V1–V4,
+`plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4,
+`plg_inventory` V1–V2 y `plg_purchasing` V1–V2 mediante el perfil
+`with-purchasing-demo`; readiness exige V6 del núcleo. Una base vacía
 aplica V1–V6; una base V1 aplica cinco migraciones, una V2 cuatro, una V3 tres, una
 V4 dos y una V5 sólo V6. La matriz está verde en PostgreSQL real y Compose:
 
@@ -98,8 +99,9 @@ docker compose --env-file infra/compose/compose.env.local -f infra/compose/compo
 ```
 
 Para el núcleo, el resultado es `migrations_executed=6`, `5`, `4`, `3`, `2` o `1`,
-según el origen, siempre con `schema_version=6`. En una base vacía participantes
-aplica V1–V4, catálogo V1–V4 e inventario V1–V2; una segunda ejecución aplica cero
+según el origen, siempre con `schema_version=6`. En una base vacía referencia,
+participantes y catálogo aplican V1–V4, mientras Inventario y Compras aplican
+V1–V2; una segunda ejecución aplica cero
 para núcleo y todos los plugins. J11-S8-C02 aplicó V3 de participantes y luego V2
 del catálogo una vez sobre el volumen conservado. El decimoséptimo corte aplicó
 V3 del catálogo una vez y preservó los contenedores PostgreSQL/Keycloak; cada repetición oficial informó

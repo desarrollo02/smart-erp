@@ -137,7 +137,7 @@ de BPM y siguen operando si el plugin está ausente o inactivo.
 La decisión, BPM-D01 a BPM-D12, historias y matriz están en
 [ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) y la
 [épica BPM](epica-gestion-procesos-negocio-bpm.md). Esta incorporación es sólo de
-planificación: no autoriza código ni cambia que J11-S9-06 sea el siguiente gate.
+planificación: no autoriza código ni cambia que J11-S9-07 sea el siguiente gate.
 
 ## Familia vertical de Flota
 
@@ -159,7 +159,7 @@ decisión, límites e historias están en
 [épica F1](epica-mantenimiento-flota.md), la
 [épica F2](epica-taller-automotriz-comercial.md) y la
 [caracterización](../knowledge-base/vehicle-maintenance/legacy-characterization.md).
-La planificación no autoriza código ni cambia J11-S9-06.
+La planificación no autoriza código ni cambia J11-S9-07.
 
 ## Política de ejecución
 
@@ -437,9 +437,10 @@ rama local `sprint/09-purchasing` el 2026-08-11. J11-S9-02 implementó API y
 dominio; J11-S9-03 implementó V1 privada, JPA y repositorios; J11-S9-04 implementó
 aplicación, permisos, V2, CDI/JTA e integración pública con Inventario; J11-S9-05
 incorporó cinco pantallas neutrales, directorios paginados, selectores gobernados y
-el manual de Compras. J11-S9-02 a J11-S9-05 quedaron validadas automáticamente;
-J11-S9-06 quedó habilitada para composición, runtime, Playwright y demo, mientras
-la validación independiente permanece pendiente.
+el manual de Compras. J11-S9-06 compuso Compras y completó Maven, ArchUnit,
+PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright. J11-S9-07 queda
+habilitada como gate acumulado de cierre, mientras la validación independiente
+permanece pendiente.
 
 ADR-0040 agrega documentalmente `legacy_migration` como plugin técnico opcional y
 eleva el catálogo global planificado a treinta reutilizables. No modifica el
@@ -452,13 +453,13 @@ runner o conector ejecutable.
 ADR-0045 agrega documentalmente `business_process_management` como funcional
 transversal y eleva el catálogo global planificado a treinta y un reutilizables.
 No modifica el reactor, las migraciones o la composición. BPM-D01 a BPM-D12 y un
-spike de motor deben aceptarse en una iteración propia; J11-S9-06 continúa siendo
-el siguiente trabajo autorizado.
+spike de motor deben aceptarse en una iteración propia; el siguiente trabajo
+autorizado de Compras es J11-S9-07.
 
 ADR-0046 agrega documentalmente la familia vertical Flota con F1
 `fleet_maintenance` y F2 `automotive_workshop`, elevando el catálogo global
 planificado a treinta y tres reutilizables. FM-D01 a FM-D12 y AW-D01 a AW-D10
 fueron aceptadas sin cambios el 2026-08-12. No modifica reactor, POM, migraciones,
-composición ni el trabajo autorizado: J11-S9-06 continúa siendo el siguiente
+composición ni el trabajo autorizado: J11-S9-07 continúa siendo el siguiente
 gate. FM-00 sólo podrá abrirse después de estabilizar `logistics-api`; AW-00
 requiere además F1, Ventas y Documentos Comerciales.

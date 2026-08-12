@@ -18,9 +18,10 @@ J11-S9-05 agrega cinco menús y pantallas neutrales: solicitudes, órdenes,
 recepciones, devoluciones y seguimiento. Los handlers publican
 `ScreenInteraction`; el shell conserva Jakarta Faces, XHTML, Material Design 3 y
 responsive. También incorpora directorios paginados y fuentes gobernadas para
-todos los selectores. No contiene eventos ni composición física; esta última
-corresponde a J11-S9-06. Las pruebas están escritas pero su ejecución queda
-acumulada para la candidata comercializable.
+todos los selectores. J11-S9-06 agrega la composición física
+`with-purchasing-demo` al WAR y migrador, búsquedas exactas y el recorrido E2E
+completo. Maven, ArchUnit, PostgreSQL/Testcontainers, migraciones, health, OIDC y
+Playwright están verdes; sólo la validación independiente permanece pendiente.
 
 Consulte [ADR-0041](../../docs/adr/0041-modelo-purchasing-y-contratos-publicos.md)
 y [ADR-0042](../../docs/adr/0042-persistencia-privada-purchasing.md), junto con

@@ -3,6 +3,8 @@ package py.com.logixone.plugins.purchasing.infrastructure.ui;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.ALL;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.PAGE_SIZE;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.context;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.canonicalUuid;
+import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.exactOptionPage;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.decimal;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.filter;
 import static py.com.logixone.plugins.purchasing.infrastructure.ui.PurchasingScreenSupport.filterEnum;
@@ -67,6 +69,13 @@ public class PurchasingReceiptScreenHandler implements ScreenInteraction.Handler
             ScreenInteraction.SelectorOptionRequest request) {
         PurchasingOperationContext view = context(authorization, PurchasingPermissions.VIEW);
         if (request.elementId().equals(PurchasingScreenContract.RECEIPT_ORDER)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, useCases.order(view,
+                                new PurchaseOrderId(exactId.orElseThrow())).value()
+                        .filter(value -> value.state() == PurchaseOrderState.ISSUED)
+                        .map(value -> option(value.id().toString(), value.number())));
+            }
             var page = useCases.searchOrders(view, new PurchasingDirectoryQueries.OrderCriteria(
                     Optional.of(request.query()).filter(value -> !value.isBlank()),
                     Optional.of(PurchaseOrderState.ISSUED), request.offset(), request.limit()))
@@ -77,6 +86,15 @@ public class PurchasingReceiptScreenHandler implements ScreenInteraction.Handler
                     page.total(), page.offset(), page.limit());
         }
         if (request.elementId().equals(PurchasingScreenContract.RECEIPT_WAREHOUSE)) {
+            var exactId = canonicalUuid(request.query());
+            if (exactId.isPresent()) {
+                return exactOptionPage(request, storage.findWarehouse(
+                                view.companyContext().companyId(),
+                                new WarehouseId(exactId.orElseThrow()))
+                        .filter(WarehouseReference::active)
+                        .map(value -> option(value.id().toString(),
+                                value.code() + " Â· " + value.name())));
+            }
             var page = storage.searchWarehouses(view.companyContext().companyId(),
                     new StorageSearchQuery(
                             Optional.of(request.query()).filter(value -> !value.isBlank()),

@@ -4,7 +4,7 @@
     <div class="eyebrow">Manual de usuario por módulo · orden de lectura 07</div>
     <h1>Compras</h1>
     <p class="subtitle">Solicitudes, aprobación, órdenes, recepciones, devoluciones y seguimiento de cantidades.</p>
-    <div class="meta"><strong>Versión documentada:</strong> plugin <code>purchasing</code> 1.1, historia J11-S9-05.<br><strong>Estado:</strong> implementada y validada automáticamente en el corte no compuesto; la validación independiente y los gates runtime/Playwright al componerla siguen pendientes. No es una versión comercializable ni productiva.<br><strong>Audiencia:</strong> solicitantes, aprobadores, compradores, responsables de recepción, supervisores y soporte.<br><strong>Fuente de datos:</strong> código, contratos, migraciones V1–V2 y pruebas PostgreSQL/Testcontainers del repositorio.</div>
+    <div class="meta"><strong>Versión documentada:</strong> plugin <code>purchasing</code> 1.1, historia J11-S9-06.<br><strong>Estado:</strong> compuesta y validada automáticamente con Maven, PostgreSQL, Docker/Compose, health, OIDC y Playwright; la validación independiente y el cierre J11-S9-07 siguen pendientes. No es una versión comercializable ni productiva.<br><strong>Acceso local de la candidata:</strong> <code>http://localhost:18080/logixone/</code>.<br><strong>Audiencia:</strong> solicitantes, aprobadores, compradores, responsables de recepción, supervisores y soporte.<br><strong>Fuente de datos:</strong> código, contratos, migraciones V1–V2 y pruebas PostgreSQL/Testcontainers del repositorio.</div>
   </header>
 
   <section class="toc">
@@ -283,6 +283,6 @@
       <li>Ante un error, anote empresa, pantalla, número de documento, acción, hora y mensaje. No envíe contraseñas, tokens ni datos personales innecesarios.</li>
       <li>Un plugin desactivado o un permiso ausente oculta menús y bloquea operaciones también en el servidor.</li>
     </ul>
-    <p><strong>Canal de soporte:</strong> utilice el canal definido por el implementador y adjunte el identificador de correlación cuando la pantalla lo muestre. Mientras falten composición, Playwright y validación independiente, cualquier uso debe limitarse a revisión interna controlada.</p>
+    <p><strong>Canal de soporte:</strong> utilice el canal definido por el implementador y adjunte el identificador de correlación cuando la pantalla lo muestre. Mientras falten el gate de cierre y la validación independiente, cualquier uso debe limitarse a revisión interna controlada.</p>
   </section>
 </article>

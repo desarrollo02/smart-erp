@@ -1,15 +1,14 @@
 # Manual técnico para desarrolladores de Smart ERP
 
-- Edición: 0.1-rc51
+- Edición: 0.1-rc52
 - Fecha: 2026-08-12
 - Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C07 implementa publicaciones
   completas, unidad menor opcional y búsqueda paginada de `reference_data`;
   J11-S8-C06 mantiene políticas optimistas y V2 append-only; PostgreSQL, Docker,
   JTA/OIDC y Playwright de C06/C07 están verdes y el PDF fue verificado; producto
-  decidió `NO` crear instalador para este baseline; J11-S9-05 incorpora cinco
-  contratos de pantalla, handlers, directorios paginados, selectores gobernados y
-  renderer del shell para `purchasing`, validado automáticamente mediante módulo,
-  PostgreSQL, ArchUnit y `mvn verify`, pero aún fuera de la composición; ADR-0040 planifica
+  decidió `NO` crear instalador para este baseline; J11-S9-06 compone
+  `purchasing` en WAR/migrador y valida sus cinco recorridos con Maven, ArchUnit,
+  PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; ADR-0040 planifica
   `legacy_migration`, ADR-0045 `business_process_management` y ADR-0046 la familia
   Flota F1/F2; G7 permanece pendiente
 - Audiencia: desarrolladores, revisores, arquitectos e implementadores técnicos
@@ -811,10 +810,12 @@ es el único renderer y resuelve los textos centralmente. Consulte
 [ADR-0044](../adr/0044-recorridos-visuales-purchasing.md) y
 [J11-S9-05](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md).
 
-El código está implementado y validado automáticamente dentro del corte no
-compuesto, y aún no forma parte del WAR ni del migrador. La composición física,
-los gates runtime/Playwright y la demo corresponden a J11-S9-06. La validación
-independiente permanece pendiente.
+J11-S9-06 incorpora el perfil físico `with-purchasing-demo` al conjunto de
+plugins, WAR y migrador. El shell conserva selectores de búsqueda y selectores
+dependientes mediante parámetros semánticos `selectorValue:*`, revalida los UUID
+en el handler propietario y reconstruye opciones antes de ejecutar acciones. El
+corte desplegado superó health/OIDC y el E2E completo en los tres rangos
+responsive. La validación independiente y J11-S9-07 permanecen pendientes.
 
 ADR-0027, ADR-0030, ADR-0032, ADR-0033 y ADR-0034 ampliaron el roadmap a
 diecinueve plugins ERP reutilizables, más una personalización obligatoria
@@ -1170,8 +1171,9 @@ publica 248 países y 178 códigos únicos de moneda o fondo. Ambos selectores u
 están verdes; la decisión del instalador quedó registrada como `NO`. Producto
 autorizó abrir Sprint 9 para caracterizar `purchasing`. El 2026-08-11 aclaró que
 sólo se difiere la validación independiente de otra persona; las pruebas
-automatizadas son obligatorias. J11-S9-05 dejó verdes módulo, PostgreSQL,
-ArchUnit y `mvn verify`; los gates de composición y promoción continúan
+automatizadas son obligatorias. J11-S9-06 dejó verdes módulo, PostgreSQL,
+ArchUnit, `mvn verify`, Docker/Compose, migraciones, health, OIDC y Playwright;
+el gate de cierre, la promoción y la validación independiente continúan
 pendientes.
 
 ## 25. Referencias internas
@@ -1201,6 +1203,8 @@ pendientes.
 - [J11-S9-04 — Aplicación de `purchasing`](../sprints/sprint-09/J11-S9-04-aplicacion-purchasing.md)
 - [ADR-0044 — Recorridos visuales de `purchasing`](../adr/0044-recorridos-visuales-purchasing.md)
 - [J11-S9-05 — Interfaz de `purchasing`](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md)
+- [J11-S9-06 — Integración de `purchasing`](../sprints/sprint-09/J11-S9-06-integracion-composicion-purchasing.md)
+- [Demo J11-S9-06 de Compras](../runbooks/demo-purchasing-j11-s9-06.md)
 - [Épica de migración de legados](../backlog/epica-migracion-legados-oracle-forms-reports.md)
 - [Perfil Oracle Forms & Reports](../knowledge-base/legacy-migration/oracle-forms-reports-source-profile.md)
 - [ADR-0029 — Confirmación del instalador](../adr/0029-confirmacion-instalador-por-cierre-sprint.md)

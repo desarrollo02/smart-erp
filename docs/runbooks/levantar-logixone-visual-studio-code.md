@@ -1,13 +1,14 @@
 # Levantar Smart ERP con Visual Studio Code
 
-- Edición: 0.6
-- Fecha de actualización: 2026-08-05
+- Edición: 0.7
+- Fecha de actualización: 2026-08-12
 - Entorno de referencia: Windows 11 y PowerShell
 - Baseline: Java 21, Maven Wrapper 3.9.16, Docker/Compose, PostgreSQL, Keycloak
   26.7.0 y WildFly 41
-- Perfil funcional actual: `with-inventory-demo`
-- Estado de validación: revisado contra J11-S8-07 y el instalador interno
-  J11-S8-08; instalación limpia de VS Code, matriz Windows y G7 pendientes
+- Perfil funcional actual: `with-purchasing-demo`
+- Estado de validación: revisado contra J11-S9-06; Maven, Docker/Compose,
+  migraciones, health, OIDC y Playwright verdes; instalación limpia de VS Code,
+  matriz Windows, cierre J11-S9-07 y validación independiente pendientes
 
 > **Instalador interno disponible:** `installer/windows/current/` contiene
 > `0.8.0-internal.1`. Diagnostica y monta el baseline después del consentimiento,
@@ -140,11 +141,10 @@ Prueba pequeña:
 .\mvnw.cmd -B -pl plugin-api -am test
 ```
 
-Baseline candidato con cuatro plugins productivos, incluida la fundación
-`reference_data`:
+Baseline candidato con Compras y sus dependencias:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-inventory-demo clean verify
+.\mvnw.cmd -B -Pwith-purchasing-demo clean verify
 ```
 
 La vista **Testing** permite lanzar o depurar casos JUnit individuales, pero el
@@ -233,7 +233,7 @@ volúmenes.
 ```powershell
 docker build --platform linux/amd64 `
   --build-arg LOGIXONE_BUILD_MODE=verified `
-  --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo `
   --tag logixone/app:local-vscode `
   --file infra/docker/Dockerfile .
 ```
@@ -241,7 +241,7 @@ docker build --platform linux/amd64 `
 ```powershell
 docker build --platform linux/amd64 `
   --build-arg LOGIXONE_BUILD_MODE=verified `
-  --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo `
   --tag logixone/migrator:local-vscode `
   --file infra/docker/Dockerfile.migrator .
 ```
@@ -304,7 +304,7 @@ Después de un cambio coherente en un módulo:
 Al completar el corte:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-inventory-demo clean verify
+.\mvnw.cmd -B -Pwith-purchasing-demo clean verify
 ```
 
 Si el cambio afecta la distribución, reconstruya ambas imágenes con el mismo
@@ -371,7 +371,7 @@ contribuciones autorizadas; no fusiona XHTML manualmente.
 - [ ] `compose.env.local` existe y no contiene secretos.
 - [ ] Los cuatro secretos existen y ninguno fue sobrescrito.
 - [ ] Compose valida con código `0`.
-- [ ] Aplicación y migrador usan `with-inventory-demo`.
+- [ ] Aplicación y migrador usan `with-purchasing-demo`.
 - [ ] Migrator terminó con código `0`.
 - [ ] PostgreSQL, Keycloak y app están saludables.
 - [ ] Liveness y readiness responden `UP`.

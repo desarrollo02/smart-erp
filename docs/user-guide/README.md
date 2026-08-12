@@ -1,6 +1,6 @@
 # Manual de usuario de Smart ERP
 
-- Edición: 0.1-rc33
+- Edición: 0.1-rc34
 - Fecha: 2026-08-12
 - Baseline: J11-S8-C07 implementa publicaciones completas, búsqueda paginada y unidad menor opcional para datos de referencia; J11-S8-C06 mantiene la habilitación empresarial versionada; J11-S8-C02 mantiene familias de variantes y definiciones de socios,
   ciclo activo/inactivo de definiciones simples/perfiles/tipos de canal/familias y revisión explícita
@@ -14,12 +14,11 @@
 - Audiencia: operadores, responsables de maestros comerciales y administradores
   autorizados
 
-> **Compras está implementada pero todavía no está compuesta.** J11-S9-05 define
-> sus cinco pantallas, menús, ayuda y manual PDF. La distribución oficial no la
-> hará navegable hasta J11-S9-06. Las pruebas automatizadas de módulo,
-> PostgreSQL, arquitectura y regresión están verdes; Playwright y los gates
-> runtime se ejecutarán al componerla. La validación independiente sigue
-> pendiente; no use estas rutas como si fueran una versión comercializable.
+> **Compras ya está compuesta y navegable en la candidata J11-S9-06.** Sus cinco
+> pantallas, menús y ayuda funcionan en Docker/Compose y superaron Maven,
+> PostgreSQL, arquitectura, health, OIDC y Playwright en 375, 720 y 1280 px. La
+> validación independiente y el gate de cierre J11-S9-07 siguen pendientes; no
+> presente todavía este corte como versión comercializable o productiva.
 
 ## Manuales independientes por módulo
 
@@ -52,8 +51,7 @@ Smart ERP es un ERP modular. La candidata actual permite:
 - administrar depósitos y ubicaciones, inscribir productos, consultar existencias,
   contabilizar movimientos, gestionar reservas y ejecutar conteos físicos;
 - preparar solicitudes y órdenes, registrar recepciones/devoluciones y consultar
-  cumplimiento mediante las pantallas definidas de Compras, todavía fuera de la
-  composición y pendientes de pruebas;
+  cumplimiento mediante las cinco pantallas compuestas de Compras;
 - activar plugins y administrar permisos desde pantallas restringidas;
 - conservar separados los datos y accesos de cada empresa.
 

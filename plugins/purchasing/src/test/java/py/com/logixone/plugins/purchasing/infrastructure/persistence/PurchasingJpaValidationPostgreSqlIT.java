@@ -50,6 +50,7 @@ import py.com.logixone.plugins.purchasing.domain.PurchaseRequest;
 import py.com.logixone.plugins.purchasing.domain.PurchasedItemSnapshot;
 import py.com.logixone.plugins.purchasing.domain.SupplierReturn;
 import py.com.logixone.plugins.purchasing.domain.SupplierSnapshot;
+import py.com.logixone.plugins.purchasing.application.query.PurchasingDirectoryQueries;
 import py.com.logixone.plugins.referencedata.api.CurrencyCode;
 
 @Testcontainers
@@ -98,6 +99,25 @@ class PurchasingJpaValidationPostgreSqlIT {
             EntityManager entityManager = entityManagerFactory.createEntityManager();
             entityManager.close();
         });
+    }
+
+    @Test
+    void findsCommercialNumbersRegardlessOfInputCase() {
+        Fixture fixture = new Fixture();
+        inTransaction(entityManager -> {
+            new JpaPurchaseRequestRepository(entityManager).insert(fixture.draftRequest());
+            return null;
+        });
+
+        var page = inTransaction(entityManager ->
+                new JpaPurchasingDirectoryRepository(entityManager).requests(
+                        fixture.companyId,
+                        new PurchasingDirectoryQueries.RequestCriteria(
+                                        Optional.of("SC-1"), Optional.empty(), 0, 20)));
+
+        assertEquals(List.of("SC-1"), page.items().stream()
+                .map(item -> item.number())
+                .toList());
     }
 
     @Test

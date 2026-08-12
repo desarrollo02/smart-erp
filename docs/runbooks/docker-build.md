@@ -106,7 +106,7 @@ docker build --platform linux/amd64 `
 
 `LOGIXONE_MAVEN_PROFILE` acepta exclusivamente `none`, `with-reference-plugin`,
 `with-screen-customization-plugins`, `with-business-partners-demo`,
-`with-commercial-catalog-demo` y `with-inventory-demo`;
+`with-commercial-catalog-demo`, `with-inventory-demo` y `with-purchasing-demo`;
 `LOGIXONE_BUILD_MODE` acepta `verified` y `visual-candidate`. Cualquier combinación
 no declarada detiene el builder con código 64. No usar estos argumentos para
 configuración del entorno ni secretos. La imagen que se pretenda promover debe
@@ -190,6 +190,30 @@ Resultados inspeccionados para `linux/amd64`:
 
 Son digests locales del baseline validado, no evidencia de publicación en un
 registro. No promover ni reconstruir bajo la misma etiqueta.
+
+La pareja candidata J11-S9-06 agrega Compras y debe construirse con:
+
+```powershell
+docker build --platform linux/amd64 `
+  --build-arg LOGIXONE_BUILD_MODE=verified `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo `
+  --tag logixone/app:j11-s9-06-purchasing-demo-r5 `
+  --file infra/docker/Dockerfile .
+
+docker build --platform linux/amd64 `
+  --build-arg LOGIXONE_BUILD_MODE=verified `
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo `
+  --tag logixone/migrator:j11-s9-06-purchasing-demo `
+  --file infra/docker/Dockerfile.migrator .
+```
+
+Identidades locales verificadas el 2026-08-12:
+
+- app: `sha256:4e7e84da913b64ae08cdd72188640af5a023e824db67dfb0aecdc2d40c38fba8`,
+  501.507.736 bytes;
+- migrator: `sha256:7a03dca088e04b79b7e83c6568b982f2b5f728695ed3de800e1dbd8a0f4fcef8`.
+
+Estas identidades son locales, no referencias publicadas en un registro.
 
 El builder toma la versión de pgJDBC de `postgresql.jdbc.version` en el POM padre. El stage runtime instala ese JAR como módulo WildFly y ejecuta `infra/wildfly/configure-runtime.cli` al construir la imagen. El CLI guarda expresiones externas, no valores de entorno ni secretos.
 

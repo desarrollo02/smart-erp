@@ -1,6 +1,6 @@
 # Épica - Compras `purchasing`
 
-- Estado: activa; J11-S9-05 implementada y validada automáticamente, validación independiente pendiente; J11-S9-06 habilitada
+- Estado: activa; J11-S9-06 implementada y validada automáticamente, validación independiente pendiente; J11-S9-07 habilitada
 - Orden del roadmap: 4
 - Incremento inicial: [Sprint 9](../sprints/sprint-09/README.md)
 - ADR rector: [ADR-0011](../adr/0011-roadmap-dependencias-plugins-productivos.md)
@@ -77,15 +77,15 @@ ausente o inactivo y no importará su implementación.
 | 4 | J11-S9-03 | esquema privado, migraciones y repositorios; validada automáticamente con PostgreSQL |
 | 5 | J11-S9-04 | aplicación, permisos, auditoría, JTA e idempotencia; validada automáticamente en el corte no compuesto |
 | 6 | J11-S9-05 | UI neutral/Material Design responsive; módulo y shell validados automáticamente, Playwright al componer |
-| 7 | J11-S9-06 | composición, integraciones y demo candidata |
+| 7 | J11-S9-06 | composición, integraciones y demo candidata; validada automáticamente |
 | 8 | J11-S9-07 | matriz acumulada, demo oficial, PDF y cierre |
 | 9 | J11-S9-08 | decisión explícita y, sólo con `SÍ`, instalador Windows |
 
-J11-S9-02 a J11-S9-05 están implementadas y validadas automáticamente; sólo la
-validación independiente permanece diferida. J11-S9-06 debe ejecutar los gates
-runtime y Playwright al componer el plugin. J11-S9-07 no se considera cumplida
-hasta completar esa matriz y la aceptación independiente; sin esos gates no
-existe versión comercializable.
+J11-S9-02 a J11-S9-06 están implementadas y validadas automáticamente; sólo la
+validación independiente permanece diferida. J11-S9-06 completó composición,
+runtime, OIDC y Playwright. J11-S9-07 no se considera cumplida hasta repetir la
+matriz sobre el baseline congelado, completar sus entregables de cierre y reunir
+la aceptación independiente; sin esos gates no existe versión comercializable.
 
 ## Criterios de aceptación de la épica
 
@@ -129,6 +129,7 @@ Producto aceptó PU-D01 a PU-D10 sin cambios y autorizó la rama local
 implementó nueve tablas privadas, V1, JPA y cuatro repositorios. J11-S9-04 agregó
 doce permisos, aplicación auditada, V2, contratos CDI/JTA e integración pública
 con Inventario. J11-S9-05 agregó menús, pantallas, búsquedas paginadas, selectores
-gobernados y el manual PDF 07. Las pruebas automatizadas aplicables quedaron
-verdes; J11-S9-06 queda habilitada para composición, runtime, Playwright y demo.
-La validación independiente por otra persona permanece pendiente.
+gobernados y el manual PDF 07. J11-S9-06 compuso WAR/migrador y dejó verdes Maven,
+ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright.
+J11-S9-07 queda habilitada para el gate acumulado y los entregables de cierre. La
+validación independiente por otra persona permanece pendiente.

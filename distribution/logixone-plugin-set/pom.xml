@@ -140,5 +140,42 @@
                 </dependency>
             </dependencies>
         </profile>
+        <profile>
+            <id>with-purchasing-demo</id>
+            <dependencies>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>reference-data</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>reference-plugin</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>reference-customization-a</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>reference-customization-b</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>business-partners</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>commercial-catalog</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>inventory</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>py.com.logixone</groupId>
+                    <artifactId>purchasing</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 </project>
