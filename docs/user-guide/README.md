@@ -35,6 +35,12 @@ cooperativa C1-C6 y Flota F1-F2, las operaciones del proveedor, Migración, BPM 
 la personalización final de cada empresa. F1 `fleet_maintenance` y F2
 `automotive_workshop` están planificados; todavía no son pantallas utilizables.
 
+Para instalar y operar la candidata en Ubuntu, consulte el
+[manual de puesta en marcha en Ubuntu](../runbooks/levantar-logixone-ubuntu.md)
+y su [edición PDF](../output/pdf/01-manual-levantar-smart-erp-ubuntu.pdf). Es un
+recorrido de entorno local o demostración; no representa todavía un instalador
+Linux ni una guía de producción.
+
 ## 1. Qué permite hacer esta edición
 
 Smart ERP es un ERP modular. La candidata actual permite:

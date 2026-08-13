@@ -1,7 +1,7 @@
 # Manual técnico para desarrolladores de Smart ERP
 
-- Edición: 0.1-rc52
-- Fecha: 2026-08-12
+- Edición: 0.1-rc53
+- Fecha: 2026-08-13
 - Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C07 implementa publicaciones
   completas, unidad menor opcional y búsqueda paginada de `reference_data`;
   J11-S8-C06 mantiene políticas optimistas y V2 append-only; PostgreSQL, Docker,
@@ -9,8 +9,9 @@
   decidió `NO` crear instalador para este baseline; J11-S9-06 compone
   `purchasing` en WAR/migrador y valida sus cinco recorridos con Maven, ArchUnit,
   PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; ADR-0040 planifica
-  `legacy_migration`, ADR-0045 `business_process_management` y ADR-0046 la familia
-  Flota F1/F2; G7 permanece pendiente
+  `legacy_migration`, ADR-0045 `business_process_management`, ADR-0046 la familia
+  Flota F1/F2 y ADR-0047 el gate de floorplans operativos previo a `sales`; G7
+  permanece pendiente
 - Audiencia: desarrolladores, revisores, arquitectos e implementadores técnicos
 - Estado: inicial; G7 independiente y autorización de producción pendientes
 
@@ -328,6 +329,19 @@ detalle técnico seguro queda en auditoría/log.
 
 Un plugin aporta menú por `MenuContribution`; el shell lo ordena y filtra. Agregar
 otro plugin fusiona contribuciones, no archivos XHTML.
+
+ADR-0047 agrega una distinción obligatoria entre maestros y tareas operativas.
+`MASTER_DATA` conserva directorio, alta y ficha; `WORKLIST` procesa pendientes;
+`TRANSACTION_EDITOR` organiza cabecera, líneas, resumen y finalización;
+`GUIDED_OPERATION` ordena capturas dependientes; `INQUIRY` consulta sin mutar. Los
+nombres definitivos se materializarán en J11-S10-01, pero la taxonomía permanece
+cerrada y neutral. El plugin declara propósito y semántica; el shell continúa
+decidiendo el componente Faces y la adaptación visual.
+
+No exponga al usuario identidad técnica, versión optimista o claves de
+idempotencia. No muestre simultáneamente transiciones que no aplican al estado,
+actor o permiso vigentes. La visibilidad mejora la tarea, pero la autorización se
+repite siempre en el servidor.
 
 ## 13. Personalización empresarial
 
@@ -1193,6 +1207,7 @@ pendientes.
 - [ADR-0045 — Plugin de gestión de procesos de negocio BPM](../adr/0045-plugin-gestion-procesos-negocio-bpm.md)
 - [Épica — Gestión de procesos de negocio BPM](../backlog/epica-gestion-procesos-negocio-bpm.md)
 - [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
+- [ADR-0047 — Floorplans operativos y transaccionales](../adr/0047-floorplans-operativos-transaccionales.md)
 - [Épica — Mantenimiento de flota](../backlog/epica-mantenimiento-flota.md)
 - [Épica — Taller automotriz comercial](../backlog/epica-taller-automotriz-comercial.md)
 - [ADR-0041 — Modelo de `purchasing`](../adr/0041-modelo-purchasing-y-contratos-publicos.md)

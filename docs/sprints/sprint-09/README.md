@@ -173,3 +173,18 @@ para congelar el baseline de cierre, repetir la matriz acumulada, completar la
 demo oficial, actualizar la fotografía de plugins y regenerar/revisar el PDF
 obligatorio. La aceptación por otra persona permanece pendiente y Sprint 9 no
 está cerrado.
+
+## Iteración transversal posterior aprobada
+
+El responsable de producto decidió el 2026-08-13 que, después de congelar el
+baseline técnico mediante J11-S9-07 y registrar la decisión de instalador
+J11-S9-08, se ejecute
+[Sprint 10](../sprint-10/README.md) para implementar floorplans operativos y
+transaccionales antes de comenzar `sales`.
+
+La decisión responde a la revisión de las pantallas reales de Inventario y
+Compras: los maestros conservarán el floorplan actual, mientras movimientos,
+órdenes, recepción/devolución y aprobaciones serán pilotos de captura
+condicional, editor de líneas, resumen contextual y bandeja de trabajo. El cambio
+no reabre J11-S9-05/J11-S9-06 ni modifica el siguiente trabajo inmediato:
+J11-S9-07 sigue siendo el gate habilitado.

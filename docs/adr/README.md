@@ -52,3 +52,4 @@ Las primeras decisiones previstas cubrirán el baseline Jakarta EE 11, el modelo
 - [ADR-0044 — Recorridos visuales de `purchasing`](0044-recorridos-visuales-purchasing.md)
 - [ADR-0045 — Plugin de gestión de procesos de negocio BPM](0045-plugin-gestion-procesos-negocio-bpm.md)
 - [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](0046-familia-mantenimiento-flota-taller-automotriz.md)
+- [ADR-0047 — Floorplans operativos y transaccionales](0047-floorplans-operativos-transaccionales.md)

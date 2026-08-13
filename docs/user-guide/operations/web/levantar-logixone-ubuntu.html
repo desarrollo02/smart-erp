@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Proyecto LogixOne / Smart ERP">
+<meta name="description" content="Manual para instalar y levantar Smart ERP en Ubuntu">
+<title>Manual de instalaci&oacute;n y puesta en marcha de Smart ERP en Ubuntu</title>
+<link rel="stylesheet" href="../manual-ubuntu.css"></head><body><main>
+<section class="cover">
+<h1>Manual de instalaci&#243;n y puesta en marcha de Smart ERP en Ubuntu</h1>
+<p><strong>Producto:</strong> LogixOne / repositorio <code>smart-erp</code><br> <strong>Edici&#243;n:</strong> 1.0 - entorno local o servidor de demostraci&#243;n<br> <strong>Fecha de verificaci&#243;n documental:</strong> 12 de agosto de 2026<br> <strong>Plataforma objetivo:</strong> Ubuntu 24.04 LTS, arquitectura AMD64<br> <strong>Perfil funcional del ejemplo:</strong> <code>with-purchasing-demo</code><br> <strong>Audiencia:</strong> persona nueva que administrar&#225;, demostrar&#225; o evaluar&#225; el sistema</p>
+</section>
+<nav class="toc" aria-label="Contenido"><h2>Contenido</h2><ol>
+<li><a href="#section-1">1. C&#243;mo usar este manual</a></li>
+<li><a href="#section-2">2. T&#233;rminos que debe conocer</a></li>
+<li><a href="#section-3">3. Arquitectura que se levantar&#225;</a></li>
+<li><a href="#section-4">4. Etapa 1 - Diagnosticar el equipo Ubuntu</a></li>
+<li><a href="#section-5">5. Etapa 2 - Instalar Docker Engine, Compose y Git</a></li>
+<li><a href="#section-6">6. Etapa 3 - Descargar el proyecto desde GitLab</a></li>
+<li><a href="#section-7">7. Etapa 4 - Crear secretos y configuraci&#243;n local</a></li>
+<li><a href="#section-8">8. Etapa 5 - Construir las im&#225;genes</a></li>
+<li><a href="#section-9">9. Etapa 6 - Iniciar todos los servicios</a></li>
+<li><a href="#section-10">10. Etapa 7 - Validar salud y abrir el navegador</a></li>
+<li><a href="#section-11">11. Operaci&#243;n diaria: estado, logs, reinicio y parada</a></li>
+<li><a href="#section-12">12. Actualizar a una nueva versi&#243;n</a></li>
+<li><a href="#section-13">13. Cambiar puertos o publicar detr&#225;s de un proxy</a></li>
+<li><a href="#section-14">14. Diagn&#243;stico y recuperaci&#243;n</a></li>
+<li><a href="#section-15">15. Lista de comprobaci&#243;n r&#225;pida</a></li>
+<li><a href="#section-16">16. Validaci&#243;n de fuentes y alcance de datos</a></li>
+<li><a href="#section-17">17. Seguridad, l&#237;mites y soporte</a></li>
+<li><a href="#section-18">18. Referencias can&#243;nicas</a></li>
+</ol></nav>
+<h2 id="section-1">1. C&#243;mo usar este manual</h2>
+<div class="callout"><strong>Estado de soporte:</strong> este procedimiento levanta el entorno reproducible mediante Docker Compose. No es un instalador Linux ni una gu&#237;a de producci&#243;n. Keycloak se ejecuta en modo de desarrollo y los puertos quedan restringidos al propio equipo. Para producci&#243;n hacen falta decisiones adicionales de TLS, proxy, DNS, secretos, respaldo, monitoreo y alta disponibilidad.</div>
+<p>Siga las etapas en orden la primera vez. Una vez instalado, use la secci&#243;n 15 como referencia diaria y la secci&#243;n 14 para diagnosticar problemas. No copie &#250;nicamente el comando: lea tambi&#233;n el resultado esperado y la recuperaci&#243;n segura de cada etapa.</p>
+<p>Al terminar podr&#225;:</p>
+<ol>
+<li>comprobar que Ubuntu y Docker son aptos para el entorno de demostraci&#243;n;</li>
+<li>descargar el c&#243;digo desde el GitLab principal;</li>
+<li>crear secretos locales sin incorporarlos a Git;</li>
+<li>construir las im&#225;genes de aplicaci&#243;n y migraciones;</li>
+<li>iniciar PostgreSQL, Keycloak, el migrador y la aplicaci&#243;n;</li>
+<li>abrir LogixOne desde un navegador local o por un t&#250;nel SSH;</li>
+<li>detener, reiniciar, actualizar y diagnosticar el entorno sin borrar datos.</li>
+</ol>
+<h3>Qu&#233; no cubre</h3>
+<ul>
+<li>certificaci&#243;n productiva en Ubuntu;</li>
+<li>publicaci&#243;n directa en Internet;</li>
+<li>instalaci&#243;n de un proxy TLS o un nombre DNS;</li>
+<li>cl&#250;ster, alta disponibilidad o recuperaci&#243;n ante desastres;</li>
+<li>aceptaci&#243;n funcional por una persona independiente;</li>
+<li>creaci&#243;n de un instalador Linux.</li>
+</ul>
+<h3>Convenciones de los comandos</h3>
+<ul>
+<li>Ejecute los comandos desde una terminal Bash.</li>
+<li>El s&#237;mbolo <code>$</code> representa el prompt y no se escribe.</li>
+<li>Los bloques se pueden copiar completos salvo que indiquen lo contrario.</li>
+<li>Los comandos del proyecto suponen que su usuario puede acceder al socket de Docker. Si no puede, anteponga <code>sudo</code> a cada comando <code>docker</code>.</li>
+<li>Sustituya los valores entre <code>&lt;</code> y <code>&gt;</code>; no escriba los signos angulares.</li>
+<li>La carpeta elegida en los ejemplos es <code>$HOME/proyectos/smart-erp</code>.</li>
+</ul>
+<h2 id="section-2">2. T&#233;rminos que debe conocer</h2>
+<table><thead><tr>
+<th>T&#233;rmino</th>
+<th>Explicaci&#243;n para una persona nueva</th>
+</tr></thead><tbody>
+<tr>
+<td>Ubuntu</td>
+<td>Sistema operativo Linux sobre el que se ejecutar&#225;n Docker y Git.</td>
+</tr>
+<tr>
+<td>Terminal</td>
+<td>Ventana donde se escriben comandos. En Ubuntu puede abrirse con <code>Ctrl+Alt+T</code>.</td>
+</tr>
+<tr>
+<td>Repositorio</td>
+<td>Carpeta versionada que contiene c&#243;digo, infraestructura y documentaci&#243;n del proyecto.</td>
+</tr>
+<tr>
+<td>GitLab</td>
+<td>Servidor principal del c&#243;digo de este proyecto. GitHub queda como remoto secundario.</td>
+</tr>
+<tr>
+<td>Git</td>
+<td>Herramienta que descarga versiones del repositorio y permite actualizarlas.</td>
+</tr>
+<tr>
+<td>Rama <code>main</code></td>
+<td>L&#237;nea principal del c&#243;digo. Este manual parte de ella.</td>
+</tr>
+<tr>
+<td>Docker Engine</td>
+<td>Servicio que crea y ejecuta contenedores Linux aislados.</td>
+</tr>
+<tr>
+<td>Imagen</td>
+<td>Paquete inmutable con una aplicaci&#243;n y su runtime. Se construye antes de crear un contenedor.</td>
+</tr>
+<tr>
+<td>Contenedor</td>
+<td>Instancia en ejecuci&#243;n de una imagen. Puede recrearse sin borrar autom&#225;ticamente los vol&#250;menes.</td>
+</tr>
+<tr>
+<td>Docker Compose</td>
+<td>Herramienta que inicia varios servicios coordinados a partir de <code>compose.yaml</code>.</td>
+</tr>
+<tr>
+<td>Servicio</td>
+<td>Unidad declarada en Compose. Este entorno tiene <code>postgres</code>, <code>migrator</code>, <code>keycloak</code> y <code>app</code>.</td>
+</tr>
+<tr>
+<td>Volumen</td>
+<td>Almacenamiento persistente administrado por Docker. Conserva PostgreSQL y Keycloak aunque los contenedores se recreen.</td>
+</tr>
+<tr>
+<td>Secreto</td>
+<td>Contrase&#241;a o clave sensible. Aqu&#237; se guarda en archivos locales bajo <code>.tools/secrets/</code>, nunca en Git.</td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>Base de datos relacional del ERP.</td>
+</tr>
+<tr>
+<td>Migraci&#243;n</td>
+<td>Cambio versionado y auditable que crea o evoluciona tablas, funciones y restricciones.</td>
+</tr>
+<tr>
+<td>Migrador</td>
+<td>Contenedor de una sola ejecuci&#243;n que aplica migraciones antes de arrancar la aplicaci&#243;n.</td>
+</tr>
+<tr>
+<td>Keycloak</td>
+<td>Servicio que autentica usuarios y emite la identidad utilizada por LogixOne.</td>
+</tr>
+<tr>
+<td>OIDC</td>
+<td>Protocolo con el que la aplicaci&#243;n delega el inicio de sesi&#243;n en Keycloak.</td>
+</tr>
+<tr>
+<td>WildFly</td>
+<td>Servidor Jakarta EE incluido dentro de la imagen de la aplicaci&#243;n. No se instala globalmente en Ubuntu.</td>
+</tr>
+<tr>
+<td>Health check</td>
+<td>Comprobaci&#243;n autom&#225;tica del estado de un servicio. <code>live</code> indica que est&#225; vivo y <code>ready</code> que puede atender tr&#225;fico.</td>
+</tr>
+<tr>
+<td>Loopback</td>
+<td>Direcci&#243;n accesible s&#243;lo desde el mismo equipo: <code>127.0.0.1</code>. Es la publicaci&#243;n predeterminada.</td>
+</tr>
+<tr>
+<td>Puerto</td>
+<td>N&#250;mero que identifica un servicio de red. Este manual usa <code>8080</code> para LogixOne y <code>8180</code> para Keycloak.</td>
+</tr>
+<tr>
+<td>T&#250;nel SSH</td>
+<td>Conexi&#243;n cifrada que hace que los puertos remotos aparezcan como puertos locales, sin publicarlos en Internet.</td>
+</tr>
+<tr>
+<td>Perfil Maven</td>
+<td>Selecci&#243;n de m&#243;dulos que entran en la distribuci&#243;n. El ejemplo incluye Compras mediante <code>with-purchasing-demo</code>.</td>
+</tr>
+<tr>
+<td>Digest</td>
+<td>Huella criptogr&#225;fica de una imagen. En ambientes compartidos permite ejecutar exactamente el artefacto aprobado.</td>
+</tr>
+</tbody></table>
+<h2 id="section-3">3. Arquitectura que se levantar&#225;</h2>
+<p>El navegador nunca se conecta directamente a PostgreSQL. Compose crea dos redes internas para base de datos e identidad, y una red de borde para los puertos publicados. El migrador debe terminar correctamente antes de que arranque la aplicaci&#243;n.</p>
+<pre class="diagram"><code>NAVEGADOR
+    |  http://localhost:8080/logixone/
+    v
+[ app: WildFly + LogixOne ] &lt;------ OIDC ------&gt; [ keycloak ]
+    |                                                |
+    | JDBC                                           | volumen
+    v                                                v
+[ postgres ] &lt;----- [ migrator, una sola vez ]   [ keycloak-data ]
+    |
+    v
+[ postgres-data ]
+
+Puertos del host: 127.0.0.1:8080 y 127.0.0.1:8180
+Redes internas: backend e identity
+Red de borde: edge</code></pre>
+<h3>Datos y objetos persistentes</h3>
+<table><thead><tr>
+<th>Objeto</th>
+<th>Propietario</th>
+<th>Qu&#233; contiene</th>
+<th>&#191;Se conserva con <code>docker compose down</code>?</th>
+</tr></thead><tbody>
+<tr>
+<td>C&#243;digo del repositorio</td>
+<td>Git</td>
+<td>Fuentes, Compose, Dockerfiles y manuales</td>
+<td>S&#237;</td>
+</tr>
+<tr>
+<td><code>.tools/secrets/*.txt</code></td>
+<td>Operador local</td>
+<td>Contrase&#241;as y secreto OIDC</td>
+<td>S&#237;; no est&#225; versionado</td>
+</tr>
+<tr>
+<td><code>compose.env.local</code></td>
+<td>Operador local</td>
+<td>Configuraci&#243;n no sensible del entorno</td>
+<td>S&#237;; no debe contener contrase&#241;as</td>
+</tr>
+<tr>
+<td>Imagen <code>logixone/app</code></td>
+<td>Docker</td>
+<td>WAR, WildFly y m&#243;dulos seleccionados</td>
+<td>S&#237;, hasta una limpieza expl&#237;cita de im&#225;genes</td>
+</tr>
+<tr>
+<td>Imagen <code>logixone/migrator</code></td>
+<td>Docker</td>
+<td>Migraciones del kernel y plugins</td>
+<td>S&#237;, hasta una limpieza expl&#237;cita de im&#225;genes</td>
+</tr>
+<tr>
+<td>Volumen <code>postgres-data</code></td>
+<td>Compose/PostgreSQL</td>
+<td>Datos y esquema del ERP</td>
+<td>S&#237;</td>
+</tr>
+<tr>
+<td>Volumen <code>keycloak-data</code></td>
+<td>Compose/Keycloak</td>
+<td>Realm, usuarios y estado de identidad</td>
+<td>S&#237;</td>
+</tr>
+</tbody></table>
+<div class="callout warning"><strong>Advertencia de p&#233;rdida de datos:</strong> <code>docker compose down</code> conserva los vol&#250;menes. <code>docker compose down --volumes</code> los elimina. No use <code>--volumes</code> como soluci&#243;n de diagn&#243;stico ni sin respaldo y autorizaci&#243;n expl&#237;cita.</div>
+<h2 id="section-4">4. Etapa 1 - Diagnosticar el equipo Ubuntu</h2>
+<p><strong>Objetivo:</strong> comprobar sistema, arquitectura, memoria, disco, puertos y acceso de red antes de instalar.</p>
+<p><strong>Datos que lee:</strong> versi&#243;n del sistema, arquitectura, recursos y sockets.<br> <strong>Datos que modifica:</strong> ninguno.<br> <strong>Tablas PostgreSQL afectadas:</strong> ninguna; la base todav&#237;a no existe.</p>
+<h3>Bosquejo orientativo de la terminal</h3>
+<pre class="wireframe"><code>+------------------------------------------------------------+
+| usuario@ubuntu:~$                                          |
+| Ubuntu 24.04 LTS                                           |
+| Arquitectura: x86_64                                       |
+| Memoria y disco: disponibles                               |
+| Puertos 8080/8180: sin proceso escuchando                  |
++------------------------------------------------------------+</code></pre>
+<h3>Diagrama de objetos afectados</h3>
+<pre class="diagram"><code>[ Ubuntu /proc y /etc ] -- lectura --&gt; [ Terminal ]
+[ Tabla de sockets ]     -- lectura --&gt; [ Terminal ]
+[ PostgreSQL ]           -- sin acceso --&gt; [ ninguna tabla ]</code></pre>
+<h3>Comandos</h3>
+<pre><code>cat /etc/os-release
+uname -m
+nproc
+free -h
+df -h /
+ss -ltn | grep -E &#39;:(8080|8180)\b&#39; || true
+getent hosts gitlab.cosmesoft.com.py</code></pre>
+<h3>Resultado esperado</h3>
+<ul>
+<li><code>VERSION_ID</code> debe indicar una versi&#243;n Ubuntu soportada por Docker; este manual apunta a <code>24.04</code>.</li>
+<li><code>uname -m</code> debe devolver <code>x86_64</code>, porque las im&#225;genes fijan <code>linux/amd64</code>.</li>
+<li>Los puertos <code>8080</code> y <code>8180</code> deber&#237;an estar libres.</li>
+<li>El nombre de GitLab debe resolver a una direcci&#243;n IP.</li>
+</ul>
+<p>El proyecto todav&#237;a no tiene una matriz Ubuntu oficialmente aprobada. Para una demostraci&#243;n completa reserve recursos suficientes para cuatro servicios y para construir Java dentro de Docker. Como referencia conservadora de laboratorio, use al menos 8 GiB de RAM y 30 GiB libres; para uso compartido mida la carga y apruebe un dimensionamiento espec&#237;fico.</p>
+<h3>Si algo falla</h3>
+<table><thead><tr>
+<th>S&#237;ntoma</th>
+<th>Significado</th>
+<th>Recuperaci&#243;n segura</th>
+</tr></thead><tbody>
+<tr>
+<td><code>aarch64</code> o <code>arm64</code></td>
+<td>La CPU no coincide con <code>linux/amd64</code></td>
+<td>Use una m&#225;quina AMD64. No quite la plataforma del Compose sin una decisi&#243;n arquitect&#243;nica.</td>
+</tr>
+<tr>
+<td>Puerto ocupado</td>
+<td>Otro proceso escucha en el puerto</td>
+<td>Identifique el proceso con <code>sudo ss -ltnp</code>. Cambie puertos s&#243;lo siguiendo la secci&#243;n 13.</td>
+</tr>
+<tr>
+<td>GitLab no resuelve</td>
+<td>Falla DNS o red corporativa</td>
+<td>Verifique VPN, proxy y DNS con el administrador; no inserte credenciales en comandos de diagn&#243;stico.</td>
+</tr>
+<tr>
+<td>Poco disco</td>
+<td>El build puede quedar incompleto</td>
+<td>Libere espacio de forma controlada. No borre vol&#250;menes del proyecto.</td>
+</tr>
+</tbody></table>
+<h2 id="section-5">5. Etapa 2 - Instalar Docker Engine, Compose y Git</h2>
+<p><strong>Objetivo:</strong> instalar los &#250;nicos prerrequisitos globales del recorrido oficial. Java, Maven, WildFly y PostgreSQL se ejecutan dentro de im&#225;genes o herramientas gobernadas por el proyecto.</p>
+<p><strong>Datos que modifica:</strong> paquetes APT, clave y repositorio oficial de Docker, servicio <code>docker</code>.<br> <strong>Tablas PostgreSQL afectadas:</strong> ninguna.</p>
+<h3>Bosquejo orientativo de la terminal</h3>
+<pre class="wireframe"><code>+------------------------------------------------------------+
+| usuario@ubuntu:~$ sudo docker version                      |
+| Client: Docker Engine ...                                  |
+| Server: Docker Engine ...                                  |
+| usuario@ubuntu:~$ sudo docker compose version              |
+| Docker Compose version ...                                 |
++------------------------------------------------------------+</code></pre>
+<h3>Diagrama de objetos afectados</h3>
+<pre class="diagram"><code>[ download.docker.com ] --&gt; [ APT ] --&gt; [ Docker Engine ]
+[ archive.ubuntu.com ]  --&gt; [ APT ] --&gt; [ Git/OpenSSL ]
+[ PostgreSQL ]          --&gt; sin acceso --&gt; [ ninguna tabla ]</code></pre>
+<h3>Instalar paquetes base</h3>
+<pre><code>sudo apt update
+sudo apt install -y ca-certificates curl git openssl</code></pre>
+<h3>Agregar el repositorio oficial de Docker</h3>
+<pre><code>sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg \
+  -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc</code></pre>
+<p>Cree <code>/etc/apt/sources.list.d/docker.sources</code> con este contenido. En una terminal interactiva puede copiar el bloque completo:</p>
+<pre><code>sudo tee /etc/apt/sources.list.d/docker.sources &gt;/dev/null &lt;&lt;EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release &amp;&amp; echo &quot;${UBUNTU_CODENAME:-$VERSION_CODENAME}&quot;)
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF</code></pre>
+<p>Instale y habilite el motor:</p>
+<pre><code>sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io \
+  docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker</code></pre>
+<h3>Validar la instalaci&#243;n</h3>
+<pre><code>sudo docker run --rm hello-world
+sudo docker version
+sudo docker compose version
+sudo docker buildx version
+git --version</code></pre>
+<p>El ejemplo <code>hello-world</code> debe terminar con un mensaje de instalaci&#243;n correcta. <code>docker version</code> debe mostrar tanto <code>Client</code> como <code>Server</code>.</p>
+<div class="callout warning"><strong>Seguridad:</strong> pertenecer al grupo <code>docker</code> concede privilegios equivalentes a root. Este manual conserva <code>sudo</code> como opci&#243;n segura y expl&#237;cita. Si la pol&#237;tica de su organizaci&#243;n autoriza acceso directo al socket, siga la gu&#237;a oficial de posinstalaci&#243;n y vuelva a iniciar sesi&#243;n.</div>
+<div class="callout warning"><strong>Firewall:</strong> Docker advierte que los puertos publicados pueden eludir reglas administradas s&#243;lo con UFW. Este proyecto limita los puertos a <code>127.0.0.1</code> de manera predeterminada; no cambie ese bind para “hacerlo visible” en la red.</div>
+<h2 id="section-6">6. Etapa 3 - Descargar el proyecto desde GitLab</h2>
+<p><strong>Objetivo:</strong> obtener una copia de trabajo de la rama principal sin colocar tokens en la URL.</p>
+<p><strong>Datos que modifica:</strong> crea <code>$HOME/proyectos/smart-erp</code>.<br> <strong>Tablas PostgreSQL afectadas:</strong> ninguna.</p>
+<h3>Bosquejo orientativo de la terminal</h3>
+<pre class="wireframe"><code>+------------------------------------------------------------+
+| usuario@ubuntu:~/proyectos$ git clone ...                  |
+| Cloning into &#39;smart-erp&#39;...                                |
+| usuario@ubuntu:~/proyectos/smart-erp$ git status           |
+| On branch main / working tree clean                        |
++------------------------------------------------------------+</code></pre>
+<h3>Diagrama de objetos afectados</h3>
+<pre class="diagram"><code>[ GitLab origin/main ] -- lectura Git --&gt; [ smart-erp/.git ]
+                                           |
+                                           +--&gt; [ fuentes locales ]
+[ PostgreSQL ]        -- sin acceso -----&gt; [ ninguna tabla ]</code></pre>
+<h3>Comandos</h3>
+<pre><code>mkdir -p &quot;$HOME/proyectos&quot;
+cd &quot;$HOME/proyectos&quot;
+git clone https://gitlab.cosmesoft.com.py/cosmesoft/smart-erp.git
+cd smart-erp
+git switch main
+git pull --ff-only origin main
+git status --short --branch
+git remote -v</code></pre>
+<h3>Resultado esperado</h3>
+<ul>
+<li>la rama actual es <code>main</code>;</li>
+<li>el &#225;rbol de trabajo est&#225; limpio;</li>
+<li><code>origin</code> apunta a GitLab;</li>
+<li>si existe el remoto <code>github</code>, es secundario y no interviene en el arranque.</li>
+</ul>
+<p>Si Git solicita autenticaci&#243;n, use el mecanismo aprobado por su organizaci&#243;n, por ejemplo un administrador de credenciales o una clave SSH. No escriba un token dentro de la URL, de un script o de este manual.</p>
+<h2 id="section-7">7. Etapa 4 - Crear secretos y configuraci&#243;n local</h2>
+<p><strong>Objetivo:</strong> crear cuatro secretos independientes y una configuraci&#243;n Compose local.</p>
+<p><strong>Datos que modifica:</strong> archivos locales bajo <code>.tools/secrets/</code> e <code>infra/compose/compose.env.local</code>.<br> <strong>Tablas PostgreSQL afectadas:</strong> ninguna todav&#237;a.</p>
+<h3>Qu&#233; representa cada dato</h3>
+<table><thead><tr>
+<th>Archivo</th>
+<th>Consumidor</th>
+<th>Finalidad</th>
+</tr></thead><tbody>
+<tr>
+<td><code>postgres-password.txt</code></td>
+<td>PostgreSQL, migrador y aplicaci&#243;n</td>
+<td>Contrase&#241;a del usuario de base <code>logixone</code></td>
+</tr>
+<tr>
+<td><code>keycloak-admin-password.txt</code></td>
+<td>Keycloak</td>
+<td>Contrase&#241;a del administrador t&#233;cnico local</td>
+</tr>
+<tr>
+<td><code>oidc-client-secret.txt</code></td>
+<td>Keycloak y aplicaci&#243;n</td>
+<td>Secreto compartido del cliente OIDC <code>logixone-web</code></td>
+</tr>
+<tr>
+<td><code>demo-user-password.txt</code></td>
+<td>Importaci&#243;n de Keycloak</td>
+<td>Contrase&#241;a com&#250;n de los usuarios ficticios de demostraci&#243;n</td>
+</tr>
+</tbody></table>
+<h3>Bosquejo orientativo de la terminal</h3>
+<pre class="wireframe"><code>+------------------------------------------------------------+
+| smart-erp/.tools/secrets/                                  |
+|   postgres-password.txt         permiso 600                |
+|   keycloak-admin-password.txt   permiso 600                |
+|   oidc-client-secret.txt        permiso 600                |
+|   demo-user-password.txt        permiso 600                |
+| infra/compose/compose.env.local                            |
++------------------------------------------------------------+</code></pre>
+<h3>Diagrama de objetos afectados</h3>
+<pre class="diagram"><code>[ OpenSSL aleatorio ] --&gt; C [ .tools/secrets/*.txt ]
+[ compose.env.example ] --&gt; C/U [ compose.env.local ]
+[ Git ] -- ignora secretos/configuraci&#243;n local
+[ PostgreSQL ] -- sin acceso --&gt; [ ninguna tabla ]</code></pre>
+<p><code>C</code> significa crear y <code>U</code> actualizar. Ninguna operaci&#243;n SQL ocurre en esta etapa.</p>
+<h3>Crear secretos</h3>
+<pre><code>cd &quot;$HOME/proyectos/smart-erp&quot;
+install -d -m 700 .tools/secrets
+umask 077
+openssl rand -base64 32 &gt; .tools/secrets/postgres-password.txt
+openssl rand -base64 32 &gt; .tools/secrets/keycloak-admin-password.txt
+openssl rand -base64 32 &gt; .tools/secrets/oidc-client-secret.txt
+openssl rand -base64 24 &gt; .tools/secrets/demo-user-password.txt
+chmod 600 .tools/secrets/*.txt</code></pre>
+<p>Cada archivo debe contener una sola l&#237;nea no vac&#237;a. No muestre su contenido en capturas, tickets, historial de terminal o mensajes.</p>
+<h3>Crear la configuraci&#243;n no sensible</h3>
+<pre><code>cp infra/compose/compose.env.example infra/compose/compose.env.local</code></pre>
+<p>Abra el archivo con su editor y cambie al menos las dos im&#225;genes:</p>
+<pre><code>LOGIXONE_APP_IMAGE=logixone/app:j11-s9-06-purchasing-demo-r5
+LOGIXONE_MIGRATOR_IMAGE=logixone/migrator:j11-s9-06-purchasing-demo</code></pre>
+<p>Para una demostraci&#243;n local con empresas ficticias, puede cambiar temporalmente:</p>
+<pre><code>LOGIXONE_DEMO_PROVISIONING_ENABLED=true</code></pre>
+<p>Ese indicador autoriza el aprovisionamiento t&#233;cnico de la demo al arrancar. Despu&#233;s del primer arranque correcto, vuelva a <code>false</code> y recree s&#243;lo la aplicaci&#243;n. No lo use como mecanismo general de alta de empresas ni en producci&#243;n.</p>
+<h3>Validar rutas y Compose</h3>
+<pre><code>test -s .tools/secrets/postgres-password.txt
+test -s .tools/secrets/keycloak-admin-password.txt
+test -s .tools/secrets/oidc-client-secret.txt
+test -s .tools/secrets/demo-user-password.txt
+sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml config --quiet</code></pre>
+<p>El &#250;ltimo comando no debe producir salida ni errores. Si informa que falta un secreto, compruebe que ejecut&#243; el comando desde la ra&#237;z del repositorio y que no cambi&#243; las rutas relativas del archivo local.</p>
+<h2 id="section-8">8. Etapa 5 - Construir las im&#225;genes</h2>
+<p><strong>Objetivo:</strong> compilar el baseline seleccionado y producir la imagen de aplicaci&#243;n y la imagen de migraciones.</p>
+<p><strong>Datos que modifica:</strong> cach&#233; de build e im&#225;genes locales de Docker.<br> <strong>Tablas PostgreSQL afectadas:</strong> ninguna; construir no inicia la base.</p>
+<h3>Bosquejo orientativo de la terminal</h3>
+<pre class="wireframe"><code>+------------------------------------------------------------+
+| smart-erp$ sudo docker build ... Dockerfile                |
+| =&gt; Maven verify / WAR / WildFly                            |
+| =&gt; naming to logixone/app:j11-s9-06-purchasing-demo-r5    |
+| smart-erp$ sudo docker image ls logixone/*                 |
++------------------------------------------------------------+</code></pre>
+<h3>Diagrama de objetos afectados</h3>
+<pre class="diagram"><code>[ c&#243;digo + pom.xml + mvnw ] -- R --&gt; [ Docker BuildKit ]
+                                      | C
+                                      +--&gt; [ logixone/app:tag ]
+                                      +--&gt; [ logixone/migrator:tag ]
+[ PostgreSQL ] -- sin acceso -------&gt; [ ninguna tabla ]</code></pre>
+<h3>Construir la aplicaci&#243;n</h3>
+<pre><code>sudo docker build --platform linux/amd64 \
+  --build-arg LOGIXONE_BUILD_MODE=verified \
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo \
+  --tag logixone/app:j11-s9-06-purchasing-demo-r5 \
+  --file infra/docker/Dockerfile .</code></pre>
+<h3>Construir el migrador</h3>
+<pre><code>sudo docker build --platform linux/amd64 \
+  --build-arg LOGIXONE_BUILD_MODE=verified \
+  --build-arg LOGIXONE_MAVEN_PROFILE=with-purchasing-demo \
+  --tag logixone/migrator:j11-s9-06-purchasing-demo \
+  --file infra/docker/Dockerfile.migrator .</code></pre>
+<p><code>LOGIXONE_BUILD_MODE=verified</code> exige el corte verificado del build. <code>LOGIXONE_MAVEN_PROFILE</code> define qu&#233; plugins entran f&#237;sicamente. Aplicaci&#243;n y migrador deben construirse con el mismo perfil para evitar desalinear c&#243;digo y esquema.</p>
+<h3>Validar las im&#225;genes</h3>
+<pre><code>sudo docker image inspect logixone/app:j11-s9-06-purchasing-demo-r5 \
+  --format &#39;{{.Id}} {{.Os}}/{{.Architecture}}&#39;
+sudo docker image inspect logixone/migrator:j11-s9-06-purchasing-demo \
+  --format &#39;{{.Id}} {{.Os}}/{{.Architecture}}&#39;</code></pre>
+<p>Ambas deben indicar <code>linux/amd64</code>. Si el build falla, no contin&#250;e con una imagen anterior que tenga el mismo nombre. Conserve el log, corrija la causa y repita el build.</p>
+<h2 id="section-9">9. Etapa 6 - Iniciar todos los servicios</h2>
+<p><strong>Objetivo:</strong> crear redes y vol&#250;menes, iniciar PostgreSQL y Keycloak, aplicar migraciones y finalmente arrancar LogixOne.</p>
+<p><strong>Datos que modifica:</strong> contenedores, redes, vol&#250;menes, esquema PostgreSQL y datos t&#233;cnicos de Keycloak.<br> <strong>Tablas afectadas:</strong> tablas de historia Flyway y las tablas versionadas de <code>core</code> y de los plugins incluidos. No se usa actualizaci&#243;n autom&#225;tica de Hibernate.</p>
+<h3>Bosquejo orientativo de la terminal</h3>
+<pre class="wireframe"><code>+------------------------------------------------------------+
+| NAME                  SERVICE    STATUS                     |
+| logixone-postgres-1   postgres   Up (healthy)               |
+| logixone-migrator-1   migrator   Exited (0)                 |
+| logixone-keycloak-1   keycloak   Up (healthy)               |
+| logixone-app-1        app        Up (healthy)               |
++------------------------------------------------------------+</code></pre>
+<h3>Diagrama de tablas y objetos afectados</h3>
+<pre class="diagram"><code>[ migrator ] -- C/U DDL versionado --&gt; [ core.flyway_schema_history ]
+           |                           [ plg_*.flyway_schema_history ]
+           +-- C/U DDL versionado --&gt; [ tablas, funciones y triggers de cada due&#241;o ]
+[ app ] ------ R/W por casos de uso --&gt; [ core y esquemas privados de plugins ]
+[ keycloak ] -- R/W -----------------&gt; [ volumen keycloak-data ]
+
+No hay relaciones JPA ni escrituras directas entre tablas privadas de plugins.</code></pre>
+<h3>Iniciar y esperar salud</h3>
+<pre><code>cd &quot;$HOME/proyectos/smart-erp&quot;
+sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml \
+  up -d --wait --wait-timeout 240</code></pre>
+<h3>Comprobar el estado</h3>
+<pre><code>sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml ps -a</code></pre>
+<p>El estado correcto es:</p>
+<ul>
+<li><code>postgres</code>: <code>Up</code> y <code>healthy</code>;</li>
+<li><code>migrator</code>: <code>Exited (0)</code>, porque es una tarea de una sola ejecuci&#243;n;</li>
+<li><code>keycloak</code>: <code>Up</code> y <code>healthy</code>;</li>
+<li><code>app</code>: <code>Up</code> y <code>healthy</code>.</li>
+</ul>
+<div class="callout"><strong>No confunda terminado con error:</strong> <code>migrator</code> no debe quedar <code>Up</code>. <code>Exited (0)</code> significa que aplic&#243; o valid&#243; todas las migraciones y termin&#243; bien. Cualquier otro c&#243;digo bloquea el arranque de <code>app</code>.</div>
+<h3>Si habilit&#243; la demo temporal</h3>
+<p>Cambie <code>LOGIXONE_DEMO_PROVISIONING_ENABLED=false</code> y recree s&#243;lo la aplicaci&#243;n:</p>
+<pre><code>sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml \
+  up -d --no-deps --force-recreate app</code></pre>
+<p>Espere que vuelva a estar saludable antes de abrir el navegador.</p>
+<h2 id="section-10">10. Etapa 7 - Validar salud y abrir el navegador</h2>
+<p><strong>Objetivo:</strong> confirmar que la aplicaci&#243;n puede atender tr&#225;fico y completar el inicio de sesi&#243;n OIDC.</p>
+<p><strong>Datos que lee:</strong> endpoints de salud, configuraci&#243;n OIDC y datos autorizados del usuario.<br> <strong>Datos que modifica:</strong> sesi&#243;n de navegador; el login actualiza estado t&#233;cnico de Keycloak.<br> <strong>Tablas PostgreSQL afectadas:</strong> los health checks leen metadatos de disponibilidad; el recorrido funcional posterior usa las tablas del m&#243;dulo y de seguridad seg&#250;n la acci&#243;n.</p>
+<h3>Bosquejo orientativo del navegador</h3>
+<pre class="wireframe"><code>+------------------------------------------------------------+
+| http://localhost:8080/logixone/                            |
++------------------------------------------------------------+
+| LogixOne                                                   |
+|                                                            |
+|  [ Iniciar sesi&#243;n ]                                        |
+|       -&gt; Keycloak / realm logixone                         |
+|       -&gt; usuario demo.empresa.a                            |
+|       -&gt; vuelve al panel de la empresa                     |
++------------------------------------------------------------+</code></pre>
+<h3>Diagrama de datos afectados</h3>
+<pre class="diagram"><code>[ navegador ] -- GET --&gt; [ /health/live ]  -- R --&gt; [ vida del proceso ]
+[ navegador ] -- GET --&gt; [ /health/ready ] -- R --&gt; [ DB + OIDC + plugins ]
+[ navegador ] -- OIDC --&gt; [ Keycloak realm logixone ]
+[ app ] -- autorizaci&#243;n --&gt; [ core: identidad, empresa, roles, activaciones ]</code></pre>
+<h3>Validar desde la terminal</h3>
+<pre><code>curl -fsS http://127.0.0.1:8080/logixone/health/live
+curl -fsS http://127.0.0.1:8080/logixone/health/ready</code></pre>
+<p>Ambos comandos deben terminar con c&#243;digo HTTP 200. Despu&#233;s abra:</p>
+<pre><code>http://localhost:8080/logixone/</code></pre>
+<p>Keycloak usa el realm <code>logixone</code>. Los usuarios ficticios incluidos son:</p>
+<table><thead><tr>
+<th>Usuario</th>
+<th>Prop&#243;sito</th>
+</tr></thead><tbody>
+<tr>
+<td><code>demo.sin.empresa</code></td>
+<td>Demostrar un usuario autenticado sin empresa habilitada</td>
+</tr>
+<tr>
+<td><code>demo.empresa.a</code></td>
+<td>Demostrar un usuario con una empresa</td>
+</tr>
+<tr>
+<td><code>demo.empresas.ab</code></td>
+<td>Demostrar selecci&#243;n entre m&#225;s de una empresa</td>
+</tr>
+</tbody></table>
+<p>La contrase&#241;a de los tres es el valor guardado en <code>.tools/secrets/demo-user-password.txt</code>. Cons&#250;ltelo s&#243;lo en una terminal privada y no lo copie a documentaci&#243;n ni tickets.</p>
+<h3>Acceder a un servidor Ubuntu remoto</h3>
+<p>No cambie el bind a <code>0.0.0.0</code>. Desde su computadora, cree un t&#250;nel SSH:</p>
+<pre><code>ssh -L 8080:127.0.0.1:8080 \
+    -L 8180:127.0.0.1:8180 \
+    &lt;usuario&gt;@&lt;servidor-ubuntu&gt;</code></pre>
+<p>Mantenga esa sesi&#243;n abierta y use en el navegador de su computadora:</p>
+<pre><code>http://localhost:8080/logixone/</code></pre>
+<p>El t&#250;nel transporta tambi&#233;n <code>8180</code>, necesario para que la redirecci&#243;n a <code>keycloak.localhost</code> funcione desde el navegador local.</p>
+<h2 id="section-11">11. Operaci&#243;n diaria: estado, logs, reinicio y parada</h2>
+<h3>Ver estado</h3>
+<pre><code>sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml ps -a</code></pre>
+<h3>Ver logs sin revelar secretos</h3>
+<pre><code>sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml logs --no-color --tail=200 migrator
+
+sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml logs --no-color --tail=200 postgres keycloak app</code></pre>
+<p>Antes de compartir un log, revise que no contenga tokens, contrase&#241;as, datos personales o informaci&#243;n real de una empresa.</p>
+<h3>Reiniciar sin recrear datos</h3>
+<pre><code>sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml restart app keycloak</code></pre>
+<h3>Detener preservando datos</h3>
+<pre><code>sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml down</code></pre>
+<h3>Volver a iniciar</h3>
+<pre><code>sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml \
+  up -d --wait --wait-timeout 240</code></pre>
+<h3>Objetos y tablas afectados</h3>
+<pre class="diagram"><code>[ down ] --&gt; elimina contenedores y redes del proyecto
+         --&gt; conserva [ postgres-data ] y [ keycloak-data ]
+[ up ]   --&gt; recrea contenedores y redes
+         --&gt; reutiliza vol&#250;menes y valida/aplica migraciones inmutables
+[ restart ] --&gt; reinicia procesos; no elimina tablas ni vol&#250;menes</code></pre>
+<h2 id="section-12">12. Actualizar a una nueva versi&#243;n</h2>
+<p>Una actualizaci&#243;n puede incluir migraciones. Haga primero un respaldo, lea la evidencia de la iteraci&#243;n y utilice etiquetas nuevas o digests aprobados.</p>
+<h3>Secuencia segura</h3>
+<ol>
+<li>Confirme que no haya cambios locales: <code>git status --short</code>.</li>
+<li>Realice el respaldo seg&#250;n <code>docs/runbooks/postgresql-backup-restore.md</code>.</li>
+<li>Descargue con <code>git pull --ff-only origin main</code>.</li>
+<li>Lea las notas del Sprint y confirme el perfil Maven vigente.</li>
+<li>Construya aplicaci&#243;n y migrador con el mismo perfil y etiquetas nuevas.</li>
+<li>Actualice s&#243;lo <code>LOGIXONE_APP_IMAGE</code> y <code>LOGIXONE_MIGRATOR_IMAGE</code>.</li>
+<li>Ejecute <code>docker compose config --quiet</code>.</li>
+<li>Ejecute <code>up -d --wait</code> y revise el c&#243;digo de salida del migrador.</li>
+<li>Compruebe <code>live</code>, <code>ready</code> y el login desde navegador.</li>
+</ol>
+<pre><code>cd &quot;$HOME/proyectos/smart-erp&quot;
+git status --short
+git pull --ff-only origin main</code></pre>
+<div class="callout warning"><strong>Regla de trazabilidad:</strong> no reconstruya una etiqueta existente para representar c&#243;digo distinto en un ambiente compartido. Use una etiqueta nueva y, para promover una versi&#243;n aprobada, la referencia inmutable <code>repositorio@sha256:digest</code>.</div>
+<h3>Reversi&#243;n</h3>
+<p>Volver a una imagen anterior no revierte migraciones de datos. El esquema evoluciona hacia adelante y las migraciones aplicadas son inmutables. Si la actualizaci&#243;n falla:</p>
+<ol>
+<li>detenga la aplicaci&#243;n;</li>
+<li>conserve logs y c&#243;digo de salida del migrador;</li>
+<li>no edite manualmente <code>flyway_schema_history</code>;</li>
+<li>eval&#250;e compatibilidad de la imagen anterior con el esquema ya migrado;</li>
+<li>restaure desde respaldo s&#243;lo mediante el runbook aprobado y despu&#233;s de preservar la instancia fallida para diagn&#243;stico.</li>
+</ol>
+<h2 id="section-13">13. Cambiar puertos o publicar detr&#225;s de un proxy</h2>
+<p>El valor seguro predeterminado es loopback. Si <code>8080</code> o <code>8180</code> est&#225;n ocupados, no cambie s&#243;lo una l&#237;nea: OIDC usa varias URL que deben permanecer coherentes.</p>
+<p>Para usar, por ejemplo, aplicaci&#243;n <code>18080</code> y Keycloak <code>18180</code>, cambie juntos:</p>
+<pre><code>LOGIXONE_HTTP_PORT=18080
+LOGIXONE_KEYCLOAK_PORT=18180
+LOGIXONE_KEYCLOAK_PUBLIC_URL=http://keycloak.localhost:18180
+LOGIXONE_OIDC_PROVIDER_URL=http://keycloak.localhost:18180/realms/logixone
+LOGIXONE_OIDC_REDIRECT_URI=http://localhost:18080/logixone/*
+LOGIXONE_OIDC_WEB_ORIGIN=http://localhost:18080
+LOGIXONE_OIDC_POST_LOGOUT_REDIRECT_URI=http://localhost:18080/logixone/faces/app/index.xhtml</code></pre>
+<p>Despu&#233;s recree Keycloak y la aplicaci&#243;n, valide Compose y use la nueva URL. La publicaci&#243;n mediante proxy confiable, HTTPS y dominio real requiere configurar encabezados reenviados, or&#237;genes y redirecciones como un cambio de despliegue revisado. No active <code>LOGIXONE_PROXY_ADDRESS_FORWARDING=true</code> detr&#225;s de un proxy que no sanee <code>X-Forwarded-*</code>.</p>
+<h2 id="section-14">14. Diagn&#243;stico y recuperaci&#243;n</h2>
+<h3>Orden de diagn&#243;stico</h3>
+<ol>
+<li><code>docker compose config --quiet</code> - valida configuraci&#243;n y rutas.</li>
+<li><code>docker compose ps -a</code> - identifica el primer servicio que no lleg&#243; al estado esperado.</li>
+<li>logs de ese servicio - encuentra la causa, no s&#243;lo el efecto.</li>
+<li>health <code>live</code> y <code>ready</code> - separa proceso vivo de dependencias disponibles.</li>
+<li>espacio en disco y estado del motor - descarta una falla de plataforma.</li>
+</ol>
+<h3>Matriz de problemas frecuentes</h3>
+<table><thead><tr>
+<th>S&#237;ntoma</th>
+<th>Causa probable</th>
+<th>Qu&#233; comprobar</th>
+<th>Recuperaci&#243;n segura</th>
+</tr></thead><tbody>
+<tr>
+<td><code>permission denied</code> al usar Docker</td>
+<td>Usuario sin acceso al socket</td>
+<td><code>sudo docker version</code></td>
+<td>Use <code>sudo</code>; no cambie permisos del socket a modo mundial.</td>
+</tr>
+<tr>
+<td>Falta un archivo de secreto</td>
+<td>Ruta o archivo vac&#237;o</td>
+<td><code>test -s .tools/secrets/...</code></td>
+<td>Vuelva a crear s&#243;lo el archivo faltante con <code>umask 077</code>. No cambie el Compose para escribir la contrase&#241;a en texto.</td>
+</tr>
+<tr>
+<td><code>migrator Exited (1)</code></td>
+<td>Migraci&#243;n, conexi&#243;n o credencial fallida</td>
+<td>Logs completos de <code>migrator</code> y salud de PostgreSQL</td>
+<td>Det&#233;ngase. No arranque <code>app</code> a mano ni edite la historia Flyway.</td>
+</tr>
+<tr>
+<td><code>app</code> est&#225; <code>unhealthy</code></td>
+<td>DB, OIDC, plugins o despliegue no listos</td>
+<td>Logs de app, <code>/health/live</code>, <code>/health/ready</code></td>
+<td>Corrija la dependencia indicada y recree <code>app</code>.</td>
+</tr>
+<tr>
+<td>Bucle al iniciar sesi&#243;n</td>
+<td>URL/puerto OIDC incoherente</td>
+<td>Variables de la secci&#243;n 13, hora del sistema</td>
+<td>Alinee todas las URL, recree Keycloak y app; no desactive validaciones OIDC.</td>
+</tr>
+<tr>
+<td><code>keycloak.localhost</code> no responde desde otra PC</td>
+<td>S&#243;lo se tuneliz&#243; 8080</td>
+<td>T&#250;nel y puerto local 8180</td>
+<td>Abra ambos forwards SSH, 8080 y 8180.</td>
+</tr>
+<tr>
+<td>Puerto ya asignado</td>
+<td>Otro servicio lo usa</td>
+<td><code>sudo ss -ltnp</code></td>
+<td>Detenga el servicio conocido o cambie todo el conjunto de URL.</td>
+</tr>
+<tr>
+<td>Build sin espacio</td>
+<td>Capas y cach&#233; consumen disco</td>
+<td><code>df -h</code>, <code>docker system df</code></td>
+<td>Identifique im&#225;genes/cach&#233; no usadas. Nunca pode vol&#250;menes del proyecto como limpieza gen&#233;rica.</td>
+</tr>
+<tr>
+<td>Los datos “desaparecieron”</td>
+<td>Se us&#243; otro nombre de proyecto Compose</td>
+<td><code>docker volume ls</code>, <code>COMPOSE_PROJECT_NAME</code></td>
+<td>Vuelva al nombre original. No cree datos nuevos encima antes de identificar el volumen correcto.</td>
+</tr>
+</tbody></table>
+<h3>Comandos de diagn&#243;stico</h3>
+<pre><code>sudo systemctl status docker --no-pager
+sudo docker info
+sudo docker system df
+sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml ps -a
+sudo docker compose \
+  --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml logs --no-color --tail=300</code></pre>
+<h2 id="section-15">15. Lista de comprobaci&#243;n r&#225;pida</h2>
+<h3>Primera instalaci&#243;n</h3>
+<ul class="check-list">
+<li><span class="check-box" aria-hidden="true"></span>Ubuntu <code>x86_64</code> y recursos revisados.</li>
+<li><span class="check-box" aria-hidden="true"></span>Docker Engine, Compose, Buildx y Git funcionan.</li>
+<li><span class="check-box" aria-hidden="true"></span>Repositorio clonado desde GitLab y rama <code>main</code> limpia.</li>
+<li><span class="check-box" aria-hidden="true"></span>Cuatro secretos creados con permisos <code>600</code>.</li>
+<li><span class="check-box" aria-hidden="true"></span><code>compose.env.local</code> creado sin contrase&#241;as.</li>
+<li><span class="check-box" aria-hidden="true"></span>Aplicaci&#243;n y migrador construidos con el mismo perfil.</li>
+<li><span class="check-box" aria-hidden="true"></span><code>docker compose config --quiet</code> termina bien.</li>
+<li><span class="check-box" aria-hidden="true"></span>PostgreSQL, Keycloak y app est&#225;n saludables.</li>
+<li><span class="check-box" aria-hidden="true"></span>Migrator termina con <code>Exited (0)</code>.</li>
+<li><span class="check-box" aria-hidden="true"></span><code>live</code> y <code>ready</code> responden HTTP 200.</li>
+<li><span class="check-box" aria-hidden="true"></span>El navegador abre <code>http://localhost:8080/logixone/</code>.</li>
+<li><span class="check-box" aria-hidden="true"></span>Se completa login y retorno a LogixOne.</li>
+</ul>
+<h3>Uso diario</h3>
+<pre><code>cd &quot;$HOME/proyectos/smart-erp&quot;
+sudo docker compose --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml up -d --wait --wait-timeout 240
+curl -fsS http://127.0.0.1:8080/logixone/health/ready</code></pre>
+<h3>Parada segura</h3>
+<pre><code>sudo docker compose --env-file infra/compose/compose.env.local \
+  -f infra/compose/compose.yaml down</code></pre>
+<h2 id="section-16">16. Validaci&#243;n de fuentes y alcance de datos</h2>
+<p>Este manual se contrast&#243; con los Dockerfiles, <code>infra/compose/compose.yaml</code>, la plantilla de entorno y los runbooks versionados del repositorio.</p>
+<p>Con autorizaci&#243;n del responsable, el 12 de agosto de 2026 tambi&#233;n se inspeccion&#243; en modo de solo lectura un entorno Compose aislado de desarrollo. No se consultaron filas de negocio y no se ejecutaron escrituras. La inspecci&#243;n confirm&#243;:</p>
+<ul>
+<li>PostgreSQL 18.4;</li>
+<li>servicios <code>postgres</code>, <code>migrator</code>, <code>keycloak</code> y <code>app</code> en el patr&#243;n documentado;</li>
+<li>esquemas privados <code>core</code>, <code>plg_business_partners</code>, <code>plg_commercial_catalog</code>, <code>plg_inventory</code>, <code>plg_purchasing</code>, <code>plg_reference_data</code> y <code>plg_reference_plugin</code>;</li>
+<li>historias Flyway exitosas para kernel y plugins;</li>
+<li>funciones y triggers propios de los esquemas, sin usar actualizaci&#243;n autom&#225;tica del esquema desde la aplicaci&#243;n;</li>
+<li>vol&#250;menes separados para PostgreSQL y Keycloak.</li>
+</ul>
+<p>Estos hallazgos sirven para verificar el recorrido operativo. No convierten el entorno inspeccionado en una instalaci&#243;n productiva ni sustituyen la validaci&#243;n independiente.</p>
+<h2 id="section-17">17. Seguridad, l&#237;mites y soporte</h2>
+<h3>Reglas de seguridad</h3>
+<ul>
+<li>Nunca versione <code>.tools/secrets/</code> ni copie contrase&#241;as a <code>compose.env.local</code>.</li>
+<li>Mantenga <code>LOGIXONE_HTTP_BIND=127.0.0.1</code> y <code>LOGIXONE_KEYCLOAK_BIND=127.0.0.1</code>.</li>
+<li>Para acceso remoto use t&#250;nel SSH o un despliegue TLS dise&#241;ado y revisado.</li>
+<li>No exponga PostgreSQL mediante <code>ports:</code>.</li>
+<li>No use <code>down --volumes</code> como comando de parada.</li>
+<li>No edite manualmente migraciones aplicadas ni <code>flyway_schema_history</code>.</li>
+<li>No ejecute <code>start-dev</code> de Keycloak como soluci&#243;n productiva.</li>
+<li>Antes de compartir logs, elimine secretos y datos personales innecesarios.</li>
+</ul>
+<h3>Accesibilidad del recorrido</h3>
+<p>Los comandos tienen resultado esperado y alternativa diagn&#243;stica. En el navegador, use teclado y foco visible, no dependa &#250;nicamente del color de los estados y mantenga el zoom que necesite. Si una pantalla presenta desbordamiento horizontal o no permite completar la tarea con teclado, reg&#237;strelo como defecto funcional; no lo resuelva reduciendo permanentemente el zoom.</p>
+<h3>Al solicitar soporte incluya</h3>
+<ol>
+<li>fecha, commit (<code>git rev-parse HEAD</code>) y rama;</li>
+<li>Ubuntu y arquitectura (<code>cat /etc/os-release</code>, <code>uname -m</code>);</li>
+<li>versiones de Docker, Compose y Buildx;</li>
+<li>salida de <code>docker compose ps -a</code>;</li>
+<li>endpoint que falla y c&#243;digo HTTP;</li>
+<li>logs m&#237;nimos del servicio afectado, ya saneados;</li>
+<li>si es instalaci&#243;n, actualizaci&#243;n o reinicio;</li>
+<li>acciones intentadas y su resultado.</li>
+</ol>
+<p>No incluya archivos de <code>.tools/secrets</code>, tokens OIDC, contrase&#241;as ni datos reales de clientes.</p>
+<h2 id="section-18">18. Referencias can&#243;nicas</h2>
+<ul>
+<li>Compose del proyecto: <code>infra/compose/compose.yaml</code>.</li>
+<li>Configuraci&#243;n modelo: <code>infra/compose/compose.env.example</code>.</li>
+<li>Build: <code>docs/runbooks/docker-build.md</code>.</li>
+<li>Operaci&#243;n Compose: <code>docs/runbooks/compose.md</code>.</li>
+<li>Migraciones: <code>docs/runbooks/migrator.md</code>.</li>
+<li>Identidad: <code>docs/runbooks/keycloak-oidc.md</code>.</li>
+<li>Respaldo y restauraci&#243;n: <code>docs/runbooks/postgresql-backup-restore.md</code>.</li>
+<li><a href="https://docs.docker.com/engine/install/ubuntu/">Instalaci&#243;n oficial de Docker Engine en Ubuntu</a>.</li>
+<li><a href="https://docs.docker.com/engine/install/linux-postinstall/">Posinstalaci&#243;n oficial de Docker en Linux</a>.</li>
+<li><a href="https://git-scm.com/install/linux">Instalaci&#243;n oficial de Git</a>.</li>
+</ul>
+<p><strong>Fuente can&#243;nica:</strong> este Markdown y los archivos versionados citados. El HTML y el PDF son artefactos derivados para consulta.</p>
+</main>
+<footer class="page-footer">LogixOne - Manual de instalaci&oacute;n en Ubuntu - Edici&oacute;n 1.0</footer>
+</body></html>

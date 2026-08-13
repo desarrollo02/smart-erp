@@ -30,6 +30,7 @@ Una historia debe estar suficientemente definida y ser comprobable antes de entr
 - [Gestión de procesos de negocio BPM](epica-gestion-procesos-negocio-bpm.md)
 - [Mantenimiento de flota](epica-mantenimiento-flota.md)
 - [Taller automotriz comercial](epica-taller-automotriz-comercial.md)
+- [Floorplans operativos y transaccionales](epica-floorplans-operativos-transaccionales.md)
 
 ## Historias futuras refinadas
 
@@ -57,6 +58,15 @@ Docker/Compose, health, OIDC y Playwright. La aclaración de producto difiere s�
 la validación independiente de otra persona. J11-S9-07 es el siguiente gate de
 cierre; Sprint 8 y Sprint 9 continúan abiertos y el baseline no se promueve a
 producción.
+
+El responsable de producto decidió el 2026-08-13 insertar
+[Sprint 10](../sprints/sprint-10/README.md) como incremento transversal después de
+J11-S9-07/J11-S9-08 y antes de `sales`. El Sprint evolucionará los contratos
+neutrales y el shell con `WORKLIST`, `TRANSACTION_EDITOR` y `GUIDED_OPERATION`, y
+los validará sobre Inventario y Compras reales. La decisión no altera ADR-0011:
+`purchasing` conserva el orden ERP 4 y `sales` el orden ERP 5. J11-S9-07 continúa
+siendo el siguiente trabajo inmediato; J11-S10-00 permanece planificada y no
+autoriza código todavía.
 
 La candidata visual de [Sprint 3](../sprints/sprint-03/README.md) está disponible y
 sus gates técnicos G2-G6 quedaron verdes; G7 independiente continúa pendiente. El

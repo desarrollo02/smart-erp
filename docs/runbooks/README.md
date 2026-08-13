@@ -8,6 +8,7 @@ Cada procedimiento debe declarar prerrequisitos, comandos, resultado esperado, v
 
 - [Levantar Logixone con IntelliJ IDEA Ultimate 2026.2](levantar-logixone-intellij-idea-ultimate.md) ([PDF](../output/pdf/guia-levantar-logixone-intellij-idea-ultimate.pdf))
 - [Levantar Logixone con Visual Studio Code](levantar-logixone-visual-studio-code.md)
+- [Instalar y levantar Smart ERP en Ubuntu](levantar-logixone-ubuntu.md) ([PDF](../output/pdf/01-manual-levantar-smart-erp-ubuntu.pdf))
 - [Decisión y metodología del instalador Windows al cerrar cada Sprint](metodologia-instalador-windows-cierre-sprint.md)
 - [Demo visual del instalador Windows interno — J11-S8-08](demo-instalador-windows-sprint-08.md)
 - [Construcción local con Maven Wrapper](build-local.md)

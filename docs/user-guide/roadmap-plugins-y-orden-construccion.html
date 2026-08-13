@@ -186,7 +186,7 @@
       </tbody>
     </table>
     <div class="callout success">
-      <strong>Punto actual.</strong> R0 y los órdenes 1-3 ya tienen implementación en el baseline. Compras, orden 4, tiene dominio, persistencia, aplicación, interfaz y pruebas automatizadas verdes; todavía debe componerse en la distribución y completar sus gates navegables.
+      <strong>Punto actual.</strong> R0 y los órdenes 1-3 ya tienen implementación en el baseline. Compras, orden 4, está compuesta y tiene verdes sus gates automatizados; J11-S9-07, la validación independiente y la decisión de instalador continúan pendientes.
     </div>
   </section>
 
@@ -305,14 +305,15 @@
           <div class="timeline-item"><strong>R0</strong><span><span class="badge done">Implementado</span> Datos de referencia en el reactor y consumido por fundaciones.</span></div>
           <div class="timeline-item"><strong>ERP 1-3</strong><span><span class="badge done">Implementados</span> Socios, Catálogo e Inventario con demos oficiales y gates técnicos ejecutados.</span></div>
           <div class="timeline-item current"><strong>ERP 4</strong><span><span class="badge partial">En curso</span> Compras tiene código y pruebas automatizadas verdes; falta composición, runtime, Playwright y demo navegable.</span></div>
-          <div class="timeline-item future"><strong>ERP 5-19</strong><span><span class="badge planned">Planificados</span> Continúan desde Ventas según el orden aprobado.</span></div>
+          <div class="timeline-item future"><strong>Sprint 10 transversal</strong><span><span class="badge planned">Planificado</span> Floorplans operativos sobre Inventario y Compras antes de Ventas.</span></div>
+          <div class="timeline-item future"><strong>ERP 5-19</strong><span><span class="badge planned">Planificados</span> Continúan desde Ventas después del gate transversal, sin cambiar el orden aprobado.</span></div>
           <div class="timeline-item future"><strong>Otras rutas</strong><span><span class="badge planned">Planificadas</span> Proveedor, Cooperativa, Migración, BPM y Flota requieren prioridad e iteración propias.</span></div>
         </div>
       </div>
       <div class="status-box">
         <h3 style="margin-top:0">Siguiente paso autorizado</h3>
-        <p class="lead"><strong>J11-S9-06:</strong> componer <code>purchasing</code> en WAR y migrador, integrar la distribución y ejecutar Docker/Compose, health, OIDC y Playwright sobre rutas navegables.</p>
-        <div class="callout success"><strong>Después:</strong> completar el cierre técnico de Compras y continuar con <code>sales</code>, salvo que producto abra explícitamente una iteración transversal que ya cumpla sus prerrequisitos.</div>
+        <p class="lead"><strong>J11-S9-07/J11-S9-08:</strong> congelar el baseline técnico de Compras, completar sus artefactos de cierre y registrar la decisión del instalador.</p>
+        <div class="callout success"><strong>Después:</strong> ejecutar Sprint 10 para incorporar bandejas, editores transaccionales y capturas guiadas sobre Inventario y Compras. <code>sales</code> comenzará en Sprint 11 con esa fundación validada.</div>
         <div class="callout warning"><strong>No confundir elegibilidad con prioridad.</strong> BPM será técnicamente elegible después de Compras compuesta, pero no se convierte automáticamente en el siguiente Sprint.</div>
       </div>
     </div>

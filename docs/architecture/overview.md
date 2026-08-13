@@ -1,9 +1,9 @@
 # Vista general de arquitectura
 
-- Versión: 61
-- Fecha: 2026-08-12
-- Estado: J11-S9-06 compone `purchasing` en WAR/migrador y valida Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045 y la familia Flota F1/F2 por ADR-0046; J11-S9-07 y validación independiente pendientes
-- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07` y J11-S9-00 a J11-S9-06; ADR-0009 a ADR-0046
+- Versión: 62
+- Fecha: 2026-08-13
+- Estado: J11-S9-06 compone `purchasing` en WAR/migrador y valida Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045, la familia Flota F1/F2 por ADR-0046 y Sprint 10 planifica floorplans operativos por ADR-0047 antes de `sales`; J11-S9-07 y validación independiente pendientes
+- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07`, J11-S9-00 a J11-S9-06 y J11-S10-00 planificada; ADR-0009 a ADR-0047
 
 ## Objetivo
 
@@ -625,6 +625,13 @@ familia vertical Flota F1–F2. El catálogo futuro general contiene treinta y t
 reutilizables, pero no existe una composición objetivo que los empaquete a todos.
 La secuencia ERP 1–19 conserva su numeración.
 
+[ADR-0047](../adr/0047-floorplans-operativos-transaccionales.md) agrega un gate de
+plataforma visual entre `purchasing` y `sales`. El gate no es un plugin y no altera
+la secuencia 1–19. Versionará contratos neutrales para distinguir maestros,
+bandejas, editores transaccionales, capturas guiadas y consultas, y los validará
+primero con Inventario y Compras. El shell conserva XHTML, Material Design 3,
+accesibilidad y responsive; los plugins sólo declaran semántica cerrada.
+
 El perfil cooperativo planificado separa:
 
 1. `cooperative_membership` para socios y aportes;
@@ -1241,6 +1248,7 @@ Estas decisiones no autorizan valores implícitos. Deben documentarse y probarse
 - [ADR-0040 — Módulo técnico de migración de legados](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
 - [ADR-0045 — Plugin de gestión de procesos de negocio BPM](../adr/0045-plugin-gestion-procesos-negocio-bpm.md)
 - [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
+- [ADR-0047 — Floorplans operativos y transaccionales](../adr/0047-floorplans-operativos-transaccionales.md)
 - [ADR-0012 — Composición física única y migraciones de plugins](../adr/0012-composicion-unica-y-migraciones-de-plugins.md)
 - [ADR-0014 — Modelo de participante comercial y contrato público](../adr/0014-modelo-participante-comercial-y-contrato-publico.md)
 - [ADR-0015 — Persistencia privada de participantes comerciales](../adr/0015-persistencia-privada-business-partners.md)

@@ -193,6 +193,8 @@ La planificación no autoriza código ni cambia J11-S9-07.
     conserva sus invariantes y fuente de verdad.
 15. La familia Flota usa F1–F2: F1 no comienza antes de una API pública estable de
     vehículo y F2 no comienza antes de F1, Ventas y Documentos Comerciales.
+16. El gate transversal de floorplans operativos se ejecuta después de Compras y
+    antes de Ventas; no renumera ERP 1–19 ni permite que los plugins aporten XHTML.
 
 ## Dependencias de producto
 
@@ -463,3 +465,11 @@ fueron aceptadas sin cambios el 2026-08-12. No modifica reactor, POM, migracione
 composición ni el trabajo autorizado: J11-S9-07 continúa siendo el siguiente
 gate. FM-00 sólo podrá abrirse después de estabilizar `logistics-api`; AW-00
 requiere además F1, Ventas y Documentos Comerciales.
+
+ADR-0047 y la
+[épica de floorplans operativos](epica-floorplans-operativos-transaccionales.md)
+insertan Sprint 10 como gate transversal después de J11-S9-07/J11-S9-08 y antes
+de `sales`. El trabajo versionará el contrato neutral y validará `WORKLIST`,
+`TRANSACTION_EDITOR` y `GUIDED_OPERATION` con Inventario y Compras reales. No
+altera la numeración de plugins: Compras continúa en 4 y Ventas en 5. El siguiente
+trabajo inmediato continúa siendo J11-S9-07.

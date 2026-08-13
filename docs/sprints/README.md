@@ -30,3 +30,4 @@ hasta completar además composición, gates runtime y aceptación independiente.
 - [Sprint 7 — Catálogo comercial `commercial_catalog`](sprint-07/README.md)
 - [Sprint 8 — Inventario `inventory`](sprint-08/README.md)
 - [Sprint 9 — Compras `purchasing`](sprint-09/README.md)
+- [Sprint 10 — Floorplans operativos y transaccionales](sprint-10/README.md)
