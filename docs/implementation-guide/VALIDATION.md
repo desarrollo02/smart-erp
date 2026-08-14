@@ -1,28 +1,28 @@
 # Validación independiente de la guía de implementación
 
-- Edición a evaluar: pendiente de recongelar la candidata final posterior a `J11-S8-C02`; la guía de trabajo vigente es `1.0-rc80`
-- Historia de cierre vigente: `J11-S8-C02` y cierre formal de Sprint 8 (ficha originada en `J11-S2-08`)
-- Estado: Preparada pero no ejecutable hasta recongelar; pendiente de validador independiente
+- Edición a evaluar: `1.0-rc103`
+- Historia de cierre vigente: `J11-S9-08` (ficha acumulada originada en `J11-S2-08`)
+- Estado: Baseline congelado y ejecutable; pendiente de validador independiente
 - Regla: completar este recorrido usando únicamente el repositorio y la [guía](README.md), sin instrucciones orales de sus autores
 
 ## Decisión de calendario
 
-La demo visual empresarial y administrativa y sus gates técnicos G0–G6 anteriores
-están disponibles, pero Sprint 8 permanece reabierto. Esta ficha no debe firmarse
-contra `1.0-rc43` ni contra la candidata de trabajo `1.0-rc75`: debe fijarse a la
-edición exacta que resulte de completar J11-S8-C02, recongelar el baseline y
-regenerar sus artefactos. Entonces la completará una persona que no haya
-implementado las capacidades evaluadas. La preparación técnica realizada por los
-autores no equivale a este recorrido; todos los campos y casillas permanecen
-pendientes hasta que el validador registre resultados propios.
+J11-S9-07 dejó G0–G6 verdes y J11-S9-08 agregó el instalador interno solicitado.
+Esta ficha se ejecuta exactamente contra la guía `1.0-rc103`, las imágenes de
+cierre J11-S9-07 y el instalador `0.9.0-internal.1`. La completará una persona que
+no haya implementado las capacidades
+evaluadas. La preparación y las pruebas automatizadas realizadas por los autores
+no equivalen a este recorrido; todos los campos y casillas permanecen pendientes
+hasta que el validador registre resultados propios.
 
 ## Quién puede validar
 
 La persona validadora debe tener conocimientos suficientes para operar Java, Maven y
 Docker, pero no haber implementado las capacidades de empresa, activación,
 persistencia, identidad, autorización, administración, composición de pantallas,
-migraciones de plugins, dominio/contratos de `business_partners` o dominio,
-aplicación, interfaz, composición y cierre de `commercial_catalog` de Sprint 2/3/4/5/6/7.
+migraciones de plugins, o dominio, aplicación, interfaz, composición y cierre de
+`business_partners`, `commercial_catalog`, `inventory` o `purchasing` de Sprint
+2 a Sprint 9.
 Puede ser un implementador, desarrollador, responsable técnico o integrador que
 cumpla esa independencia.
 
@@ -34,8 +34,8 @@ Antes de iniciar debe registrar:
 | Rol o perfil | PENDIENTE |
 | Fecha | PENDIENTE |
 | Sistema operativo | PENDIENTE |
-| Experiencia previa con Logixone | PENDIENTE |
-| Confirmación de que no implementó Sprint 2/3/4, J11-S5-01 a S5-04, J11-S6-02 a S6-07 ni J11-S7-02 a S7-07 | PENDIENTE |
+| Experiencia previa con Smart ERP | PENDIENTE |
+| Confirmación de que no implementó las capacidades evaluadas de Sprint 2 a Sprint 9 | PENDIENTE |
 
 ## Reglas del recorrido en limpio
 
@@ -62,13 +62,17 @@ Antes de iniciar debe registrar:
 - [ ] Pude explicar por qué `plg_business_partners` no tiene FK hacia `core.company`, por qué una identificación duplicada es advertencia y por qué V1 no se modifica.
 - [ ] Pude explicar por qué `commercial_catalog` separa `view`, `items.manage`, `prices.manage` y `definitions.manage` y por qué sus pantallas no pueden sustituir esas guardas.
 - [ ] Pude explicar cómo el perfil físico, el menú fusionado, los permisos y la validación en navegador de `commercial_catalog` se relacionan sin compartir entidades o XHTML.
+- [ ] Pude explicar por qué Inventario depende de Catálogo, pero no lee sus tablas ni relaciona entidades JPA.
+- [ ] Pude separar solicitud, orden, recepción y devolución de factura, deuda, pago, retención, costo y asiento.
+- [ ] Entendí por qué Compras exige un aprobador distinto y por qué una devolución vuelve a abrir el pendiente del proveedor.
+- [ ] Pude explicar cómo Compras usa APIs públicas y snapshots para proveedor, artículo, moneda, unidad y depósito.
 
 ### B. Ambiente y gate Maven
 
 Seguí el capítulo 5 y ejecuté el gate del capítulo 11:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-commercial-catalog-demo `
+.\mvnw.cmd -B -Pwith-purchasing-demo `
   "-Dlogixone.postgres.integration=true" clean verify
 ```
 
@@ -87,14 +91,14 @@ PENDIENTE
 Construí la variante completa indicada por la guía:
 
 ```powershell
-.\mvnw.cmd -B -Pwith-commercial-catalog-demo `
+.\mvnw.cmd -B -Pwith-purchasing-demo `
   -pl migrator,distribution/logixone-war -am clean package
 ```
 
 - [ ] El WAR fue creado en `distribution/logixone-war/target/logixone.war`.
 - [ ] El ejecutable fue creado en `migrator/target/migrator-0.1.0-SNAPSHOT-executable.jar`.
-- [ ] Pude identificar `business_partners`, `commercial_catalog`, el plugin funcional de referencia y las dos personalizaciones de referencia.
-- [ ] Pude identificar los mismos cinco proveedores en el SPI del migrador y confirmé que no contiene `jakarta/`.
+- [ ] Pude identificar los cinco plugins productivos y los tres fixtures del perfil.
+- [ ] Pude identificar los mismos ocho proveedores en el SPI del migrador y confirmé que no contiene `jakarta/`.
 - [ ] Entendí que una empresa usa solo la personalización que tiene asignada aunque el catálogo físico contenga otras.
 
 Resultado y observaciones:
@@ -123,6 +127,9 @@ Seguí los capítulos 10 y 11, y los runbooks enlazados, usando nombres y puerto
 - [ ] Pude explicar por qué `business_partners.view`, `manage`, `roles.manage` y `lifecycle.manage` no son intercambiables.
 - [ ] Pude explicar por qué `commercial_catalog.view`, `items.manage`, `prices.manage` y `definitions.manage` no son intercambiables.
 - [ ] Creé un artículo/servicio y una lista/precio ficticios, desactivé el plugin, observé denegación y lo reactivé sin pérdida.
+- [ ] Recorrí depósito, existencias, movimiento, reserva y conteo ficticios; confirmé disponibilidad y denegación del plugin inactivo.
+- [ ] Creé una solicitud, la aprobé con otro actor, emití la orden, confirmé recepción/devolución y consulté seguimiento.
+- [ ] Verifiqué en 375, 720 y 1280 px que Compras conserva acciones y no presenta overflow horizontal normal.
 - [ ] Verifiqué que un adaptador pide `CurrentCompanyAuthorization` por operación y no guarda la prueba autorizada en sesión.
 - [ ] Comprobé que la vista no expone issuer, subject OIDC, credenciales, tokens, SQL, stacktraces ni datos comerciales.
 - [ ] No apareció ningún secreto en comandos, imágenes o logs copiados a esta ficha.

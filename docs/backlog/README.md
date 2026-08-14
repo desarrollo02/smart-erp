@@ -53,20 +53,21 @@ aceptó sin cambios y autorizó la rama local
 J11-S9-03 implementó V1 privada, JPA y repositorios; J11-S9-04 implementó
 aplicación, permisos, V2, CDI/JTA e integración con Inventario; J11-S9-05 agregó
 cinco pantallas, directorios, selectores y el manual 07. J11-S9-06 compuso Compras
-en WAR/migrador y dejó verdes Maven, ArchUnit, PostgreSQL, migraciones,
-Docker/Compose, health, OIDC y Playwright. La aclaración de producto difiere sólo
-la validación independiente de otra persona. J11-S9-07 es el siguiente gate de
-cierre; Sprint 8 y Sprint 9 continúan abiertos y el baseline no se promueve a
-producción.
+en WAR/migrador. J11-S9-07 repitió Maven, ArchUnit, PostgreSQL, migraciones,
+Docker/Compose, health, OIDC y Playwright; completó demo, documentación, fotografía
+y PDF, y dejó G0–G6 verdes. La aclaración de producto difiere sólo la validación
+independiente de otra persona. J11-S9-08 registró `SÍ` y creó el instalador
+interno `0.9.0-internal.1`; Sprint 8 y Sprint 9 continúan abiertos y el baseline
+no se promueve a producción.
 
 El responsable de producto decidió el 2026-08-13 insertar
 [Sprint 10](../sprints/sprint-10/README.md) como incremento transversal después de
-J11-S9-07/J11-S9-08 y antes de `sales`. El Sprint evolucionará los contratos
+J11-S9-07/J11-S9-08 y antes de `sales`. J11-S9-07 congeló el baseline técnico y
+J11-S9-08 creó la edición interna solicitada. Sprint 10 evolucionará los contratos
 neutrales y el shell con `WORKLIST`, `TRANSACTION_EDITOR` y `GUIDED_OPERATION`, y
 los validará sobre Inventario y Compras reales. La decisión no altera ADR-0011:
-`purchasing` conserva el orden ERP 4 y `sales` el orden ERP 5. J11-S9-07 continúa
-siendo el siguiente trabajo inmediato; J11-S10-00 permanece planificada y no
-autoriza código todavía.
+`purchasing` conserva el orden ERP 4 y `sales` el orden ERP 5. J11-S10-00
+permanece planificada y no se inició código en esta historia.
 
 La candidata visual de [Sprint 3](../sprints/sprint-03/README.md) está disponible y
 sus gates técnicos G2-G6 quedaron verdes; G7 independiente continúa pendiente. El

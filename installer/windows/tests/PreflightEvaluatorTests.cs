@@ -13,6 +13,7 @@ internal static class PreflightEvaluatorTests
 
     private static int Main()
     {
+        ManifestLoadsSprintNineBaseline();
         CompatibleMachineIsAccepted();
         RecommendedShortfallWarns();
         UnsupportedWindowsBlocks();
@@ -36,6 +37,19 @@ internal static class PreflightEvaluatorTests
         InvalidPathBlocks();
         Console.WriteLine("PREFLIGHT_TESTS_OK assertions=" + assertions);
         return 0;
+    }
+
+    private static void ManifestLoadsSprintNineBaseline()
+    {
+        string manifest = Path.GetFullPath(Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory,
+            "..", "manifest", "installer-manifest.json"));
+        InstallerConfiguration configuration = ManifestLoader.Load(manifest);
+        Equal("9", configuration.Sprint, "manifest sprint");
+        Equal("J11-S9-08", configuration.Story, "manifest story");
+        Equal("with-purchasing-demo", configuration.MavenProfile, "manifest Maven profile");
+        Equal("logixone/app:j11-s9-07-closing", configuration.ApplicationImage,
+            "manifest application image");
     }
 
     private static void CompatibleMachineIsAccepted()
@@ -401,15 +415,16 @@ internal static class PreflightEvaluatorTests
         return new InstallerConfiguration
         {
             Product = "Logixone Jakarta 11",
-            InstallerVersion = "0.8.0-internal.1",
-            Sprint = "8",
-            Story = "J11-S8-08",
+            InstallerVersion = "0.9.0-internal.1",
+            Sprint = "9",
+            Story = "J11-S9-08",
             Profile = "demo-local",
             ReleaseChannel = "INTERNAL_UNSIGNED",
-            ApplicationImage = "logixone/app:j11-s8-07-closing",
-            ApplicationDigest = "sha256:a44293d0bc1a0df01e4e13025a6bc202266dec82fa6bb5f74f858cd70667d4fb",
-            MigratorImage = "logixone/migrator:j11-s8-07-closing",
-            MigratorDigest = "sha256:bcf5a51b535c30cb466a10d782f6059bc383ea8db8360575f01a52086451fd81",
+            MavenProfile = "with-purchasing-demo",
+            ApplicationImage = "logixone/app:j11-s9-07-closing",
+            ApplicationDigest = "sha256:60f5de23f43e13991da30ef95be698c64f91862e38b9e75269cf13fd6d58d49a",
+            MigratorImage = "logixone/migrator:j11-s9-07-closing",
+            MigratorDigest = "sha256:5e1d1db7de7a03451e368f60c021f341054c2b8de093a3d0f0b1c382b8e8fb95",
             MinimumWindowsBuild = 26100,
             MinimumMemoryBytes = 8 * GiB,
             RecommendedMemoryBytes = 16 * GiB,

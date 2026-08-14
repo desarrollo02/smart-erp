@@ -239,8 +239,7 @@ class CommercialCatalogVisualIT {
                     "new price list code").fill(priceCode);
             requireOne(page.getByLabel("Nombre", new Page.GetByLabelOptions().setExact(true)),
                     "new price list name").fill(priceName);
-            requireOne(page.getByLabel("Moneda", new Page.GetByLabelOptions().setExact(true)),
-                    "price list currency").selectOption("PYG");
+            selectSearchOption(page, "Moneda", "PYG", "PYG");
             requireOne(page.getByLabel("Impuestos", new Page.GetByLabelOptions().setExact(true)),
                     "price list tax mode").selectOption("TAX_INCLUDED");
             requireOne(page.getByLabel("Decimales", new Page.GetByLabelOptions().setExact(true)),
@@ -1274,6 +1273,7 @@ class CommercialCatalogVisualIT {
                 "index.xhtml", "view.xhtml?route=%2Fcatalog&mode=directory");
         boolean catalogDisabled = false;
         boolean inventoryDisabled = false;
+        boolean purchasingDisabled = false;
         try {
             page.setViewportSize(1280, 900);
             page.navigate(pluginsUrl);
@@ -1290,19 +1290,48 @@ class CommercialCatalogVisualIT {
                     "commercial catalog remains enabled after dependency rejection").waitFor();
 
             page.navigate(pluginsUrl);
+            Locator purchasingCards = page.locator("article.plugin-record-card").filter(
+                    new Locator.FilterOptions().setHasText("purchasing"));
+            if (purchasingCards.count() == 1) {
+                Locator purchasingCard = purchasingCards.first();
+                Locator disablePurchasing = purchasingCard.getByRole(
+                        AriaRole.BUTTON,
+                        new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true));
+                if (disablePurchasing.count() == 1) {
+                    page.onceDialog(dialog -> dialog.accept());
+                    disablePurchasing.click();
+                    requireOne(pluginCard(page, "purchasing").getByRole(
+                            AriaRole.BUTTON,
+                            new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
+                            "purchasing disabled before its dependencies").waitFor();
+                    purchasingDisabled = true;
+                }
+            }
+
+            page.navigate(pluginsUrl);
             Locator inventoryCard = pluginCard(page, "inventory");
             page.onceDialog(dialog -> dialog.accept());
             requireOne(inventoryCard.getByRole(
-                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
+                    AriaRole.BUTTON,
+                    new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true)),
                     "disable inventory before commercial catalog").click();
+            requireOne(pluginCard(page, "inventory").getByRole(
+                    AriaRole.BUTTON,
+                    new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
+                    "inventory disabled before commercial catalog").waitFor();
             inventoryDisabled = true;
 
             page.navigate(pluginsUrl);
             card = pluginCard(page, "commercial_catalog");
             page.onceDialog(dialog -> dialog.accept());
             requireOne(card.getByRole(
-                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
+                    AriaRole.BUTTON,
+                    new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true)),
                     "disable commercial catalog without active dependents").click();
+            requireOne(pluginCard(page, "commercial_catalog").getByRole(
+                    AriaRole.BUTTON,
+                    new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
+                    "commercial catalog disabled after dependents").waitFor();
             catalogDisabled = true;
             page.navigate(catalogUrl);
             requireOne(page.getByRole(
@@ -1331,6 +1360,19 @@ class CommercialCatalogVisualIT {
             requireOne(inventoryCard.getByRole(
                     AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
                     "restored inventory state").waitFor();
+
+            if (purchasingDisabled) {
+                Locator purchasingCard = pluginCard(page, "purchasing");
+                requireOne(purchasingCard.getByRole(
+                        AriaRole.BUTTON,
+                        new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
+                        "restore purchasing after its dependencies").click();
+                requireOne(pluginCard(page, "purchasing").getByRole(
+                        AriaRole.BUTTON,
+                        new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true)),
+                        "restored purchasing state").waitFor();
+                purchasingDisabled = false;
+            }
         } finally {
             if (catalogDisabled) {
                 page.navigate(pluginsUrl);
@@ -1346,6 +1388,19 @@ class CommercialCatalogVisualIT {
                         AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Habilitar"));
                 if (enable.count() == 1) {
                     enable.click();
+                }
+            }
+            if (purchasingDisabled) {
+                page.navigate(pluginsUrl);
+                Locator purchasingCards = page.locator("article.plugin-record-card").filter(
+                        new Locator.FilterOptions().setHasText("purchasing"));
+                if (purchasingCards.count() == 1) {
+                    Locator enable = purchasingCards.first().getByRole(
+                            AriaRole.BUTTON,
+                            new Locator.GetByRoleOptions().setName("Habilitar").setExact(true));
+                    if (enable.count() == 1) {
+                        enable.click();
+                    }
                 }
             }
         }
@@ -1461,6 +1516,42 @@ class CommercialCatalogVisualIT {
             }
         }
         throw new AssertionError("select must expose an option containing " + expectedText);
+    }
+
+    private String selectSearchOption(
+            Page page, String fieldLabel, String query, String expectedOptionText) {
+        String searchLabel = "Buscar opciones de " + fieldLabel;
+        Locator search = requireOne(page.getByLabel(searchLabel),
+                "search-on-demand input for " + fieldLabel);
+        search.fill(query);
+        Locator field = selectorField(search);
+        requireOne(field.getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Buscar opciones").setExact(true)),
+                "search-on-demand action for " + fieldLabel).click();
+
+        search = requireOne(page.getByLabel(searchLabel),
+                "search-on-demand input after search for " + fieldLabel);
+        field = selectorField(search);
+        Locator matchingOption = field.locator(".selector-option-button").filter(
+                new Locator.FilterOptions().setHasText(expectedOptionText));
+        matchingOption.waitFor();
+        requireOne(matchingOption, "search-on-demand option for " + fieldLabel).click();
+
+        search = requireOne(page.getByLabel(searchLabel),
+                "search-on-demand input after selection for " + fieldLabel);
+        field = selectorField(search);
+        String value = requireOne(field.locator(".selector-current-value strong"),
+                "selected search-on-demand value for " + fieldLabel).innerText().strip();
+        assertTrue(!value.isBlank() && !"Ninguna".equals(value),
+                "the search-on-demand selection must update " + fieldLabel);
+        return value;
+    }
+
+    private static Locator selectorField(Locator search) {
+        return search.locator(
+                "xpath=ancestor::*[contains(concat(' ', normalize-space(@class), ' '),"
+                        + " ' selector-search-field ')][1]");
     }
 
     private static Locator requireOne(Locator locator, String description) {

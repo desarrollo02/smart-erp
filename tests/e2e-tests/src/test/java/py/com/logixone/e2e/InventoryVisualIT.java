@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
@@ -32,9 +33,11 @@ class InventoryVisualIT {
     private static final List<String> REQUIRED_PLUGINS = List.of(
             "reference_data", "business_partners", "commercial_catalog", "inventory");
     private static final List<String> REQUIRED_PERMISSIONS = List.of(
+            "reference_data.view",
             "business_partners.view",
             "commercial_catalog.view",
             "commercial_catalog.items.manage",
+            "commercial_catalog.definitions.manage",
             "inventory.view",
             "inventory.storage.manage",
             "inventory.items.manage",
@@ -95,9 +98,11 @@ class InventoryVisualIT {
             assertMergedMenus(page);
 
             String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-            String itemName = createCatalogProduct(page, suffix);
+            String unitCode = createCatalogUnit(page, suffix);
+            String taxProfileName = createTaxProfile(page, suffix);
+            String itemName = createCatalogProduct(page, suffix, unitCode, taxProfileName);
             String warehouseCode = createWarehouse(page, suffix);
-            enrollAndOperateStock(page, suffix, itemName, warehouseCode);
+            enrollAndOperateStock(page, suffix, itemName, unitCode, warehouseCode);
             executeStockCount(page, itemName, warehouseCode);
             verifyDisabledInventoryIsDeniedAndRestore(page, companyId);
         }
@@ -109,7 +114,69 @@ class InventoryVisualIT {
                 .setViewportSize(1280, 900));
     }
 
-    private String createCatalogProduct(Page page, String suffix) {
+    private String createCatalogUnit(Page page, String suffix) {
+        page.navigate(routeUrl("%2Fcatalog%2Fdefinitions", "directory"));
+        requireMainHeading(page, "Definiciones del catálogo");
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Nueva definición")),
+                "new catalog definition action").click();
+        requireMainHeading(page, "Nueva definición");
+
+        String code = "I" + suffix.substring(0, 7);
+        requireOne(page.getByLabel(
+                "Tipo de definición", new Page.GetByLabelOptions().setExact(true)),
+                "definition kind").selectOption("UNIT");
+        requireOne(page.getByLabel("Código", new Page.GetByLabelOptions().setExact(true)),
+                "unit code").fill(code);
+        requireOne(page.getByLabel("Nombre", new Page.GetByLabelOptions().setExact(true)),
+                "unit name").fill("Unidad inventario " + suffix);
+        requireOne(page.getByLabel(
+                "Decimales (sólo unidades)", new Page.GetByLabelOptions().setExact(true)),
+                "unit scale").selectOption("2");
+        requireOne(page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Registrar definición")),
+                "register inventory unit").click();
+        requireOne(page.getByText(
+                "Definición registrada", new Page.GetByTextOptions().setExact(true)),
+                "inventory unit confirmation").waitFor();
+        return code;
+    }
+
+    private String createTaxProfile(Page page, String suffix) {
+        page.navigate(routeUrl("%2Fcatalog%2Ftax-profiles", "directory"));
+        requireMainHeading(page, "Perfiles tributarios");
+        requireOne(page.getByRole(
+                AriaRole.LINK, new Page.GetByRoleOptions().setName("Nuevo perfil")),
+                "new inventory tax profile action").click();
+        requireMainHeading(page, "Nuevo perfil tributario");
+
+        String name = "Perfil inventario " + suffix;
+        requireOne(page.getByLabel(
+                "Código interno", new Page.GetByLabelOptions().setExact(true)),
+                "tax profile code").fill("PI_" + suffix);
+        requireOne(page.getByLabel("Nombre", new Page.GetByLabelOptions().setExact(true)),
+                "tax profile name").fill(name);
+        requireOne(page.getByLabel(
+                "Tratamiento interno", new Page.GetByLabelOptions().setExact(true)),
+                "tax profile treatment").fill("TAXED_DEMO");
+        requireOne(page.getByLabel("Descripción", new Page.GetByLabelOptions().setExact(true)),
+                "tax profile description").fill(
+                        "Perfil ficticio del escenario de inventario; no representa una regla SIFEN");
+        requireOne(page.getByLabel(
+                "Vigente desde", new Page.GetByLabelOptions().setExact(true)),
+                "tax profile validity start").fill(
+                        LocalDate.now().minusDays(1) + "T00:00:00Z");
+        requireOne(page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Registrar perfil")),
+                "register inventory tax profile").click();
+        requireOne(page.getByText(
+                "Perfil tributario registrado", new Page.GetByTextOptions().setExact(true)),
+                "inventory tax profile confirmation").waitFor();
+        return name;
+    }
+
+    private String createCatalogProduct(
+            Page page, String suffix, String unitCode, String taxProfileName) {
         page.navigate(routeUrl("%2Fcatalog", "directory"));
         requireMainHeading(page, "Artículos y servicios");
         requireOne(page.getByRole(
@@ -131,10 +198,10 @@ class InventoryVisualIT {
         requireOne(page.getByLabel("Alcance", new Page.GetByLabelOptions().setExact(true)),
                 "catalog product scope").selectOption("BOTH");
         requireOne(page.getByLabel("Unidad base", new Page.GetByLabelOptions().setExact(true)),
-                "catalog product unit").selectOption("EA");
+                "catalog product unit").selectOption(unitCode);
         requireOne(page.getByLabel("Perfil tributario", new Page.GetByLabelOptions().setExact(true)),
                 "catalog product tax profile").selectOption(
-                        new SelectOption().setLabel("IVA general de demostración"));
+                        new SelectOption().setLabel(taxProfileName));
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Registrar")),
                 "register catalog product").click();
@@ -200,7 +267,7 @@ class InventoryVisualIT {
     }
 
     private void enrollAndOperateStock(
-            Page page, String suffix, String itemName, String warehouseCode) {
+            Page page, String suffix, String itemName, String unitCode, String warehouseCode) {
         page.navigate(routeUrl("%2Finventory", "directory"));
         requireMainHeading(page, "Existencias");
         assertResponsive(page, 1280, 900, "inventory-stock-directory-expanded-1280.png");
@@ -234,8 +301,8 @@ class InventoryVisualIT {
                 "inventory movements tab").click();
         requireOne(page.getByLabel("Tipo de movimiento", new Page.GetByLabelOptions().setExact(true)),
                 "movement type").selectOption("RECEIPT");
-        selectContaining(page, "Depósito de origen", warehouseCode);
-        selectContaining(page, "Ubicación de origen", warehouseCode + " · GENERAL");
+        selectInputContaining(page, "movement_warehouse", warehouseCode);
+        selectInputContaining(page, "movement_location", warehouseCode + " · GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
                 "movement condition").selectOption("AVAILABLE");
         requireOne(page.getByLabel("Cantidad", new Page.GetByLabelOptions().setExact(true)),
@@ -259,8 +326,8 @@ class InventoryVisualIT {
         requireOne(page.getByRole(
                 AriaRole.LINK, new Page.GetByRoleOptions().setName("Reservas")),
                 "inventory reservations tab").click();
-        selectContaining(page, "Depósito", warehouseCode);
-        selectContaining(page, "Ubicación", warehouseCode + " · GENERAL");
+        selectInputContaining(page, "reservation_warehouse", warehouseCode);
+        selectInputContaining(page, "reservation_location", warehouseCode + " · GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
                 "reservation condition").selectOption("AVAILABLE");
         Locator createReservation = requireOne(page.getByRole(
@@ -287,8 +354,8 @@ class InventoryVisualIT {
         requireOne(page.getByRole(
                 AriaRole.LINK, new Page.GetByRoleOptions().setName("Disponibilidad")),
                 "inventory availability tab").click();
-        selectContaining(page, "Depósito", warehouseCode);
-        selectContaining(page, "Ubicación", warehouseCode + " · GENERAL");
+        selectInputContaining(page, "availability_warehouse", warehouseCode);
+        selectInputContaining(page, "availability_location", warehouseCode + " · GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
                 "availability condition").selectOption("AVAILABLE");
         requireOne(page.getByRole(
@@ -296,7 +363,8 @@ class InventoryVisualIT {
                 "check stock availability").click();
         requireOne(page.getByText("Disponibilidad consultada", new Page.GetByTextOptions().setExact(true)),
                 "availability confirmation").waitFor();
-        requireOne(page.getByText("Físico: 12 · Reservado: 3 · Disponible: 9 EA"),
+        requireOne(page.getByText(
+                        "Físico: 12 · Reservado: 3 · Disponible: 9 " + unitCode),
                 "availability quantities").waitFor();
         assertAccessibleStructure(page);
         assertResponsive(page, 375, 900, "inventory-stock-availability-compact-375.png");
@@ -316,8 +384,8 @@ class InventoryVisualIT {
         requireOne(page.getByRole(
                 AriaRole.LINK, new Page.GetByRoleOptions().setName("Nuevo conteo")),
                 "new stock count action").click();
-        selectContaining(page, "Depósito", warehouseCode);
-        selectContaining(page, "Ubicación opcional", warehouseCode + " · GENERAL");
+        selectInputContaining(page, "count_new_warehouse", warehouseCode);
+        selectInputContaining(page, "count_new_location", warehouseCode + " · GENERAL");
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Preparar conteo")),
                 "draft stock count").click();
@@ -327,8 +395,8 @@ class InventoryVisualIT {
         requireOne(page.getByRole(
                 AriaRole.LINK, new Page.GetByRoleOptions().setName("Líneas")),
                 "stock count lines tab").click();
-        selectContaining(page, "Artículo", itemName);
-        selectContaining(page, "Ubicación", "GENERAL");
+        selectInputContaining(page, "count_line_item", itemName);
+        selectInputContaining(page, "count_line_location", "GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
                 "count line condition").selectOption("AVAILABLE");
         requireOne(page.getByRole(
@@ -477,48 +545,87 @@ class InventoryVisualIT {
     private void verifyDisabledInventoryIsDeniedAndRestore(Page page, String companyId) {
         String pluginsUrl = pluginsUrl(companyId);
         String inventoryUrl = routeUrl("%2Finventory", "directory");
-        boolean disabled = false;
+        boolean inventoryDisabled = false;
+        boolean purchasingDisabled = false;
         try {
             page.setViewportSize(1280, 900);
+            purchasingDisabled = disablePluginIfEnabled(page, pluginsUrl, "purchasing");
             page.navigate(pluginsUrl);
             Locator card = pluginCard(page, "inventory");
             page.onceDialog(dialog -> dialog.accept());
             requireOne(card.getByRole(
                     AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
                     "disable inventory").click();
-            disabled = true;
+            requireOne(pluginCard(page, "inventory").getByRole(
+                    AriaRole.BUTTON,
+                    new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
+                    "disabled inventory state").waitFor();
+            inventoryDisabled = true;
             page.navigate(inventoryUrl);
-            requireOne(page.getByRole(
+            Locator disabledDenial = page.getByRole(
                     AriaRole.HEADING, new Page.GetByRoleOptions().setName(
-                            "Esta función no está disponible para tu contexto actual")),
-                    "disabled inventory denial").waitFor();
+                            "Esta función no está disponible para tu contexto actual"));
+            disabledDenial.waitFor();
+            requireOne(disabledDenial, "disabled inventory denial");
             assertResponsive(page, 375, 900, "inventory-disabled-denial-compact-375.png");
 
-            page.navigate(pluginsUrl);
-            card = pluginCard(page, "inventory");
-            requireOne(card.getByRole(
-                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Habilitar")),
-                    "restore inventory").click();
-            card = pluginCard(page, "inventory");
-            requireOne(card.getByRole(
-                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
-                    "restored inventory state").waitFor();
-            disabled = false;
+            enablePlugin(page, pluginsUrl, "inventory");
+            inventoryDisabled = false;
+            if (purchasingDisabled) {
+                enablePlugin(page, pluginsUrl, "purchasing");
+                purchasingDisabled = false;
+            }
         } finally {
-            if (disabled) {
-                page.navigate(pluginsUrl);
-                Locator enable = pluginCard(page, "inventory").getByRole(
-                        AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Habilitar"));
-                if (enable.count() == 1) {
-                    enable.click();
-                }
+            if (inventoryDisabled) {
+                enablePlugin(page, pluginsUrl, "inventory");
+            }
+            if (purchasingDisabled) {
+                enablePlugin(page, pluginsUrl, "purchasing");
             }
         }
     }
 
+    private boolean disablePluginIfEnabled(Page page, String pluginsUrl, String pluginId) {
+        page.navigate(pluginsUrl);
+        Locator cards = page.locator("article.plugin-record-card").filter(
+                new Locator.FilterOptions().setHasText(pluginId));
+        if (cards.count() == 0) {
+            return false;
+        }
+        Locator disable = requireOne(cards, pluginId + " plugin card").getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true));
+        if (disable.count() == 0) {
+            return false;
+        }
+        page.onceDialog(dialog -> dialog.accept());
+        disable.click();
+        requireOne(pluginCard(page, pluginId).getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
+                pluginId + " disabled state").waitFor();
+        return true;
+    }
+
+    private void enablePlugin(Page page, String pluginsUrl, String pluginId) {
+        page.navigate(pluginsUrl);
+        Locator enable = pluginCard(page, pluginId).getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Habilitar").setExact(true));
+        if (enable.count() == 1) {
+            enable.click();
+        }
+        requireOne(pluginCard(page, pluginId).getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true)),
+                pluginId + " restored state").waitFor();
+    }
+
     private Locator pluginCard(Page page, String pluginId) {
-        return requireOne(page.locator("article.plugin-record-card").filter(
-                new Locator.FilterOptions().setHasText(pluginId)), pluginId + " plugin card");
+        Locator cards = page.locator("article.plugin-record-card").filter(
+                new Locator.FilterOptions().setHasText(pluginId));
+        cards.first().waitFor();
+        return requireOne(cards, pluginId + " plugin card");
     }
 
     private String pluginsUrl(String companyId) {
@@ -529,9 +636,10 @@ class InventoryVisualIT {
         return appUrl.replace("index.xhtml", "view.xhtml?route=" + encodedRoute + "&mode=" + mode);
     }
 
-    private void selectContaining(Page page, String label, String expectedText) {
-        Locator select = requireOne(page.getByLabel(label, new Page.GetByLabelOptions().setExact(true)),
-                label + " select");
+    private void selectInputContaining(Page page, String inputId, String expectedText) {
+        Locator select = requireOne(page.locator(
+                        "select[data-screen-input='" + inputId + "']"),
+                inputId + " select");
         select.selectOption(optionValueContaining(select, expectedText));
     }
 

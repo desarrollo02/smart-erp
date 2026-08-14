@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -24,21 +25,26 @@ TEXT_EXTENSIONS = {
 }
 
 
-def is_maintained(path: Path) -> bool:
-    return not any(part in EXCLUDED for part in path.relative_to(ROOT).parts)
+def maintained_files() -> list[Path]:
+    files: list[Path] = []
+    for current_root, directories, filenames in os.walk(ROOT):
+        directories[:] = [
+            directory for directory in directories if directory not in EXCLUDED
+        ]
+        current = Path(current_root)
+        files.extend(current / filename for filename in filenames)
+    return files
 
 
 def markdown_files() -> list[Path]:
-    return [path for path in ROOT.rglob("*.md") if is_maintained(path)]
+    return [path for path in maintained_files() if path.suffix.lower() == ".md"]
 
 
 def maintained_text_files() -> list[Path]:
     return [
         path
-        for path in ROOT.rglob("*")
-        if path.is_file()
-        and path.suffix.lower() in TEXT_EXTENSIONS
-        and is_maintained(path)
+        for path in maintained_files()
+        if path.suffix.lower() in TEXT_EXTENSIONS
     ]
 
 

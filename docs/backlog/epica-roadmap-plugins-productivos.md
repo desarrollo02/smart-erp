@@ -439,10 +439,10 @@ rama local `sprint/09-purchasing` el 2026-08-11. J11-S9-02 implementó API y
 dominio; J11-S9-03 implementó V1 privada, JPA y repositorios; J11-S9-04 implementó
 aplicación, permisos, V2, CDI/JTA e integración pública con Inventario; J11-S9-05
 incorporó cinco pantallas neutrales, directorios paginados, selectores gobernados y
-el manual de Compras. J11-S9-06 compuso Compras y completó Maven, ArchUnit,
-PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright. J11-S9-07 queda
-habilitada como gate acumulado de cierre, mientras la validación independiente
-permanece pendiente.
+el manual de Compras. J11-S9-06 compuso Compras. J11-S9-07 repitió Maven,
+ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright, y
+completó demo, fotografía y PDF. J11-S9-08 registró `SÍ` y creó el instalador
+interno; G7, Authenticode y la matriz Windows independiente permanecen pendientes.
 
 ADR-0040 agrega documentalmente `legacy_migration` como plugin técnico opcional y
 eleva el catálogo global planificado a treinta reutilizables. No modifica el

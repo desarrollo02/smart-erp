@@ -3,7 +3,8 @@
 - Estado: Planificado; no iniciado
 - Fecha de planificación: 2026-08-13
 - Dependencia técnica: baseline de Sprint 9 congelado por J11-S9-07
-- Dependencia de gobierno: decisión de instalador J11-S9-08 registrada
+- Dependencia de gobierno: J11-S9-08 registró `SÍ` y creó el instalador interno;
+  su matriz Windows externa continúa pendiente
 - Siguiente plugin funcional: `sales`, diferido hasta completar este Sprint
 - ADR rector: [ADR-0047](../../adr/0047-floorplans-operativos-transaccionales.md)
 - Épica: [Floorplans operativos](../../backlog/epica-floorplans-operativos-transaccionales.md)
@@ -40,6 +41,8 @@ como gate transversal; no altera la numeración 4 → 5 de ADR-0011.
 
 - J11-S9-07 ha congelado un baseline con gates automatizados verdes;
 - J11-S9-08 ha registrado `SÍ` o `NO` sobre el instalador;
+- si la respuesta fue `SÍ`, sus gates técnicos pendientes se resolvieron o existe
+  una continuidad explícita que no los presenta como verdes;
 - no existe una prueba automatizada fallando en el baseline de partida;
 - las pantallas piloto y las tareas de sus roles están inventariadas;
 - la validación independiente pendiente, si continúa diferida, está identificada
@@ -72,6 +75,6 @@ como gate transversal; no altera la numeración 4 → 5 de ADR-0011.
 
 ## Momento autorizado
 
-Sprint 10 no inicia código durante J11-S9-07 ni antes de J11-S9-08. Al satisfacer
-los criterios de entrada, J11-S10-00 será el primer trabajo. `sales` podrá abrir su
+Sprint 10 no inició código durante J11-S9-07/J11-S9-08. Al satisfacer los
+criterios de entrada, J11-S10-00 será el primer trabajo. `sales` podrá abrir su
 caracterización en Sprint 11 después de J11-S10-06 y J11-S10-07.

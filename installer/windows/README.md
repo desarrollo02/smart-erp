@@ -1,6 +1,6 @@
 # Instalador Windows de Logixone
 
-Fuentes del bootstrapper interno de Sprint 8. La decisión técnica está en
+Fuentes del bootstrapper interno regenerado para Sprint 9. La decisión técnica está en
 [ADR-0026](../../docs/adr/0026-instalador-windows-bootstrapper-nativo.md) y el
 procedimiento operativo en la
 [metodología de cierre](../../docs/runbooks/metodologia-instalador-windows-cierre-sprint.md).
@@ -14,7 +14,7 @@ procedimiento operativo en la
 - `payload/`: inventario del contenido que se empaqueta;
 - `current/`: edición derivada vigente; nunca contiene fuentes ni secretos.
 
-La edición Sprint 8 es `INTERNAL_UNSIGNED`. No puede entregarse a una empresa hasta
+La edición Sprint 9 es `INTERNAL_UNSIGNED`. No puede entregarse a una empresa hasta
 aplicar y verificar Authenticode.
 
 ## Compatibilidad fijada
@@ -61,7 +61,7 @@ revisar las advertencias; no representa un fallo del ejecutable.
 Para la interfaz gráfica, ejecute:
 
 ```powershell
-.\installer\windows\current\Logixone-Setup-0.8.0-internal.1.exe
+.\installer\windows\current\Logixone-Setup-0.9.0-internal.1.exe
 ```
 
 Primero se muestra el diagnóstico. Después, **Revisar plan** enumera acciones,
@@ -70,12 +70,12 @@ deshabilitado hasta marcar el consentimiento explícito.
 
 ## Resultado interno vigente
 
-La edición actual contiene ocho archivos, cero diferencias respecto de
-`SHA256SUMS.txt` y un EXE principal de 103936 bytes con SHA-256
-`E97E8C31240AA263E24E4FC86B93C92880F56CCC4CD2F52DD77528FD1F2BC37A`.
-La instalación real y dos reparaciones finalizaron con migración, liveness y
-readiness verdes, reutilizando los cuatro secretos y preservando los volúmenes.
+La edición vigente se genera para el baseline congelado J11-S9-07, con perfil
+físico `with-purchasing-demo` e imágenes identificadas por digest. Su tamaño,
+SHA-256, firma y cantidad de entradas se registran en la evidencia J11-S9-08.
+La compilación y las pruebas deterministas no autorizan por sí solas una entrega
+externa ni sustituyen la matriz independiente de instalación.
 
 Siguen pendientes la matriz independiente en VM limpia e incompatible, rechazo
 UAC/cancelación reales y la firma Authenticode. Consulte la
-[evidencia J11-S8-08](../../docs/evidence/J11-S8-08-instalador-windows-cierre.md).
+[evidencia J11-S9-08](../../docs/evidence/J11-S9-08-instalador-windows-cierre.md).

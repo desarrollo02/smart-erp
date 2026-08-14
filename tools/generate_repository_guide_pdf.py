@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 from collections import Counter, defaultdict
 from datetime import date
@@ -31,6 +32,7 @@ from reportlab.platypus import (
     TableStyle,
 )
 from reportlab.platypus.tableofcontents import TableOfContents
+from svglib.svglib import svg2rlg
 
 
 rl_config.invariant = 1
@@ -59,7 +61,7 @@ TOP_LEVEL_DESCRIPTIONS = {
     "kernel-application": "Casos de uso, puertos, consultas, comandos y guardas.",
     "kernel-infrastructure-jakarta": "Adaptadores CDI, JPA/JTA, PostgreSQL, OIDC y health.",
     "migrator": "Ejecutable one-shot de Flyway para core V1-V6 y migraciones privadas de plugins.",
-    "plugins": "Datos de Referencia, Socios Comerciales, Catálogo Comercial, Inventario, sus API públicas y los fixtures funcional/personalizaciones A/B.",
+    "plugins": "Datos de Referencia, Socios Comerciales, Catálogo Comercial, Inventario, Compras, sus API públicas y los fixtures funcional/personalizaciones A/B.",
     "web-shell": "Superficie Jakarta Faces/JAX-RS, sesión, autorización y administración visual.",
     "distribution": "Ensamblado físico del WAR y perfiles de composición base, referencia y demo productiva.",
     "tests": "Gates de arquitectura, integración, Playwright y arnés JTA opt-in.",
@@ -220,18 +222,21 @@ def describe_directory(relative: Path) -> str:
 def collect_inventory(root: Path) -> tuple[list[Path], list[Path]]:
     files: list[Path] = []
     directories: set[Path] = set()
-    for path in root.rglob("*"):
-        relative = path.relative_to(root)
-        if any(part in EXCLUDED_PARTS for part in relative.parts):
-            continue
-        if path.is_file() and relative.as_posix() not in EXCLUDED_FILES:
+    for current, dir_names, file_names in os.walk(root, topdown=True):
+        dir_names[:] = sorted(name for name in dir_names if name not in EXCLUDED_PARTS)
+        current_path = Path(current)
+        current_relative = current_path.relative_to(root)
+        if current_relative != Path("."):
+            directories.add(current_relative)
+        for name in sorted(file_names):
+            relative = (current_path / name).relative_to(root)
+            if relative.as_posix() in EXCLUDED_FILES:
+                continue
             files.append(relative)
             parent = relative.parent
             while parent != Path("."):
                 directories.add(parent)
                 parent = parent.parent
-        elif path.is_dir():
-            directories.add(relative)
     return sorted(files, key=lambda p: p.as_posix().lower()), sorted(
         directories, key=lambda p: p.as_posix().lower()
     )
@@ -389,6 +394,21 @@ def bullet(text: str) -> Paragraph:
     return Paragraph(f"- {text}", STYLES["Body"])
 
 
+def topology_drawing(root: Path):
+    source = root / "docs/sprints/sprint-09/estructura-plugins-y-dependencias.svg"
+    drawing = svg2rlg(str(source))
+    if drawing is None or not drawing.width or not drawing.height:
+        raise RuntimeError(f"No se pudo convertir el diagrama SVG: {source}")
+    original_width = drawing.width
+    original_height = drawing.height
+    factor = min((160 * mm) / original_width, (98 * mm) / original_height)
+    drawing.scale(factor, factor)
+    drawing.width = original_width * factor
+    drawing.height = original_height * factor
+    drawing.hAlign = "CENTER"
+    return drawing
+
+
 def data_table(rows, widths, header=True, small=False):
     style_name = "Tiny" if small else "Small"
     normalized = []
@@ -453,7 +473,7 @@ def draw_cover(canvas, doc):
     canvas.setTitle(f"Smart ERP - Guía de estructura - {doc.sprint}")
     canvas.setAuthor("Proyecto Smart ERP")
     canvas.setSubject("Arquitectura, carpetas, archivos, estado y continuidad del ERP modular")
-    canvas.setKeywords("Smart ERP, Jakarta EE 11, Sprint 8, reference data, business partners, commercial catalog, inventory, plugins, repositorio")
+    canvas.setKeywords("Smart ERP, Jakarta EE 11, Sprint 9, reference data, business partners, commercial catalog, inventory, purchasing, plugins, repositorio")
     canvas.restoreState()
 
 
@@ -493,14 +513,14 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
             data_table(
                 [
                     ["EDICIÓN", "CORTE", "ESTADO"],
-                    [sprint, edition_date, "C06/C07 verdes; instalador NO; G7 pendiente"],
+                    [sprint, edition_date, "Instalador interno creado; G7 y matriz Windows pendientes"],
                 ],
                 [43 * mm, 35 * mm, 78 * mm],
             ),
             Spacer(1, 10 * mm),
             paragraph(
                 "Esta edición explica la organización real del ERP modular, la responsabilidad de cada carpeta y archivo mantenido, "
-                "la ejecución con Docker y la demo visual de cuatro plugins productivos. El instalador interno anterior se conserva, pero no representa este baseline.",
+                "la ejecución con Docker y la demo visual de cinco plugins productivos. El instalador interno 0.9.0-internal.1 representa este baseline, pero permanece sin firma y restringido a evaluación interna.",
                 "CoverSub",
             ),
             Spacer(1, 22 * mm),
@@ -566,7 +586,7 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
                 ["Dimensión", "Decisión vigente"],
                 ["Runtime", "Java 21, Jakarta EE 11 y WildFly 41"],
                 ["Empaquetado", "Un WAR; agregar o retirar un plugin exige rebuild y redeploy"],
-                ["Datos", "PostgreSQL 18.4; core V1-V6, reference_data V1-V4, business_partners V1-V4, commercial_catalog V1-V4, inventory V1-V2 y fixture V1; Hibernate solo valida"],
+                ["Datos", "PostgreSQL 18.4; core V1-V6, reference_data V1-V4, business_partners V1-V4, commercial_catalog V1-V4, inventory V1-V2, purchasing V1-V2 y fixture V1; Hibernate solo valida"],
                 ["Empresa", "UUID opaco, membresía confiable y una personalización exclusiva"],
                 ["Seguridad", "OIDC autentica; permisos empresariales y globales se resuelven en el kernel"],
                 ["UI", "Jakarta Faces 4.1, Material Design 3 y responsive obligatorio"],
@@ -578,6 +598,14 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
     )
 
     story.append(paragraph("3. Arquitectura vigente", "Heading1"))
+    story.append(paragraph("3.1 Dependencias y composición física de Sprint 9", "Heading2"))
+    story.append(topology_drawing(root))
+    story.append(
+        paragraph(
+            "La flecha continua sale del consumidor y apunta a una dependencia funcional REQUIRED; la flecha discontinua muestra la selección única consumida por WAR y migrador. La sección 6 ofrece la alternativa textual.",
+            "Caption",
+        )
+    )
     architecture_rows = [
         ["Capa", "Responsabilidad", "Dependencias prohibidas"],
         ["plugin-api / kernel-api", "Contratos Java puros y estables", "Jakarta, JPA, JSF, WildFly"],
@@ -614,8 +642,8 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
     story.append(
         paragraph(
             "`docker compose down` retira contenedores y redes, pero conserva los volúmenes. `down --volumes` también elimina los datos y solo "
-            "se admite sobre un proyecto sintético inequívoco. En el corte C07 se recreó únicamente `app`: PostgreSQL y Keycloak conservaron "
-            "sus volúmenes explícitos, 248 países, 178 monedas/fondos y los datos de los demás plugins; una segunda migración informó cero cambios.",
+            "se admite sobre un proyecto sintético inequívoco. En el corte J11-S9-07 se recreó únicamente `app`: PostgreSQL y Keycloak conservaron "
+            "sus volúmenes explícitos y los datos de los cinco plugins productivos; dos ejecuciones del migrador informaron cero cambios.",
             "Callout",
         )
     )
@@ -636,18 +664,18 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
         )
     )
 
-    story.append(paragraph("6. Estado del baseline J11-S8-C07", "Heading1"))
+    story.append(paragraph("6. Estado del baseline J11-S9-08", "Heading1"))
     story.append(
         data_table(
             [
                 ["Gate", "Resultado"],
-                ["Reactor", "26/26 módulos; 498 pruebas sin fallos, errores u omisiones; 28 ArchUnit"],
-                ["Persistencia", "PostgreSQL/Testcontainers 5/5; Flyway V1-V4 e idempotencia; 248 países y 178 monedas/fondos"],
-                ["Seguridad", "Health 2/2 y OIDC 4/4 en WAR normal; arnés aislado 12/12 con 6 JTA y cero omisiones"],
-                ["UI", "Playwright 1/1; 30 capturas C07 revisadas en 375/720/1280 sin overflow normal"],
-                ["Imagen", "App `sha256:52cf2245...b83d9fd`; migrator `sha256:1b598fb1...19c77`"],
-                ["Instalador", "NO para este baseline; 0.8.0-internal.1 permanece intacto y no representa C07"],
-                ["Pendiente", "Validación independiente G7"],
+                ["Reactor", "28/28 módulos; 535 pruebas sin fallos, errores u omisiones; 34 ArchUnit"],
+                ["Persistencia", "Compras PostgreSQL/Testcontainers 7/7; Flyway V1-V4/V1-V2 e idempotencia acumulada"],
+                ["Seguridad", "Health 2/2 y OIDC 4/4 contra la imagen final; autorización negativa cubierta por Playwright"],
+                ["UI", "Playwright acumulado 9/9; 170 capturas revisadas en 375/720/1280 sin overflow normal"],
+                ["Imagen", "App `sha256:60f5de23...d49a`; migrator `sha256:5e1d1db7...fb95`"],
+                ["Instalador", "0.9.0-internal.1; 8 archivos, 58 aserciones, preflight bloqueado sin cambios, UI smoke verde; NotSigned"],
+                ["Pendiente", "Validación independiente G7, Authenticode y matriz Windows real"],
             ],
             [43 * mm, 117 * mm],
         )
@@ -656,12 +684,12 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
         [
             bullet("Disponible: empresas, catálogo, activación, personalización, identidad, sesión, autorización, administración y auditoría visual."),
             bullet("Disponible: composición física única, migraciones `plg_*`, plantilla reproducible y contrato rector de eventos/outbox."),
-            bullet("Disponible: demo empresarial A/B, administración, Datos de referencia, Socios, Catálogo e Inventario responsive con Material Design sobre JSF."),
-            bullet("Disponible: cuatro plugins productivos con dominio, API, persistencia, aplicación, seguridad y UI."),
-            bullet("Histórico: el instalador interno anterior tuvo preflight y reparación, pero quedó obsoleto para este baseline."),
-            bullet("Pendiente: nueve plugins siguientes del roadmap y despliegue productivo."),
-            bullet("Decisión de cierre: NO crear instalador hasta una versión comercializable útil para un tipo de negocio."),
-            bullet("Bloqueo restante de cierre: validación independiente G7; este PDF no la sustituye."),
+            bullet("Disponible: demo empresarial A/B, administración, Datos de referencia, Socios, Catálogo, Inventario y Compras responsive con Material Design sobre JSF."),
+            bullet("Disponible: cinco plugins productivos con dominio, API, persistencia, aplicación, seguridad y UI."),
+            bullet("Disponible: instalador interno 0.9.0-internal.1 ligado a los digests de J11-S9-07; distribución externa bloqueada."),
+            bullet("Pendiente: plugins siguientes del roadmap y despliegue productivo."),
+            bullet("Decisión registrada: producto respondió SÍ el 2026-08-14 y J11-S9-08 promovió los ocho derivados declarados."),
+            bullet("Bloqueos restantes: validación independiente G7, Authenticode y matriz Windows externa; este PDF no los sustituye."),
         ]
     )
 
@@ -676,7 +704,7 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
 |-- kernel-application/          Casos de uso y puertos
 |-- kernel-infrastructure-jakarta/ CDI, JPA/JTA, OIDC y PostgreSQL
 |-- migrator/                    Flyway core V1-V6 y migraciones plg_*
-|-- plugins/                     Socios, Catálogo, Inventario y fixtures A/B
+|-- plugins/                     Referencia, Socios, Catálogo, Inventario, Compras y fixtures
 |-- web-shell/                   JSF, REST health y seguridad web
 |-- distribution/logixone-war/  Ensamblado físico
 |-- tests/                       Arquitectura, integración, E2E y arnés
@@ -776,8 +804,8 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
     commands = r"""# Gate normal
 .\\mvnw.cmd -B verify
 
-# WAR de demo con cuatro plugins productivos y personalizaciones A/B
-.\\mvnw.cmd -B -Pwith-inventory-demo `
+# WAR de demo con cinco plugins productivos y personalizaciones A/B
+.\\mvnw.cmd -B -Pwith-purchasing-demo `
   -pl distribution/logixone-war -am package
 
 # Plantilla de un nuevo plugin neutral
@@ -789,9 +817,9 @@ docker compose --env-file infra/compose/compose.env.local `
 GET /logixone/health/live
 GET /logixone/health/ready
 
-# Instalador Windows histórico; no representa C07
+# Instalador Windows interno de Sprint 9; no distribuible externamente
 powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstrapper.ps1 -Test
-.\installer\windows\current\Logixone-Setup-0.8.0-internal.1.exe
+.\installer\windows\current\Logixone-Setup-0.9.0-internal.1.exe
 
 # UI
 /logixone/faces/app/index.xhtml
@@ -820,6 +848,7 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
                 ["Socios Comerciales", "Directorio, alta, ficha, roles, contacto, dirección y ciclo de vida"],
                 ["Catálogo Comercial", "Artículos, servicios, clasificación, identificadores, listas y precios"],
                 ["Inventario", "Depósitos, ubicaciones, existencias, movimientos, reservas y conteos"],
+                ["Compras", "Solicitudes, aprobación separada, órdenes, recepciones, devoluciones y seguimiento"],
                 ["Responsive", "Material Design sobre JSF en compacto, medio y expandido"],
                 ["Negativa", "Sin autoridad o con plugin inactivo se obtiene una denegación genérica"],
                 ["Instalador Windows", "Diagnóstico sin cambios, plan completo y consentimiento previo; edición interna sin firma"],
@@ -829,7 +858,7 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
     )
     story.append(
         paragraph(
-            "La demo muestra capacidades reales del kernel, Datos de Referencia, Socios Comerciales, Catálogo Comercial e Inventario. No debe presentar facturación, compras, ventas, valoración ni otros dominios ERP como terminados. "
+            "La demo muestra capacidades reales del kernel, Datos de Referencia, Socios Comerciales, Catálogo Comercial, Inventario y Compras. No debe presentar facturación del proveedor, pagos, ventas, valoración ni otros dominios ERP como terminados. "
             "Docker Desktop debe estar activo y liveness/readiness deben verificarse inmediatamente antes de compartir pantalla.",
             "Callout",
         )
@@ -841,12 +870,12 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
         [
             bullet("Completar y firmar `docs/implementation-guide/VALIDATION.md` con una persona independiente."),
             bullet("Resolver y revalidar cualquier hallazgo bloqueante o mayor del recorrido."),
-            bullet("Elevar la guía de `1.0-rc91` a `1.0` solamente con dictamen satisfactorio."),
-            bullet("Conservar `installer/windows/current` intacto y marcado como no representativo de J11-S8-C07."),
-            bullet("Reevaluar un instalador cuando exista una versión comercializable útil para al menos un tipo de negocio."),
-            bullet("En ese futuro corte, aplicar la matriz Windows y Authenticode antes de una entrega externa."),
-            bullet("No declarar cerrado Sprint 8 ni promover imágenes mientras G7 continúe pendiente."),
-            bullet("No iniciar otro plugin productivo antes de resolver los gates y registrar el estado formal del Sprint."),
+            bullet("Elevar la guía de `1.0-rc103` a `1.0` solamente con dictamen satisfactorio."),
+            bullet("Conservar `installer/windows/current` como edición 0.9.0-internal.1 y no distribuirla mientras siga NotSigned."),
+            bullet("Ejecutar instalación, actualización, reparación, UAC/cancelación y persistencia en la matriz Windows independiente."),
+            bullet("Aplicar Authenticode antes de cualquier entrega externa."),
+            bullet("No declarar cerrado Sprint 9 ni promover imágenes mientras G7 y la matriz externa continúen pendientes."),
+            bullet("Sprint 10 permanece planificado; no se inició código dentro de J11-S9-08."),
         ]
     )
 
@@ -859,7 +888,7 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
                 ["Contenido", "Arquitectura, carpetas, archivos, estado, demo, pendientes y continuidad"],
                 ["PDF lógico", "Metadatos, páginas, texto extraíble y ausencia de páginas vacías"],
                 ["PDF visual", "Todas las páginas renderizadas; portada, índice, tablas, cortes y caracteres revisados"],
-                ["Evidencia", "Ruta estable, bytes, páginas y SHA-256 registrados en la evidencia C07"],
+                ["Evidencia", "Ruta estable, bytes, páginas y SHA-256 registrados en la evidencia J11-S9-08"],
             ],
             [44 * mm, 116 * mm],
         )
@@ -868,7 +897,7 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
         [
             Spacer(1, 2 * mm),
             paragraph(
-                "Fin de la guía de estructura - baseline J11-S8-C07 de Sprint 8. Fuentes canónicas: AGENTS.md, POM, código, infraestructura y docs/.",
+                "Fin de la guía de estructura - baseline J11-S9-08 de Sprint 9. Fuentes canónicas: AGENTS.md, POM, código, infraestructura y docs/.",
                 "Caption",
             ),
         ]
@@ -914,7 +943,7 @@ def main():
         type=Path,
         default=Path("docs/output/pdf/guia-estructura-repositorio-logixone.pdf"),
     )
-    parser.add_argument("--sprint", default="Sprint 8 - J11-S8-C07")
+    parser.add_argument("--sprint", default="Sprint 9 - J11-S9-08")
     parser.add_argument("--date", default=date.today().isoformat())
     args = parser.parse_args()
     root = args.root.resolve()

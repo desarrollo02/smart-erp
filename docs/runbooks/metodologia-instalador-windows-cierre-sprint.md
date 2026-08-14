@@ -2,7 +2,7 @@
 
 - Estado: Implementada para canal interno; ejecución condicionada a confirmación
   de producto en cada cierre
-- Fecha: 2026-08-01
+- Fecha de última aplicación: 2026-08-14
 - Plataforma inicial: Windows de 64 bits
 - Fuente funcional: [épica del instalador](../backlog/epica-instalador-windows-reproducible.md)
 - Decisión vigente: [ADR-0029](../adr/0029-confirmacion-instalador-por-cierre-sprint.md)
@@ -14,9 +14,9 @@ el incremento del Sprint está terminado y su baseline candidato está listo. La
 primera implementación está en `installer/windows/`; la evidencia del ejecutable
 vigente se registra por Sprint y no se deduce solamente de este procedimiento.
 
-La edición inicial `0.8.0-internal.1` es `INTERNAL_UNSIGNED`: sirve para desarrollo
-y evaluación interna, pero no para entrega a una empresa. La distribución externa
-exige Authenticode y la matriz de VM completa.
+La edición vigente `0.9.0-internal.1` y su antecesora son `INTERNAL_UNSIGNED`:
+sirven para desarrollo y evaluación interna, pero no para entrega a una empresa.
+La distribución externa exige Authenticode y la matriz de VM completa.
 
 Las reglas de selección y resolución de plugins incluidas más abajo pertenecen a
 [WIN-I09](../backlog/WIN-I09-seleccion-plugins-dependencias.md) y están

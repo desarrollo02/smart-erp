@@ -1,24 +1,24 @@
 # Manual de usuario de Smart ERP
 
-- Edición: 0.1-rc34
-- Fecha: 2026-08-12
+- Edición: 0.1-rc36
+- Fecha: 2026-08-14
 - Baseline: J11-S8-C07 implementa publicaciones completas, búsqueda paginada y unidad menor opcional para datos de referencia; J11-S8-C06 mantiene la habilitación empresarial versionada; J11-S8-C02 mantiene familias de variantes y definiciones de socios,
   ciclo activo/inactivo de definiciones simples/perfiles/tipos de canal/familias y revisión explícita
   e historial visible tributarios, revisión/historial visible y reemplazo seguro de definiciones simples,
   revisión de nombre e historial visible de definiciones de socios, revisión estructural/historial visible de familias y asignación versionada de familias a artículos, gobierno de 91/91 selectores y retorno seguro de selectores de plugins y de los 11 usos nativos administrables implementados; C06/C07 quedó ejecutada y revisada en 375, 720 y 1280 px; la demo final
-  `J11-S8-07` y el instalador interno `0.8.0-internal.1` pertenecen a un baseline
-  anterior; el PDF del corte está verificado y producto decidió `NO` crear un
-  instalador hasta disponer de una versión comercializable útil para un negocio
+  J11-S9-07 congeló Compras y J11-S9-08 generó el instalador interno
+  `0.9.0-internal.1`; el PDF del corte se regenera y la matriz Windows externa
+  permanece pendiente
 - Idioma: español
 - Estado: manual inicial; producto no autorizado aún para producción
 - Audiencia: operadores, responsables de maestros comerciales y administradores
   autorizados
 
-> **Compras ya está compuesta y navegable en la candidata J11-S9-06.** Sus cinco
-> pantallas, menús y ayuda funcionan en Docker/Compose y superaron Maven,
-> PostgreSQL, arquitectura, health, OIDC y Playwright en 375, 720 y 1280 px. La
-> validación independiente y el gate de cierre J11-S9-07 siguen pendientes; no
-> presente todavía este corte como versión comercializable o productiva.
+> **Compras está compuesta y congelada técnicamente en J11-S9-07.** Sus cinco
+> pantallas, menús y ayuda superaron Maven, PostgreSQL, arquitectura,
+> Docker/Compose, health, OIDC y Playwright acumulado en 375, 720 y 1280 px. La
+> validación independiente, Authenticode y la matriz Windows de J11-S9-08 siguen
+> pendientes; no presente este corte como versión comercializable o productiva.
 
 ## Manuales independientes por módulo
 
@@ -61,8 +61,9 @@ Smart ERP es un ERP modular. La candidata actual permite:
 - activar plugins y administrar permisos desde pantallas restringidas;
 - conservar separados los datos y accesos de cada empresa.
 
-La candidata desplegable permite demostrar inventario con datos ficticios, pero
-todavía no compone Compras ni permite ventas, logística, costos, valoración, facturas, notas
+La candidata desplegable permite demostrar los cinco plugins productivos con datos
+ficticios, incluida Compras, pero todavía no permite ventas, logística, costos,
+valoración, facturas, notas
 de crédito, remisiones, SIFEN, tesorería ni contabilidad. No registre datos reales
 con fines fiscales o productivos en el ambiente de demostración.
 
@@ -114,8 +115,8 @@ El usuario ficticio es `demo.empresas.ab`. Su contraseña se consulta localmente
 el archivo de secreto; nunca debe copiarse a este manual, un chat o una captura.
 
 La marca visible vigente es **Smart ERP**. Por compatibilidad, la URL conserva el
-contexto técnico `/logixone`, y el instalador interno del baseline anterior aún
-conserva `Logixone` en su nombre de archivo y en algunos textos. Esos
+contexto técnico `/logixone`, y el instalador interno vigente aún conserva
+`Logixone` en su nombre de archivo y en algunos textos. Esos
 identificadores no cambian en este rebranding seguro.
 
 ### 4.1 Montar la demo con el instalador interno
@@ -124,22 +125,21 @@ Este recorrido corresponde a un implementador o evaluador autorizado, no al
 operador cotidiano. El ejecutable actual está sin firma y no debe enviarse a una
 empresa.
 
-1. Ejecute `Logixone-Setup-0.8.0-internal.1.exe` desde
+1. Ejecute `Logixone-Setup-0.9.0-internal.1.exe` desde
    `installer/windows/current/`.
 2. Lea el resultado del diagnóstico. Si dice `BLOQUEADA`, no continúe: aplique la
    recuperación indicada sin desactivar UAC, antivirus, firewall o políticas.
 3. Si es compatible o compatible con advertencias, pulse **Revisar plan**.
 4. Compruebe componentes, versiones, licencias, descargas, rutas, puertos, UAC y
    reinicios propuestos.
-5. Marque el consentimiento sólo si entiende y acepta el plan completo.
-6. Pulse **Instalar Logixone** y siga el progreso. Es el texto legado del
-   instalador interno anterior; no cambia la identidad de Smart ERP. No abra ni
-   copie los secretos.
-7. Espere migración, liveness y readiness `UP` antes de abrir la URL inicial.
+5. No marque el consentimiento fuera de una VM controlada asignada a la matriz
+   independiente. El recorrido seguro de soporte termina al revisar el plan.
+6. Cierre con **Cancelar**; el diagnóstico no debe crear archivos ni pedir UAC.
 
-**Resultado esperado:** verá la confirmación de instalación/reparación y el acceso
-a Smart ERP. Una reparación reutiliza secretos y volúmenes existentes; no debe
-vaciar los datos de la demo.
+**Resultado esperado en este corte:** se muestra `J11-S9-08`, versión
+`0.9.0-internal.1` y un estado comprensible. En la máquina de cierre el resultado
+fue `BLOQUEADA` por puertos ocupados, sin cambios. Instalación, reparación y
+actualización reales de esta edición siguen pendientes en VM compatible.
 
 **Si falla:** conserve el log indicado, anote la fase y el mensaje, y contacte al
 implementador. Un hash incorrecto, UAC rechazado o health fallido no deben

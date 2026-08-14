@@ -1,9 +1,9 @@
 # Estrategia y matriz de pruebas
 
-- Versión: 24
-- Fecha: 2026-08-12
+- Versión: 25
+- Fecha: 2026-08-13
 - Estado: Aceptada
-- Historia: `J11-S1-01`, Sprint 2, `J11-S3-00` a `J11-S3-08`, `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-02`/`J11-S6-03`, `J11-S8-02` a `J11-S8-06` y `J11-S9-06`; [ADR-0007](../adr/0007-material-design-responsive-sobre-jsf.md), [ADR-0008](../adr/0008-logout-oidc-estabilidad-preview-wildfly.md), [ADR-0028](../adr/0028-gobierno-de-selectores-y-datos-administrables.md) y [ADR-0029](../adr/0029-confirmacion-instalador-por-cierre-sprint.md); reglas transversales de demo visual, PDF, selectores y decisión de instalador al cerrar cada Sprint
+- Historia: `J11-S1-01`, Sprint 2, `J11-S3-00` a `J11-S3-08`, `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-02`/`J11-S6-03`, `J11-S8-02` a `J11-S8-06` y `J11-S9-06`/`J11-S9-07`; [ADR-0007](../adr/0007-material-design-responsive-sobre-jsf.md), [ADR-0008](../adr/0008-logout-oidc-estabilidad-preview-wildfly.md), [ADR-0028](../adr/0028-gobierno-de-selectores-y-datos-administrables.md) y [ADR-0029](../adr/0029-confirmacion-instalador-por-cierre-sprint.md); reglas transversales de demo visual, PDF, selectores y decisión de instalador al cerrar cada Sprint
 
 ## Regla principal
 
@@ -358,6 +358,14 @@ GI falla si el instalador representa un baseline anterior, modifica antes del
 consentimiento, oculta acciones, desactiva seguridad, pisa datos, no explica una
 incompatibilidad o no fue ejecutado en los ambientes requeridos. Un instalador
 interno no firmado debe estar marcado como tal y no puede distribuirse a empresas.
+
+En J11-S9-08 producto respondió `SÍ`. La edición `0.9.0-internal.1` superó 58
+aserciones deterministas, verificación de ocho archivos, 1734 entradas de payload,
+comparación candidato/promovido y smoke de UI. El preflight real quedó
+`BLOQUEADA` por puertos ocupados y confirmó cero escrituras/UAC. GI continúa
+abierto hasta ejecutar instalación, actualización, reparación, UAC/cancelación y
+persistencia en ambientes Windows independientes, además de Authenticode para
+entrega externa.
 
 Con respuesta `NO`, GI no se ejecuta: se comprueba que `current` no cambió, se
 registra su baseline anterior y se prohíbe presentarlo como instalador del Sprint

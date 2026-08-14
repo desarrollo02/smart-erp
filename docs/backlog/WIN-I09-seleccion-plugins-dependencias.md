@@ -1,6 +1,6 @@
 # WIN-I09 — Selección de plugins con dependencias resueltas
 
-- Estado: Planificada; no implementada en `0.8.0-internal.1`
+- Estado: Planificada; no implementada en `0.9.0-internal.1`
 - Fecha de incorporación: 2026-08-04
 - Épica: [Instalador Windows reproducible](epica-instalador-windows-reproducible.md)
 - Decisiones rectoras: [ADR-0002](../adr/0002-arquitectura-plugins.md) y

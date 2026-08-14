@@ -12,13 +12,13 @@ Este directorio contiene un manual independiente por cada módulo navegable del 
 | 06 | Panel de demostración | 1 | `panel-demostracion.md` | `web/panel-demostracion.html` | `../../output/pdf/manuales-modulos/06-manual-panel-demostracion.pdf` |
 | 07 | Compras | 5 | `compras.md` | `web/compras.html` | `../../output/pdf/manuales-modulos/07-manual-compras.pdf` |
 
-El manual `07` documenta las pantallas reales definidas por J11-S9-05 y compuestas
-por J11-S9-06. Sus pruebas automatizadas de módulo, PostgreSQL, arquitectura,
-runtime y Playwright están verdes; la validación independiente y el cierre de
-Sprint 9 permanecen pendientes, por lo que el manual no presenta el módulo como
-productivo. La fuente Markdown y su ayuda web ya reflejan J11-S9-06; el PDF 07
-continúa siendo el artefacto derivado de J11-S9-05 y se regenerará, renderizará y
-revisará visualmente dentro del cierre J11-S9-07.
+El manual `07` documenta las pantallas reales definidas por J11-S9-05, compuestas
+por J11-S9-06 y recongeladas por J11-S9-07. Sus pruebas automatizadas de módulo,
+PostgreSQL, arquitectura, runtime y Playwright están verdes. La validación
+independiente, Authenticode y la matriz Windows de J11-S9-08 permanecen
+pendientes, por lo que el manual
+no presenta el módulo como productivo. Fuente Markdown, ayuda web y PDF 07 fueron
+sincronizados y revisados dentro del cierre técnico.
 
 El manual 01 incorpora una captura real y un ejemplo guiado por cada una de sus
 seis pantallas. Sus diagramas fueron contrastados el 2026-08-11 con los metadatos

@@ -6,6 +6,8 @@ No versionar secretos ni volcados completos que contengan información sensible.
 
 ## Índice
 
+- [J11-S9-07 — Validación integral y demo oficial de Sprint 9](J11-S9-07-validacion-demo-cierre.md)
+- [J11-S9-06 — Integración y demo candidata de `purchasing`](J11-S9-06-integracion-composicion-purchasing.md)
 - [J11-S8-C05 — Cambio de marca seguro a Smart ERP](J11-S8-C05-marca-smart-erp.md)
 - [J11-S8-C04 — Gobierno Git y ramas por Sprint](J11-S8-C04-gobierno-git-ramas.md)
 - [J11-S1-01 — Validación documental y arquitectónica](J11-S1-01-validacion-documental.md)
@@ -94,3 +96,5 @@ No versionar secretos ni volcados completos que contengan información sensible.
 - [ADR-0028/0029 — Gobierno de selectores y confirmación del instalador](ADR-0028-0029-selectores-confirmacion-instalador.md)
 - [J11-S8-C06 — Políticas empresariales de datos de referencia](J11-S8-C06-politicas-reference-data.md)
 - [J11-S8-C07 — Publicaciones completas de datos de referencia](J11-S8-C07-publicaciones-completas-reference-data.md)
+- [J11-S9-07 — Validación integral y demo oficial de Sprint 9](J11-S9-07-validacion-demo-cierre.md)
+- [J11-S9-08 — Instalador Windows interno de Sprint 9](J11-S9-08-instalador-windows-cierre.md)

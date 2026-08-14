@@ -30,4 +30,6 @@ hasta completar además composición, gates runtime y aceptación independiente.
 - [Sprint 7 — Catálogo comercial `commercial_catalog`](sprint-07/README.md)
 - [Sprint 8 — Inventario `inventory`](sprint-08/README.md)
 - [Sprint 9 — Compras `purchasing`](sprint-09/README.md)
+- [J11-S9-07 — Validación integral y demo oficial de Sprint 9](sprint-09/J11-S9-07-validacion-demo-cierre.md)
+- [J11-S9-08 — Instalador Windows interno de Sprint 9](sprint-09/J11-S9-08-instalador-windows-cierre.md)
 - [Sprint 10 — Floorplans operativos y transaccionales](sprint-10/README.md)

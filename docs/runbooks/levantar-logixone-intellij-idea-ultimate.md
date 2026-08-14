@@ -1,12 +1,12 @@
 # Levantar Smart ERP con IntelliJ IDEA Ultimate
 
-- Edición: 1.4
-- Fecha de verificación: 2026-08-05
+- Edición: 1.5
+- Fecha de verificación: 2026-08-14
 - IDE verificado: IntelliJ IDEA Ultimate 2026.2
 - Sistema de ejemplo: Windows 11 con PowerShell
 - Baseline: Java 21, Maven Wrapper 3.9.16, Docker/Compose, PostgreSQL, Keycloak 26.7.0 y WildFly 41
-- Distribución de demo: perfil Maven `with-purchasing-demo`, baseline J11-S9-06
-- Instalador: `0.8.0-internal.1` disponible sólo para evaluación interna; no
+- Distribución de demo: perfil Maven `with-purchasing-demo`, baseline J11-S9-07/J11-S9-08
+- Instalador: `0.9.0-internal.1` disponible sólo para evaluación interna; no
   sustituye la preparación del entorno de desarrollo
 - PDF del baseline anterior: [guia-levantar-logixone-intellij-idea-ultimate.pdf](../output/pdf/guia-levantar-logixone-intellij-idea-ultimate.pdf); conserva la marca Logixone y se regenerará en el gate documental de cierre
 

@@ -356,6 +356,9 @@ class BusinessPartnersVisualIT {
                             + "; submittedVersion=" + submittedVersion
                             + "; notices=" + page.locator(".screen-notices, .state-card").allTextContents());
             channelConfirmation.waitFor();
+            requireOne(page.getByRole(
+                    AriaRole.LINK, new Page.GetByRoleOptions().setName("Contacto")),
+                    "contacts tab after adding a channel").click();
             requireOne(page.getByLabel("Nombre del contacto", new Page.GetByLabelOptions().setExact(true)),
                     "contact name").fill("Contacto Demo " + suffix);
             requireOne(page.getByLabel("Cargo o función", new Page.GetByLabelOptions().setExact(true)),
@@ -425,9 +428,10 @@ class BusinessPartnersVisualIT {
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Siguiente").setExact(true)),
                 "next reference-data page").click();
-        requireOne(page.getByText(
-                "Mostrando 51–100 de 248", new Page.GetByTextOptions().setExact(true)),
-                "second country page summary").waitFor();
+        Locator secondCountryPage = page.getByText(
+                "Mostrando 51–100 de 248", new Page.GetByTextOptions().setExact(true));
+        secondCountryPage.waitFor();
+        requireOne(secondCountryPage, "second country page summary");
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Anterior").setExact(true)),
                 "previous reference-data page").click();
@@ -778,7 +782,10 @@ class BusinessPartnersVisualIT {
         String pluginsUrl = adminUrl.replace("index.xhtml", "plugins.xhtml") + "?company=" + companyId;
         String businessPartnersUrl = appUrl.replace(
                 "index.xhtml", "view.xhtml?route=%2Fbusiness-partners&mode=directory");
-        boolean disabled = false;
+        boolean businessPartnersDisabled = false;
+        boolean commercialCatalogDisabled = false;
+        boolean inventoryDisabled = false;
+        boolean purchasingDisabled = false;
         try {
             page.setViewportSize(1280, 900);
             page.navigate(pluginsUrl);
@@ -799,16 +806,24 @@ class BusinessPartnersVisualIT {
             requireOne(card.getByRole(
                     AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
                     "disable business partners").click();
-            card = requireOne(page.locator("article.plugin-record-card").filter(
-                    new Locator.FilterOptions().setHasText("business_partners")),
-                    "disabled business partners plugin card after action");
-            requireOne(card.getByRole(
-                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Habilitar")),
-                    "disabled business partners state").waitFor();
-            disabled = true;
-            requireOne(page.locator(".admin-message").filter(new Locator.FilterOptions().setHasText(
-                    "El plugin quedó deshabilitado; sus datos fueron conservados.")),
-                    "plugin disabled confirmation").waitFor();
+            requireOne(page.locator(".admin-message").filter(
+                    new Locator.FilterOptions().setHasText(
+                            "La composición solicitada no cumple sus dependencias")),
+                    "active dependent rejection").waitFor();
+            requireOne(pluginCard(page, "business_partners").getByRole(
+                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
+                    "business partners remains enabled after dependency rejection").waitFor();
+
+            purchasingDisabled = disablePluginIfEnabled(page, pluginsUrl, "purchasing");
+            inventoryDisabled = disablePluginIfEnabled(page, pluginsUrl, "inventory");
+            commercialCatalogDisabled = disablePluginIfEnabled(
+                    page, pluginsUrl, "commercial_catalog");
+            businessPartnersDisabled = disablePluginIfEnabled(
+                    page, pluginsUrl, "business_partners");
+            requireOne(page.locator(".admin-message").filter(
+                    new Locator.FilterOptions().setHasText(
+                            "El plugin quedó deshabilitado; sus datos fueron conservados.")),
+                    "business partners disabled confirmation").waitFor();
 
             page.navigate(businessPartnersUrl);
             requireOne(page.getByRole(
@@ -818,25 +833,20 @@ class BusinessPartnersVisualIT {
                     "disabled plugin denial").waitFor();
             assertResponsive(page, 375, 900, "business-partners-disabled-denial-compact-375.png");
 
-            page.navigate(pluginsUrl);
-            card = requireOne(page.locator("article.plugin-record-card").filter(
-                    new Locator.FilterOptions().setHasText("business_partners")),
-                    "disabled business partners plugin card");
-            requireOne(card.getByRole(
-                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Habilitar")),
-                    "restore business partners").click();
-            Locator restoredMessage = page.locator(".admin-message").filter(
-                    new Locator.FilterOptions().setHasText(
-                            "El plugin quedó habilitado para la empresa."));
-            restoredMessage.waitFor();
-            requireOne(restoredMessage, "plugin restored confirmation");
-            card = requireOne(page.locator("article.plugin-record-card").filter(
-                    new Locator.FilterOptions().setHasText("business_partners")),
-                    "restored business partners plugin card");
-            requireOne(card.getByRole(
-                    AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Deshabilitar")),
-                    "restored business partners state").waitFor();
-            disabled = false;
+            enablePlugin(page, pluginsUrl, "business_partners");
+            businessPartnersDisabled = false;
+            if (commercialCatalogDisabled) {
+                enablePlugin(page, pluginsUrl, "commercial_catalog");
+                commercialCatalogDisabled = false;
+            }
+            if (inventoryDisabled) {
+                enablePlugin(page, pluginsUrl, "inventory");
+                inventoryDisabled = false;
+            }
+            if (purchasingDisabled) {
+                enablePlugin(page, pluginsUrl, "purchasing");
+                purchasingDisabled = false;
+            }
 
             page.navigate(businessPartnersUrl);
             requireOne(page.getByRole(
@@ -844,17 +854,63 @@ class BusinessPartnersVisualIT {
                     new Page.GetByRoleOptions().setName("Socios comerciales").setExact(true)),
                     "business partners restored").waitFor();
         } finally {
-            if (disabled) {
-                page.navigate(pluginsUrl);
-                Locator card = page.locator("article.plugin-record-card").filter(
-                        new Locator.FilterOptions().setHasText("business_partners"));
-                Locator enable = card.getByRole(
-                        AriaRole.BUTTON, new Locator.GetByRoleOptions().setName("Habilitar"));
-                if (enable.count() == 1) {
-                    enable.click();
-                }
+            if (businessPartnersDisabled) {
+                enablePlugin(page, pluginsUrl, "business_partners");
+            }
+            if (commercialCatalogDisabled) {
+                enablePlugin(page, pluginsUrl, "commercial_catalog");
+            }
+            if (inventoryDisabled) {
+                enablePlugin(page, pluginsUrl, "inventory");
+            }
+            if (purchasingDisabled) {
+                enablePlugin(page, pluginsUrl, "purchasing");
             }
         }
+    }
+
+    private boolean disablePluginIfEnabled(Page page, String pluginsUrl, String pluginId) {
+        page.navigate(pluginsUrl);
+        Locator cards = page.locator("article.plugin-record-card").filter(
+                new Locator.FilterOptions().setHasText(pluginId));
+        if (cards.count() == 0) {
+            return false;
+        }
+        Locator card = requireOne(cards, pluginId + " plugin card");
+        Locator disable = card.getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true));
+        if (disable.count() == 0) {
+            return false;
+        }
+        page.onceDialog(dialog -> dialog.accept());
+        disable.click();
+        requireOne(pluginCard(page, pluginId).getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
+                pluginId + " disabled state").waitFor();
+        return true;
+    }
+
+    private void enablePlugin(Page page, String pluginsUrl, String pluginId) {
+        page.navigate(pluginsUrl);
+        Locator enable = pluginCard(page, pluginId).getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Habilitar").setExact(true));
+        if (enable.count() == 1) {
+            enable.click();
+        }
+        requireOne(pluginCard(page, pluginId).getByRole(
+                AriaRole.BUTTON,
+                new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true)),
+                pluginId + " restored state").waitFor();
+    }
+
+    private Locator pluginCard(Page page, String pluginId) {
+        Locator cards = page.locator("article.plugin-record-card").filter(
+                new Locator.FilterOptions().setHasText(pluginId));
+        cards.first().waitFor();
+        return requireOne(cards, pluginId + " plugin card");
     }
 
     private void assertResponsive(Page page, int width, int height, String screenshotName) {

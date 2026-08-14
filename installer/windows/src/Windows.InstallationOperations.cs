@@ -192,7 +192,7 @@ namespace Logixone.Installer
                     "docker.exe",
                     "build --file infra/docker/Dockerfile"
                     + " --build-arg LOGIXONE_BUILD_MODE=verified"
-                    + " --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo"
+                    + " --build-arg LOGIXONE_MAVEN_PROFILE=" + configuration.MavenProfile
                     + " --tag " + Quote(configuration.ApplicationImage) + " .",
                     releaseDirectory,
                     TimeSpan.FromMinutes(60),
@@ -214,7 +214,7 @@ namespace Logixone.Installer
                     "docker.exe",
                     "build --file infra/docker/Dockerfile.migrator"
                     + " --build-arg LOGIXONE_BUILD_MODE=verified"
-                    + " --build-arg LOGIXONE_MAVEN_PROFILE=with-inventory-demo"
+                    + " --build-arg LOGIXONE_MAVEN_PROFILE=" + configuration.MavenProfile
                     + " --tag " + Quote(configuration.MigratorImage) + " .",
                     releaseDirectory,
                     TimeSpan.FromMinutes(60),

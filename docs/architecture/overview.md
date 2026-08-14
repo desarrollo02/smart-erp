@@ -2,8 +2,8 @@
 
 - Versión: 62
 - Fecha: 2026-08-13
-- Estado: J11-S9-06 compone `purchasing` en WAR/migrador y valida Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045, la familia Flota F1/F2 por ADR-0046 y Sprint 10 planifica floorplans operativos por ADR-0047 antes de `sales`; J11-S9-07 y validación independiente pendientes
-- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07`, J11-S9-00 a J11-S9-06 y J11-S10-00 planificada; ADR-0009 a ADR-0047
+- Estado: J11-S9-08 agregó el instalador interno `0.9.0-internal.1` al baseline de `purchasing` congelado en J11-S9-07; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045, la familia Flota F1/F2 por ADR-0046 y Sprint 10 planifica floorplans operativos por ADR-0047 antes de `sales`; G7, Authenticode y matriz Windows independiente pendientes
+- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07`, J11-S9-00 a J11-S9-08 y J11-S10-00 planificada; ADR-0009 a ADR-0047
 
 ## Objetivo
 

@@ -1,6 +1,6 @@
 # Épica - Compras `purchasing`
 
-- Estado: activa; J11-S9-06 implementada y validada automáticamente, validación independiente pendiente; J11-S9-07 habilitada
+- Estado: implementada y validada automáticamente hasta J11-S9-07; instalador interno J11-S9-08 creado; G7 y matriz Windows externa pendientes
 - Orden del roadmap: 4
 - Incremento inicial: [Sprint 9](../sprints/sprint-09/README.md)
 - ADR rector: [ADR-0011](../adr/0011-roadmap-dependencias-plugins-productivos.md)
@@ -78,14 +78,14 @@ ausente o inactivo y no importará su implementación.
 | 5 | J11-S9-04 | aplicación, permisos, auditoría, JTA e idempotencia; validada automáticamente en el corte no compuesto |
 | 6 | J11-S9-05 | UI neutral/Material Design responsive; módulo y shell validados automáticamente, Playwright al componer |
 | 7 | J11-S9-06 | composición, integraciones y demo candidata; validada automáticamente |
-| 8 | J11-S9-07 | matriz acumulada, demo oficial, PDF y cierre |
-| 9 | J11-S9-08 | decisión explícita y, sólo con `SÍ`, instalador Windows |
+| 8 | J11-S9-07 | matriz acumulada, demo oficial, PDF y congelación técnica; validada automáticamente |
+| 9 | J11-S9-08 | decisión `SÍ` registrada e instalador Windows interno `0.9.0-internal.1` creado |
 
-J11-S9-02 a J11-S9-06 están implementadas y validadas automáticamente; sólo la
-validación independiente permanece diferida. J11-S9-06 completó composición,
-runtime, OIDC y Playwright. J11-S9-07 no se considera cumplida hasta repetir la
-matriz sobre el baseline congelado, completar sus entregables de cierre y reunir
-la aceptación independiente; sin esos gates no existe versión comercializable.
+J11-S9-02 a J11-S9-07 están implementadas y validadas automáticamente. J11-S9-07
+repitió la matriz sobre el baseline congelado y completó demo, evidencia,
+fotografía, manuales y PDF. G7 independiente continúa diferido; J11-S9-08 registró
+la decisión `SÍ` y creó el instalador interno, cuya matriz externa sigue
+pendiente. Sin esos gates no existe versión comercializable.
 
 ## Criterios de aceptación de la épica
 
@@ -131,5 +131,6 @@ doce permisos, aplicación auditada, V2, contratos CDI/JTA e integración públi
 con Inventario. J11-S9-05 agregó menús, pantallas, búsquedas paginadas, selectores
 gobernados y el manual PDF 07. J11-S9-06 compuso WAR/migrador y dejó verdes Maven,
 ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright.
-J11-S9-07 queda habilitada para el gate acumulado y los entregables de cierre. La
-validación independiente por otra persona permanece pendiente.
+J11-S9-07 dejó G0–G6 verdes y la candidata técnica congelada. J11-S9-08 creó el
+instalador interno solicitado. La validación independiente por otra persona,
+Authenticode y la matriz Windows externa permanecen pendientes.

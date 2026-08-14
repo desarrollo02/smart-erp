@@ -1,18 +1,20 @@
 # Levantar Smart ERP con Visual Studio Code
 
-- Edición: 0.7
-- Fecha de actualización: 2026-08-12
+- Edición: 0.9
+- Fecha de actualización: 2026-08-14
 - Entorno de referencia: Windows 11 y PowerShell
 - Baseline: Java 21, Maven Wrapper 3.9.16, Docker/Compose, PostgreSQL, Keycloak
   26.7.0 y WildFly 41
 - Perfil funcional actual: `with-purchasing-demo`
-- Estado de validación: revisado contra J11-S9-06; Maven, Docker/Compose,
-  migraciones, health, OIDC y Playwright verdes; instalación limpia de VS Code,
-  matriz Windows, cierre J11-S9-07 y validación independiente pendientes
+- Estado de validación: revisado contra J11-S9-07/J11-S9-08; Maven,
+  Docker/Compose, migraciones, health, OIDC, Playwright y construcción del
+  instalador verdes; instalación limpia de VS Code, matriz Windows y validación
+  independiente pendientes
 
 > **Instalador interno disponible:** `installer/windows/current/` contiene
-> `0.8.0-internal.1`. Diagnostica y monta el baseline después del consentimiento,
-> conserva la marca Logixone, está sin Authenticode y no puede entregarse a una empresa. Esta guía manual
+> `0.9.0-internal.1`. Diagnostica antes del consentimiento, conserva la marca
+> Logixone, está sin Authenticode y no puede entregarse a una empresa. Su
+> instalación real sigue pendiente en VM compatible. Esta guía manual
 > continúa siendo la fuente para preparar un entorno de desarrollo en VS Code.
 
 ## 1. Resultado esperado

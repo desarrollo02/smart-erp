@@ -11,6 +11,7 @@ Cada procedimiento debe declarar prerrequisitos, comandos, resultado esperado, v
 - [Instalar y levantar Smart ERP en Ubuntu](levantar-logixone-ubuntu.md) ([PDF](../output/pdf/01-manual-levantar-smart-erp-ubuntu.pdf))
 - [Decisión y metodología del instalador Windows al cerrar cada Sprint](metodologia-instalador-windows-cierre-sprint.md)
 - [Demo visual del instalador Windows interno — J11-S8-08](demo-instalador-windows-sprint-08.md)
+- [Demo segura del instalador Windows interno — J11-S9-08](demo-instalador-windows-sprint-09.md)
 - [Construcción local con Maven Wrapper](build-local.md)
 - [Construcción de la imagen Docker](docker-build.md)
 - [Validación y operación de Compose](compose.md)

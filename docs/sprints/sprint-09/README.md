@@ -1,6 +1,6 @@
 # Sprint 9 - Compras `purchasing`
 
-- Estado: J11-S9-06 implementada y validada automáticamente; validación independiente pendiente; cierre J11-S9-07 habilitado
+- Estado: J11-S9-08 creó el instalador interno solicitado; G7 independiente, Authenticode y matriz Windows externa pendientes
 - Fecha de inicio documental: 2026-08-11
 - Dependencia funcional: `business_partners`, `commercial_catalog`, `reference_data` e `inventory`
 - Dependencia de gobierno: Sprint 8 permanece abierto y G7 independiente continúa pendiente
@@ -30,7 +30,7 @@ ejecutables por el agente continúan siendo obligatorias. Por ello:
 - Sprint 8 y Sprint 9 permanecen abiertos mientras sus gates aplicables estén
   pendientes;
 - no se promueven imágenes, no se etiqueta cierre, no se despliega a producción y
-  no se entrega un instalador nuevo;
+  ningún instalador sin firma se entrega externamente;
 - J11-S9-07 repite la matriz acumulada sobre el baseline de cierre, completa la
   demo oficial, la fotografía de plugins, el PDF obligatorio y la validación
   independiente.
@@ -49,8 +49,8 @@ Definition of Done.
 | 5 | [J11-S9-04](J11-S9-04-aplicacion-purchasing.md) | Implementada y validada automáticamente; validación independiente pendiente | aplicación, permisos, auditoría, JTA e idempotencia |
 | 6 | [J11-S9-05](J11-S9-05-interfaz-purchasing.md) | Implementada y validada automáticamente; validación independiente pendiente | pantallas neutrales Material Design 3; Playwright al componerlas |
 | 7 | [J11-S9-06](J11-S9-06-integracion-composicion-purchasing.md) | Implementada y validada automáticamente; validación independiente pendiente | composición, integraciones y demo candidata |
-| 8 | J11-S9-07 | Pendiente | pruebas acumuladas, demo oficial, documentación, PDF y cierre |
-| 9 | J11-S9-08 | Pendiente | decisión de instalador y gate Windows sólo con respuesta `SÍ` |
+| 8 | [J11-S9-07](J11-S9-07-validacion-demo-cierre.md) | Implementada y validada automáticamente; validación independiente pendiente | pruebas acumuladas, demo oficial, documentación, PDF y congelación técnica |
+| 9 | [J11-S9-08](J11-S9-08-instalador-windows-cierre.md) | Implementada y validada internamente; matriz externa pendiente | decisión `SÍ`, instalador `0.9.0-internal.1` y gate Windows |
 
 ## Recorridos funcionales objetivo
 
@@ -141,7 +141,8 @@ gate LM-09 además de J11-S9-07.
 
 [ADR-0045](../../adr/0045-plugin-gestion-procesos-negocio-bpm.md) agrega al plan
 `business_process_management` como funcional transversal y opcional. No cambió el
-alcance de J11-S9-06 ni adelanta BPM; el siguiente gate sigue siendo J11-S9-07.
+alcance de Compras ni adelanta BPM; J11-S9-07 quedó verde y J11-S9-08 creó la
+edición interna solicitada.
 
 La aprobación de solicitudes de Compras es el primer piloto propuesto para una
 iteración BPM propia. El piloto consumirá un evento público de solicitud enviada y
@@ -157,22 +158,31 @@ ADR-0013 con productor y consumidor reales.
 agrega al plan la familia vertical Flota con F1 `fleet_maintenance` y F2
 `automotive_workshop`. Producto aceptó FM-D01 a FM-D12 y AW-D01 a AW-D10 sin
 cambios el 2026-08-12. La decisión no cambió alcance, código ni orden de Sprint 9;
-tras completar J11-S9-06, el siguiente gate sigue siendo J11-S9-07.
+J11-S9-08 se ejecutó después del cierre técnico; su matriz externa continúa
+pendiente.
 
 F1 sólo puede comenzar después de estabilizar el `VehicleId` público de
 `logistics-api`; F2 requiere además F1, Ventas y Documentos Comerciales. Compras
 será un proveedor de contratos públicos para repuestos y servicios tercerizados,
 pero no dependerá de la familia ni incorporará lógica de mantenimiento.
 
-## Próximo gate
+## Resultado del cierre técnico
 
-J11-S9-06 compuso Compras en WAR y migrador, dejó una aplicación navegable en
-`http://localhost:18080/logixone/` y completó Maven, ArchUnit, PostgreSQL,
-Docker/Compose, migraciones, health, OIDC y Playwright. J11-S9-07 queda habilitada
-para congelar el baseline de cierre, repetir la matriz acumulada, completar la
-demo oficial, actualizar la fotografía de plugins y regenerar/revisar el PDF
-obligatorio. La aceptación por otra persona permanece pendiente y Sprint 9 no
-está cerrado.
+J11-S9-07 repitió la matriz acumulada, congeló las imágenes
+`logixone/app:j11-s9-07-closing` y
+`logixone/migrator:j11-s9-07-closing`, ejecutó la demo oficial de los cinco
+plugins productivos y actualizó evidencia, fotografía, manuales, retrospectiva y
+PDF obligatorio. G0–G6 están verdes. La validación independiente G7 permanece
+pendiente y no se confunde con la validación automática.
+
+## Resultado del gate de instalador
+
+Producto respondió `SÍ` el 2026-08-14. J11-S9-08 generó y promovió
+`0.9.0-internal.1` contra los digests congelados de J11-S9-07. El preflight real
+quedó `BLOQUEADA` por 18080/8180 ocupados y no realizó cambios ni UAC. Las pruebas
+deterministas, integridad y smoke de UI están verdes; Authenticode, VM limpia,
+actualización/reparación real y G7 independiente impiden cerrar Sprint 9 o
+distribuir el EXE.
 
 ## Iteración transversal posterior aprobada
 
@@ -186,5 +196,6 @@ La decisión responde a la revisión de las pantallas reales de Inventario y
 Compras: los maestros conservarán el floorplan actual, mientras movimientos,
 órdenes, recepción/devolución y aprobaciones serán pilotos de captura
 condicional, editor de líneas, resumen contextual y bandeja de trabajo. El cambio
-no reabre J11-S9-05/J11-S9-06 ni modifica el siguiente trabajo inmediato:
-J11-S9-07 sigue siendo el gate habilitado.
+no reabre J11-S9-05/J11-S9-06. J11-S9-08 registró la decisión y creó el
+instalador interno; Sprint 10 continúa planificado y no se inició código dentro
+de esta historia.

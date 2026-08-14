@@ -1,17 +1,19 @@
 # Manual técnico para desarrolladores de Smart ERP
 
-- Edición: 0.1-rc53
-- Fecha: 2026-08-13
+- Edición: 0.1-rc55
+- Fecha: 2026-08-14
 - Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C07 implementa publicaciones
   completas, unidad menor opcional y búsqueda paginada de `reference_data`;
   J11-S8-C06 mantiene políticas optimistas y V2 append-only; PostgreSQL, Docker,
   JTA/OIDC y Playwright de C06/C07 están verdes y el PDF fue verificado; producto
-  decidió `NO` crear instalador para este baseline; J11-S9-06 compone
-  `purchasing` en WAR/migrador y valida sus cinco recorridos con Maven, ArchUnit,
-  PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; ADR-0040 planifica
+  decidió `NO` crear instalador para aquel baseline; J11-S9-07 congela
+  `purchasing` en WAR/migrador y valida acumuladamente sus cinco recorridos con
+  Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y
+  Playwright; ADR-0040 planifica
   `legacy_migration`, ADR-0045 `business_process_management`, ADR-0046 la familia
-  Flota F1/F2 y ADR-0047 el gate de floorplans operativos previo a `sales`; G7
-  permanece pendiente
+  Flota F1/F2 y ADR-0047 el gate de floorplans operativos previo a `sales`;
+  J11-S9-08 creó el instalador interno `0.9.0-internal.1`; G7, Authenticode y
+  matriz Windows independiente permanecen pendientes
 - Audiencia: desarrolladores, revisores, arquitectos e implementadores técnicos
 - Estado: inicial; G7 independiente y autorización de producción pendientes
 
@@ -586,10 +588,12 @@ fuentes, pruebas, manifiestos o releases publicados. Cualquier tecnología de
 empaquetado, requisito mínimo, perfil, firma o actualización debe aprobarse en un
 ADR antes de crear el ejecutable.
 
-J11-S8-08 produjo `0.8.0-internal.1`, validó instalación y dos reparaciones sobre
-el ambiente local y conservó secretos, volúmenes y datos. El canal
-`INTERNAL_UNSIGNED` no es entregable a una empresa: faltan la matriz independiente
-y Authenticode. El recorrido manual continúa siendo la alternativa canónica para
+J11-S8-08 produjo `0.8.0-internal.1` y validó instalación/reparación sobre su
+baseline. J11-S9-08 lo sustituyó en `current` por `0.9.0-internal.1`, ligado a
+`with-purchasing-demo`; su preflight real bloqueó sin escribir por puertos
+ocupados y sus 58 aserciones, integridad y smoke de UI quedaron verdes. El canal
+`INTERNAL_UNSIGNED` no es entregable a una empresa: faltan matriz independiente y
+Authenticode. El recorrido manual continúa siendo la alternativa canónica para
 desarrolladores. Consulte la
 [épica](../backlog/epica-instalador-windows-reproducible.md) y la
 [metodología](../runbooks/metodologia-instalador-windows-cierre-sprint.md), además
@@ -597,19 +601,18 @@ de [ADR-0026](../adr/0026-instalador-windows-bootstrapper-nativo.md).
 
 ## 22. Estado del baseline
 
-El baseline J11-S8-07 fue reabierto por la corrección J11-S8-C01. El último corte
-congelado incluía:
+El baseline vigente fue congelado por J11-S9-07 y recibió su instalador en
+J11-S9-08. Incluye:
 
-- `business_partners@1.0.0` con esquema V1–V4 y cuatro permisos;
-- `commercial_catalog@1.0.0` con esquema V1–V4 y cuatro permisos;
-- `inventory@1.0.0` con esquema V1–V2 y siete permisos;
+- `reference_data`, `business_partners`, `commercial_catalog`, `inventory` y
+  `purchasing` en versión funcional 1.1.0;
 - `reference_plugin` y dos personalizaciones como fixtures;
-- `plugin-api` compatible en el rango `[0.4.0,0.5.0)`;
-- perfil `with-inventory-demo` común a WAR y migrador;
-- demo oficial responsive de inventario y gate integral verdes;
-- digests de aplicación y migrador ahora obsoletos para promoción;
-- instalador Windows interno con preflight, plan, consentimiento, reparación y
-  health; `NotSigned` y matriz externa pendientes;
+- `plugin-api` 0.4.3 y APIs públicas funcionales 1.1.0;
+- perfil `with-purchasing-demo` común a WAR y migrador;
+- demo oficial responsive de los cinco plugins y G0–G6 verdes;
+- imágenes de aplicación y migrador congeladas por digest;
+- instalador Windows `0.9.0-internal.1` con preflight, plan y restricción
+  `NotSigned`; instalación y matriz externa pendientes;
 - G7 independiente pendiente, por lo que no se promueve a producción.
 
 J11-S8-C01 incorpora una tercera capacidad, menú y pantalla de
@@ -829,7 +832,8 @@ plugins, WAR y migrador. El shell conserva selectores de búsqueda y selectores
 dependientes mediante parámetros semánticos `selectorValue:*`, revalida los UUID
 en el handler propietario y reconstruye opciones antes de ejecutar acciones. El
 corte desplegado superó health/OIDC y el E2E completo en los tres rangos
-responsive. La validación independiente y J11-S9-07 permanecen pendientes.
+responsive. Posteriormente J11-S9-07 cerró los gates automáticos y J11-S9-08 creó
+el instalador interno.
 
 ADR-0027, ADR-0030, ADR-0032, ADR-0033 y ADR-0034 ampliaron el roadmap a
 diecinueve plugins ERP reutilizables, más una personalización obligatoria
@@ -1185,10 +1189,10 @@ publica 248 países y 178 códigos únicos de moneda o fondo. Ambos selectores u
 están verdes; la decisión del instalador quedó registrada como `NO`. Producto
 autorizó abrir Sprint 9 para caracterizar `purchasing`. El 2026-08-11 aclaró que
 sólo se difiere la validación independiente de otra persona; las pruebas
-automatizadas son obligatorias. J11-S9-06 dejó verdes módulo, PostgreSQL,
-ArchUnit, `mvn verify`, Docker/Compose, migraciones, health, OIDC y Playwright;
-el gate de cierre, la promoción y la validación independiente continúan
-pendientes.
+automatizadas son obligatorias. J11-S9-07 dejó G0–G6 verdes, recongeló las
+imágenes y completó demo, fotografía, manuales y PDF. J11-S9-08 registró `SÍ` y
+creó `0.9.0-internal.1`. La promoción, G7, Authenticode y la matriz Windows
+independiente continúan pendientes.
 
 ## 25. Referencias internas
 
@@ -1220,6 +1224,11 @@ pendientes.
 - [J11-S9-05 — Interfaz de `purchasing`](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md)
 - [J11-S9-06 — Integración de `purchasing`](../sprints/sprint-09/J11-S9-06-integracion-composicion-purchasing.md)
 - [Demo J11-S9-06 de Compras](../runbooks/demo-purchasing-j11-s9-06.md)
+- [J11-S9-07 — Validación integral y demo oficial](../sprints/sprint-09/J11-S9-07-validacion-demo-cierre.md)
+- [J11-S9-08 — Instalador Windows interno](../sprints/sprint-09/J11-S9-08-instalador-windows-cierre.md)
+- [Evidencia J11-S9-08](../evidence/J11-S9-08-instalador-windows-cierre.md)
+- [Fotografía de plugins de Sprint 9](../sprints/sprint-09/estructura-plugins-y-dependencias.md)
+- [Demo oficial de Sprint 9](../runbooks/demo-cierre-sprint-09.md)
 - [Épica de migración de legados](../backlog/epica-migracion-legados-oracle-forms-reports.md)
 - [Perfil Oracle Forms & Reports](../knowledge-base/legacy-migration/oracle-forms-reports-source-profile.md)
 - [ADR-0029 — Confirmación del instalador](../adr/0029-confirmacion-instalador-por-cierre-sprint.md)

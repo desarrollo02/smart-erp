@@ -1,10 +1,10 @@
 # Guía de implementación del ERP por empresa
 
-- Estado: Edición candidata; J11-S9-06 compone `purchasing` en WAR/migrador y valida sus cinco recorridos con Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y Playwright; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management` y ADR-0046 la familia vertical Flota F1/F2; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
-  ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo de perfiles tributarios y familias, revisión explícita e historial visible tributario, las cuatro clases empresariales de socios y asignación versionada de familias a artículos validadas; gates técnicos C06/C07 y PDF verdes; producto decidió `NO` crear instalador para este baseline; G7 pendiente
-- Edición: 1.0-rc101
-- Fecha: 2026-08-12
-- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.3`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.1.0` y `purchasing-api = 1.1.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 validada en PostgreSQL 18.4/Testcontainers y fixture `plg_reference_plugin` V1; unidades JPA en `validate`; perfil físico `with-purchasing-demo` para WAR y migrador; imágenes verificadas `logixone/app:j11-s9-06-purchasing-demo-r5` y `logixone/migrator:j11-s9-06-purchasing-demo`; Keycloak 26.7.0, WildFly 41 OIDC y Jakarta Faces 4.1; Maven, ArchUnit, PostgreSQL, migraciones, health, OIDC y Playwright verdes; instalador Windows `0.8.0-internal.1` obsoleto para promoción y conservado intacto; validación independiente pendiente
+- Estado: Edición candidata; J11-S9-07 congela `purchasing` con G0–G6 verdes, demo oficial, fotografía y PDF; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management` y ADR-0046 la familia vertical Flota F1/F2; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
+  ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo de perfiles tributarios y familias, revisión explícita e historial visible tributario, las cuatro clases empresariales de socios y asignación versionada de familias a artículos validadas; instalador interno J11-S9-08 creado; G7, Authenticode y matriz Windows independiente pendientes
+- Edición: 1.0-rc103
+- Fecha: 2026-08-14
+- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.3`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.1.0` y `purchasing-api = 1.1.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 validada en PostgreSQL 18.4/Testcontainers y fixture `plg_reference_plugin` V1; unidades JPA en `validate`; perfil físico `with-purchasing-demo` para WAR y migrador; imágenes verificadas `logixone/app:j11-s9-07-closing` y `logixone/migrator:j11-s9-07-closing`; Keycloak 26.7.0, WildFly 41 OIDC y Jakarta Faces 4.1; Maven, ArchUnit, PostgreSQL, migraciones, health, OIDC y Playwright acumulado verdes; instalador Windows `0.9.0-internal.1` restringido a `INTERNAL_UNSIGNED`; G7, Authenticode y matriz Windows independiente pendientes
 - Audiencia: implementadores funcionales, desarrolladores de plugins, responsables de infraestructura y soporte de puesta en marcha
 - Fuente canónica: este documento versionado junto al código
 
@@ -833,10 +833,10 @@ seguridad, retrospectiva y PDF obligatorio.
 ### Decisión de instalador Windows al cerrar el Sprint
 
 - [x] se preguntó explícitamente `¿Crearemos un nuevo instalador Windows para este Sprint?`;
-- [x] se registraron respuesta `NO`, fecha 2026-08-05, responsable de producto y
-  razón: esperar una versión comercializable útil para al menos un tipo de negocio;
-- [x] con `NO`, `current` quedó intacto y marcado como no representativo del
-  baseline nuevo;
+- [x] se registró respuesta `SÍ`, fecha 2026-08-14, responsable de producto y
+  razón: crear una edición interna representativa del baseline de Compras;
+- [x] con `SÍ`, `current` se sustituyó de forma acotada por
+  `0.9.0-internal.1` después de validar el candidato;
 
 Si la respuesta es `SÍ`, completar además:
 
@@ -850,7 +850,7 @@ Si la respuesta es `SÍ`, completar además:
   adoptada y falta el escenario UAC real;
 - [x] descargas y binarios fijados y validados por hash; Authenticode pendiente;
 - [ ] instalación limpia en VM termina con migrator, Compose y health verdes;
-- [x] reparación local conserva configuración, cuatro secretos, volúmenes y datos;
+- [ ] instalación, actualización y reparación reales de J11-S9-08 en VM compatible;
 - [x] versión, baseline/digest, SHA-256, estado de firma y terceros evidenciados;
 - [x] el directorio generado `current` contiene sólo ocho derivados del Sprint;
 - [x] fuentes, pruebas, evidencias y releases publicados permanecen intactos.
@@ -861,7 +861,7 @@ La candidata interna está en `installer/windows/current/`. Ejecute primero el
 preflight y revise el plan; no distribuya el EXE porque su canal es
 `INTERNAL_UNSIGNED`. El montaje manual documentado continúa siendo la alternativa
 para implementación y desarrollo. La evidencia y los pendientes externos están en
-[J11-S8-08](../evidence/J11-S8-08-instalador-windows-cierre.md).
+[J11-S9-08](../evidence/J11-S9-08-instalador-windows-cierre.md).
 
 Una empresa no se declara operativa solo porque WildFly arrancó. Deben cumplirse composición empresarial, datos, aceptación funcional, seguridad aplicable y operación.
 
@@ -1271,13 +1271,14 @@ la [caracterización](../knowledge-base/vehicle-maintenance/legacy-characterizat
 la [épica F1](../backlog/epica-mantenimiento-flota.md) y la
 [épica F2](../backlog/epica-taller-automotriz-comercial.md).
 
-### Qué está disponible de Compras en J11-S9-06
+### Qué está disponible de Compras en J11-S9-07
 
 > **Compuesta y validada automáticamente:** dominio, tablas, repositorios,
 > permisos, aplicación y cinco recorridos visuales forman parte del WAR y del
 > migrador mediante `with-purchasing-demo`. Maven, PostgreSQL, ArchUnit,
 > Docker/Compose, migraciones, health/OIDC y Playwright están verdes. La
-> validación independiente y el cierre J11-S9-07 siguen pendientes.
+> validación independiente, Authenticode y la matriz Windows de J11-S9-08 siguen
+> pendientes.
 
 El reactor contiene `purchasing-api@1.1.0` y `purchasing@1.1.0`. La API publica
 identidades, consultas y comandos controlados para importar solicitudes u órdenes
@@ -1319,7 +1320,8 @@ fuera del migrador oficial ni copiar JARs al WAR. Debe seleccionar el perfil
 [J11-S9-04](../sprints/sprint-09/J11-S9-04-aplicacion-purchasing.md),
 [ADR-0044](../adr/0044-recorridos-visuales-purchasing.md) y
 [J11-S9-05](../sprints/sprint-09/J11-S9-05-interfaz-purchasing.md), además de
-[J11-S9-06](../sprints/sprint-09/J11-S9-06-integracion-composicion-purchasing.md).
+[J11-S9-06](../sprints/sprint-09/J11-S9-06-integracion-composicion-purchasing.md) y
+[J11-S9-07](../sprints/sprint-09/J11-S9-07-validacion-demo-cierre.md).
 
 Este es un orden de construcción. En runtime, `PluginCatalogResolver` valida el
 grafo y calcula el orden topológico. Un plugin declara únicamente dependencias
@@ -1989,3 +1991,5 @@ interno deberá regenerarse si la matriz o G7 modifica el baseline final de cier
 | 1.0-rc99 | 2026-08-11 | ADR-0045: `business_process_management` agregado como plugin funcional transversal planificado; BPMN 2.0.2 acotado, ejecución durable, acciones públicas autorizadas, BPM-D01 a BPM-D12 y piloto futuro con solicitudes de Compras; sin código ni pruebas ejecutables afectadas |
 | 1.0-rc100 | 2026-08-12 | ADR-0046: familia Flota planificada con F1 `fleet_maintenance` y F2 `automotive_workshop`; FM-D01 a FM-D12 y AW-D01 a AW-D10 aceptadas; catálogo 31→33, ERP 1–19 y J11-S9-06 sin cambios; sin código ejecutable afectado |
 | 1.0-rc101 | 2026-08-12 | J11-S9-06: perfil físico `with-purchasing-demo`, WAR/migrador e imagen app final `sha256:4e7e84da913b64ae08cdd72188640af5a023e824db67dfb0aecdc2d40c38fba8`; 549 pruebas materializadas verdes, raíz protegida, migración idempotente, health/OIDC, Playwright integral y 18 capturas responsive; validación independiente y J11-S9-07 pendientes |
+| 1.0-rc102 | 2026-08-13 | J11-S9-07: G0–G6 verdes, imágenes de cierre identificadas, Maven/ArchUnit/PostgreSQL/migraciones/health/OIDC/Playwright acumulado, demo oficial con 170 capturas, fotografía de ocho plugins y PDF regenerado/revisado; G7 independiente y decisión J11-S9-08 pendientes |
+| 1.0-rc103 | 2026-08-14 | J11-S9-08: decisión `SÍ`, instalador interno `0.9.0-internal.1`, manifiesto `with-purchasing-demo`, 58 aserciones, preflight bloqueado sin cambios, integridad y UI smoke verdes; Authenticode, VM y G7 pendientes |

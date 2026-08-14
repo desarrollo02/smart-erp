@@ -1,7 +1,7 @@
 # Épica - Instalador Windows reproducible por Sprint
 
-- Estado: Primera implementación interna completada en Sprint 8; distribución
-  externa y matriz independiente pendientes
+- Estado: edición interna regenerada para Sprint 9; distribución externa y
+  matriz independiente pendientes
 - Fecha de incorporación: 2026-07-31
 - Prioridad: entregable transversal condicionado a confirmación de producto en
   cada cierre
@@ -21,14 +21,16 @@ El instalador es un artefacto derivado del baseline. Su código fuente, manifies
 pruebas y documentación se mantienen; únicamente se reemplaza el artefacto
 generado marcado como `current` del Sprint anterior.
 
-Sprint 8 materializó este alcance en `installer/windows/` mediante ADR-0026. La
-edición `0.8.0-internal.1` diagnostica, presenta el plan, exige consentimiento,
-instala/repara y valida health conservando volúmenes. Está `NotSigned` y se limita a
-evaluación interna hasta completar Authenticode y la matriz de VM.
+Sprint 8 materializó este alcance en `installer/windows/` mediante ADR-0026.
+Sprint 9 regeneró `current` como `0.9.0-internal.1`, ligado a
+`with-purchasing-demo`; diagnostica, presenta el plan y exige consentimiento. Sus
+pruebas deterministas e integridad están verdes, pero la instalación real de esta
+edición continúa pendiente. Está `NotSigned` y se limita a evaluación interna
+hasta completar Authenticode y la matriz de VM.
 
 La evolución [WIN-I09](WIN-I09-seleccion-plugins-dependencias.md) agregará una
 selección explícita de plugins con resolución transitiva de dependencias. No forma
-parte de `0.8.0-internal.1` y debe validarse antes de anunciar composición
+parte de `0.9.0-internal.1` y debe validarse antes de anunciar composición
 configurable a una empresa.
 
 ## Interpretación de “finalizar el Sprint”

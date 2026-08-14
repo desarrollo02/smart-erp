@@ -1,5 +1,5 @@
 LOGIXONE WINDOWS INSTALLER - THIRD-PARTY NOTICES
-Edition: 0.8.0-internal.1
+Edition: 0.9.0-internal.1
 Channel: INTERNAL_UNSIGNED
 
 This internal bootstrapper does not grant a Docker Desktop license. Before an
@@ -31,4 +31,3 @@ distribution aid and does not replace the complete license text of a third party
 
 Logixone source licensing is not declared by this notice. External delivery is
 blocked until product licensing and Authenticode signing are formally completed.
-

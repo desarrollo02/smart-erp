@@ -68,6 +68,7 @@ namespace Logixone.Installer
         public string Story { get; set; }
         public string Profile { get; set; }
         public string ReleaseChannel { get; set; }
+        public string MavenProfile { get; set; }
         public string ApplicationImage { get; set; }
         public string ApplicationDigest { get; set; }
         public string MigratorImage { get; set; }
@@ -132,6 +133,7 @@ namespace Logixone.Installer
                 Story = Text(installer, "story"),
                 Profile = Text(installer, "profile"),
                 ReleaseChannel = Text(installer, "releaseChannel"),
+                MavenProfile = Text(baseline, "mavenProfile"),
                 ApplicationImage = Text(baseline, "applicationImage"),
                 ApplicationDigest = Text(baseline, "applicationDigest"),
                 MigratorImage = Text(baseline, "migratorImage"),
@@ -169,9 +171,17 @@ namespace Logixone.Installer
 
         private static void Validate(InstallerConfiguration configuration)
         {
-            if (configuration.Story != "J11-S8-08")
+            string expectedStory = "J11-S" + configuration.Sprint + "-08";
+            if (!Regex.IsMatch(configuration.Sprint ?? String.Empty, "^[1-9][0-9]*$")
+                || !String.Equals(configuration.Story, expectedStory, StringComparison.Ordinal))
             {
-                throw new InvalidDataException("El manifiesto no pertenece a J11-S8-08.");
+                throw new InvalidDataException(
+                    "La historia del instalador no coincide con el Sprint declarado.");
+            }
+            if (!Regex.IsMatch(configuration.MavenProfile ?? String.Empty,
+                "^[a-z0-9][a-z0-9-]*$"))
+            {
+                throw new InvalidDataException("El perfil Maven del baseline no es seguro.");
             }
             if (!Regex.IsMatch(configuration.ApplicationDigest ?? String.Empty, "^sha256:[0-9a-f]{64}$")
                 || !Regex.IsMatch(configuration.MigratorDigest ?? String.Empty, "^sha256:[0-9a-f]{64}$"))
