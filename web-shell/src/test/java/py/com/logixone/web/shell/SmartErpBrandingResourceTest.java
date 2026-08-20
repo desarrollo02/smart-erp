@@ -61,6 +61,16 @@ class SmartErpBrandingResourceTest {
 
         assertTrue(source.contains(".topbar .native-selector-source small { color: #c7d8d4; }"));
         assertTrue(source.contains(".topbar .selector-management-link { color: #8ff3e8; }"));
+        assertTrue(source.contains(
+                ".company-switcher .select-control { grid-column: 1; grid-row: 1;"));
+        assertTrue(source.contains(
+                ".company-switcher .button { grid-column: 2; grid-row: 1; }"));
+        assertTrue(source.contains(
+                ".company-switcher .native-selector-source { grid-column: 1 / -1; grid-row: 2;"));
+        assertTrue(source.contains(
+                ".session-panel { min-width: 0; width: 100%; margin-left: 0; display: grid;"));
+        assertTrue(source.contains(
+                ".company-switcher { min-width: 0; width: 100%; grid-column: 1 / -1;"));
     }
 
     private String resource(String relativePath) throws IOException {

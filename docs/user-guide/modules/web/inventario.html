@@ -95,6 +95,14 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
   article { max-width: none; padding: 0; }
   h2, h3, h4 { break-after: avoid; }
   table, .db-diagram, .wireframe, .callout, .screen-capture, .example-card, .entity-card, .trigger-card { break-inside: avoid; }
+  .db-diagram.db-diagram-splittable { break-inside: auto; }
+  .db-diagram-splittable { padding: 9px; }
+  .db-diagram-splittable .entity-grid { gap: 6px; margin: 6px 0; }
+  .db-diagram-splittable .entity-card h4 { padding: 5px 7px; }
+  .db-diagram-splittable .entity-card ul { padding: 6px 7px 6px 22px; font-size: 7.2pt; line-height: 1.25; }
+  .db-diagram-splittable .entity-card li { margin: 2px 0; }
+  .db-diagram-splittable .relation-list { margin-top: 6px; padding: 7px 9px; font-size: 7.8pt; }
+  .db-diagram-splittable .relation-list li { margin: 2px 0; }
   .page-footer { display: none; }
   .no-print { display: none; }
 }
@@ -111,12 +119,12 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
 </head>
 <body>
 <article>
-  <div class="page-footer">LogixOne · Manual de Inventario · edición 2026-08-11 · página <span class="page-number"></span></div>
+  <div class="page-footer">LogixOne · Manual de Inventario · edición 2026-08-14 · página <span class="page-number"></span></div>
   <header class="cover">
     <div class="eyebrow">Manual de usuario por módulo</div>
     <h1>Inventario</h1>
     <p class="subtitle">Almacenes, ubicaciones, existencias, movimientos, reservas y conteos físicos con trazabilidad.</p>
-    <div class="meta"><strong>Versión documentada:</strong> plugin <code>inventory</code> 1.0, baseline Sprint 8.<br><strong>Audiencia:</strong> responsables de almacén, operadores de stock, supervisores y soporte.<br><strong>Dependencia funcional:</strong> Catálogo comercial, consultado por contrato; Inventario conserva snapshots y no accede a sus tablas privadas.</div>
+    <div class="meta"><strong>Versión documentada:</strong> plugin <code>inventory</code> 1.2, baseline candidato de Sprint 10.<br><strong>Audiencia:</strong> responsables de almacén, operadores de stock, supervisores y soporte.<br><strong>Dependencia funcional:</strong> Catálogo comercial, consultado por contrato; Inventario conserva snapshots y no accede a sus tablas privadas.</div>
   </header>
 
   <section class="toc">
@@ -133,30 +141,30 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
     <p><strong>Objetivo:</strong> incorporar artículos del catálogo, consultar disponibilidad, contabilizar movimientos y administrar reservas.</p>
     <p><strong>Prerrequisitos:</strong> empresa activa, plugin Inventario y Catálogo efectivos, almacén/ubicación activos y permisos específicos de la acción.</p>
     <h3>Bosquejo orientativo de la pantalla</h3>
-    <div class="wireframe">┌ Inventario · Existencias ─────────────────────────────────────────┐
-│ Buscar [código/nombre] Estado [▼] [Buscar]                         │
-├ Artículos ────────────┬ Disponibilidad por dimensiones ────────────┤
-│ artículo · tracking   │ almacén · ubicación · condición · lote/serie│
-│ [Seleccionar]         │ físico · reservado · disponible · versión  │
-├ Incorporar artículo del catálogo ──────────────────────────────────┤
-│ artículo [▼] tracking [▼] caducidad [▼] [Incorporar]               │
-├ Movimiento ─────────────────────┬ Reserva / operación de reserva ──┤
-│ tipo, origen/destino, cantidad  │ dimensiones, cantidad, expiración│
-│ razón, fuente, idempotencia     │ ID, versión [consumir/liberar]   │
+    <div class="wireframe">┌ Inventario · Existencias · Operación guiada ──────────────┐
+│ Tarea [Registrar movimiento ▼]  Artículo [producto activo ▼] │
+│ [Continuar]                                                │
+├ Datos de la operación ───────────────────────────┤
+│ Tipo [Entrada ▼] Depósito [▼] Ubicación [▼] Condición [▼] │
+│ Destino: sólo transferencia · Lote/serie: según artículo │
+│ Vencimiento: según política · Cantidad [ ] · Motivo [ ]   │
+├ Guía y resumen ────────────────────────────┤
+│ Efecto previsto, unidad base y reglas del artículo seleccionado │
+│ [Registrar movimiento] — confirmación antes de contabilizar    │
 └────────────────────────────────────────────────────────────────────┘</div>
     <h3>Datos y controles</h3>
     <table><thead><tr><th>Grupo</th><th>Datos explicados</th><th>Reglas</th></tr></thead><tbody>
-      <tr><td>Búsqueda</td><td>Texto por código/nombre, estado activo/inactivo, tabla de resultados y Seleccionar.</td><td>Solo consulta; siempre dentro de la empresa.</td></tr>
+      <tr><td>Contexto</td><td>Tarea y artículo activo. <strong>Continuar</strong> adapta la captura sin cambiar de ruta.</td><td>El selector muestra referencias legibles; la identidad interna no se transcribe.</td></tr>
       <tr><td>Incorporación</td><td>Artículo de catálogo, modo de tracking y política de caducidad.</td><td>El artículo debe existir y ser elegible. Se guarda UUID externo y snapshot; un mismo artículo de catálogo solo se incorpora una vez por empresa.</td></tr>
       <tr><td>Disponibilidad</td><td>Almacén, ubicación, condición, lote, serie, fecha de expiración; cantidades física, reservada y disponible; unidad base y versión.</td><td>Las dimensiones aplicables dependen del tracking/caducidad. Vacío no significa siempre “desconocido”: puede significar no aplicable.</td></tr>
-      <tr><td>Movimiento</td><td>Tipo, ubicación origen/destino, condición, lote/serie/expiración, cantidad presentada, razón, tipo/ID de fuente e idempotencia.</td><td>Cantidad positiva. El tipo define dirección y ubicaciones requeridas. Contabilizar es una operación de negocio, no una edición de saldo.</td></tr>
-      <tr><td>Reserva nueva</td><td>Artículo, ubicación, condición, lote/serie/expiración, cantidad, fecha de expiración, fuente e idempotencia.</td><td>No puede reservar más disponibilidad que la permitida. Fuente+idempotencia protegen reintentos.</td></tr>
-      <tr><td>Operar reserva</td><td>ID de reserva, versión, cantidad e idempotencia; acciones Consumir, Liberar o Expirar.</td><td>Consumir reduce compromiso y normalmente acompaña salida; liberar devuelve disponibilidad; expirar aplica reglas temporales.</td></tr>
+      <tr><td>Movimiento</td><td>Tipo, ubicación origen y destino cuando corresponde, condición, lote/serie/vencimiento aplicable, cantidad y motivo.</td><td>El sistema genera fuente e idempotencia. Entrada aumenta; salida disminuye; transferencia debita y acredita atómicamente posiciones distintas.</td></tr>
+      <tr><td>Reserva nueva</td><td>Artículo, ubicación, condición, trazabilidad aplicable, cantidad y fecha de expiración.</td><td>Fuente, identidad, versión e idempotencia se mantienen como datos técnicos no editables.</td></tr>
+      <tr><td>Operar reserva</td><td>Cantidad y acciones Consumir, Liberar o Expirar cuando existe una reserva vigente en contexto.</td><td>La identidad, versión y clave de operación viajan internamente y el servidor las revalida.</td></tr>
       <tr><td>Ciclo de artículo</td><td>Refrescar snapshot e Inactivar.</td><td>Refrescar toma datos actuales por contrato; inactivar conserva movimientos, saldos y reservas históricas.</td></tr>
     </tbody></table>
-    <h3>Secuencia recomendada</h3>
-    <ol><li>Configure almacenes y ubicaciones.</li><li>Incorpore el artículo confirmando tracking y caducidad; estas decisiones afectan cada operación posterior.</li><li>Contabilice una entrada inicial con idempotencia única.</li><li>Revise disponibilidad por dimensiones.</li><li>Para comprometer stock, cree una reserva y conserve su ID/versión.</li><li>Consuma o libere la reserva usando una idempotencia nueva para cada operación lógica.</li></ol>
-    <p class="warning"><strong>Errores frecuentes:</strong> ubicación de otro almacén, lote/serie requerido, expiración inválida, stock insuficiente, idempotencia reutilizada con datos diferentes, versión de saldo/reserva antigua, artículo o ubicación inactivos. No edite el saldo directamente ni reenvíe con otra clave sin entender el resultado anterior.</p>
+    <h3>Registrar una entrada, salida o transferencia</h3>
+    <ol><li>Configure previamente depósitos y ubicaciones y confirme que el artículo esté activo.</li><li>En <strong>Tarea</strong>, elija <strong>Registrar movimiento</strong>; seleccione el artículo y pulse <strong>Continuar</strong>.</li><li>Elija Entrada, Salida o Transferencia. Para transferencia, complete un destino distinto del origen.</li><li>Complete solamente lote, serie o vencimiento que la pantalla muestre según la política del artículo.</li><li>Ingrese cantidad positiva y motivo; revise la guía y el resumen.</li><li>Pulse <strong>Registrar movimiento</strong> y confirme. Espere el mensaje de éxito antes de iniciar otra operación.</li></ol>
+    <p class="warning"><strong>Errores frecuentes:</strong> ubicación de otro depósito, destino igual al origen, lote/serie requerido, vencimiento inválido, stock insuficiente o artículo/ubicación inactivos. Corrija los datos conservados en pantalla y reintente; no edite saldos por SQL ni busque una clave técnica.</p>
     <h3>Diagrama de datos y tablas afectadas</h3>
     <div class="db-diagram">
       <div class="db-row"><div class="db-name">inventory_item</div><div>Empresa + ID (PK); <code>catalog_item_id</code> (UK), snapshots de código/nombre/unidad/versión, tracking, caducidad, estado y versión.</div><div class="crud">C/R/U</div></div>
@@ -231,7 +239,7 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
     </div>
   </section>
 
-  <section><h2>Accesibilidad, seguridad y soporte</h2><ul><li>Cantidades y estados siempre se expresan como texto, no solo color.</li><li>En compacto, formularios se apilan y las tablas adoptan presentación alternativa.</li><li>No comparta idempotencias entre operaciones distintas ni modifique stock con SQL.</li><li>Para soporte entregue empresa, artículo, almacén/ubicación, operación, idempotencia/correlación, hora y mensaje; no incluya secretos.</li></ul></section>
+  <section><h2>Accesibilidad, seguridad y soporte</h2><ul><li>Cantidades y estados siempre se expresan como texto, no solo color.</li><li>En compacto, formularios se apilan; en medio y expandido la guía y el resumen permanecen junto a la captura.</li><li>Puede recorrer los controles con Tab; después de actualizar contexto o ejecutar una acción, el foco vuelve al primer campo inválido, al mensaje visible o al título de la tarea.</li><li>Si el sistema operativo solicita movimiento reducido, el shell elimina las transiciones no esenciales.</li><li>Identidad, versión, fuente e idempotencia son datos internos: no se solicitan ni se copian entre operaciones.</li><li>Para soporte entregue empresa, artículo, depósito/ubicación, tipo de operación, hora y mensaje visible; no incluya secretos.</li></ul></section>
 </article>
 
 </body>

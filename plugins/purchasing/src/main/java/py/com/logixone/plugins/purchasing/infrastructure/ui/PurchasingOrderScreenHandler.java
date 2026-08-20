@@ -249,20 +249,36 @@ public class PurchasingOrderScreenHandler implements ScreenInteraction.Handler {
                         PurchaseOrderState.class), offset, limit)).value().orElseThrow();
         Optional<ScreenInteraction.Detail> detail = Optional.empty();
         Optional<Long> version = Optional.empty();
+        Optional<PurchaseOrder> selectedOrder = Optional.empty();
         if (selected.isPresent()) {
             var result = useCases.orderDetail(view, PurchaseOrderId.parse(selected.orElseThrow()));
             if (result.successful()) {
                 PurchaseOrder value = result.value().orElseThrow();
+                selectedOrder = Optional.of(value);
                 detail = Optional.of(detail(value));
                 version = Optional.of(value.version());
+                inputs.put(PurchasingScreenContract.ORDER_SUMMARY, summary(value));
             } else {
                 selected = Optional.empty();
                 notices.add(PurchasingScreenSupport.error(
                         "Orden no disponible", "Vuelve a buscar el documento."));
             }
         }
-        return new ScreenInteraction.Result(inputs, options(inputs), Optional.of(table(page)),
-                detail, notices, selected, version);
+        Optional<ScreenInteraction.Table> visibleTable = selectedOrder
+                .map(PurchasingOrderScreenHandler::linesTable)
+                .or(() -> Optional.of(table(page)));
+        boolean hasConfirmedReceipts = selectedOrder.stream()
+                .flatMap(order -> order.lines().stream())
+                .anyMatch(line -> line.receivedQuantity().signum() > 0);
+        boolean hasPendingQuantity = selectedOrder.stream()
+                .flatMap(order -> order.lines().stream())
+                .anyMatch(line -> line.pendingQuantity().signum() > 0);
+        return new ScreenInteraction.Result(inputs, options(inputs), visibleTable,
+                detail, notices, selected, version,
+                PurchasingFloorplanStates.orders(
+                        selectedOrder.map(PurchaseOrder::state),
+                        hasConfirmedReceipts,
+                        hasPendingQuantity));
     }
 
     private Map<ScreenElementId, List<ScreenInteraction.Option>> options(
@@ -384,6 +400,36 @@ public class PurchasingOrderScreenHandler implements ScreenInteraction.Handler {
                 page.total(), "No hay órdenes",
                 "Ajusta los filtros o crea la primera orden.",
                 Optional.of(new ScreenInteraction.TablePage(page.offset(), page.limit())));
+    }
+
+    private static ScreenInteraction.Table linesTable(PurchaseOrder order) {
+        return new ScreenInteraction.Table(PurchasingScreenContract.ORDER_LINES,
+                List.of(new ScreenInteraction.Column("description", "Descripción"),
+                        new ScreenInteraction.Column("quantity", "Cantidad"),
+                        new ScreenInteraction.Column("price", "Precio"),
+                        new ScreenInteraction.Column("received", "Recibida"),
+                        new ScreenInteraction.Column("returned", "Devuelta"),
+                        new ScreenInteraction.Column("pending", "Pendiente")),
+                order.lines().stream().map(line -> new ScreenInteraction.Row(
+                        line.id().toString(), List.of(
+                                line.item().description(),
+                                line.orderedQuantity().toPlainString() + " "
+                                        + line.item().presentedUnitCode(),
+                                line.unitPrice().toPlainString(),
+                                line.receivedQuantity().toPlainString(),
+                                line.returnedQuantity().toPlainString(),
+                                line.pendingQuantity().toPlainString())))
+                        .toList(),
+                order.lines().size(), "Orden sin líneas",
+                "Agrega al menos una línea antes de emitir.");
+    }
+
+    private static String summary(PurchaseOrder order) {
+        var snapshot = order.snapshot();
+        return snapshot.number() + " · " + snapshot.supplier().displayName()
+                + " · " + label(order.state()) + " · total "
+                + order.orderedTotal().toPlainString() + " "
+                + snapshot.currency().code().value();
     }
 
     private static ScreenInteraction.Detail detail(PurchaseOrder order) {

@@ -1,6 +1,8 @@
 package py.com.logixone.plugins.inventory.infrastructure.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.InvocationHandler;
@@ -64,6 +66,9 @@ class InventoryStockScreenHandlerTest {
             "00000000-0000-0000-0000-000000000401");
     private static final StockLocationId LOCATION_ID = StockLocationId.parse(
             "00000000-0000-0000-0000-000000000501");
+    private static final StockLocationId TARGET_LOCATION_ID = StockLocationId.parse(
+            "00000000-0000-0000-0000-000000000502");
+    private static final String TOKEN = "00000000-0000-0000-0000-000000000503";
 
     private RecordingAuthorization authorization;
     private RecordingUseCases recording;
@@ -80,16 +85,23 @@ class InventoryStockScreenHandlerTest {
     }
 
     @Test
-    void loadsStockDirectoryOptionsAndDetailUsingOnlyViewPermission() {
+    void loadsGuidedMovementAsTheDefaultTaskUsingOnlyViewPermission() {
         ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
                 Optional.empty(), Map.of(), Optional.of(ITEM_ID.toString()), Optional.of(0L)));
 
         assertEquals(List.of(InventoryPermissions.VIEW.value()), authorization.permissions);
-        assertEquals(1, result.table().orElseThrow().rows().size());
+        assertTrue(result.table().isEmpty());
         assertEquals("Producto demo", result.detail().orElseThrow().title());
         assertEquals(CATALOG_ID.toString(), result.inputs().get(
                 InventoryScreenContract.STOCK_NEW_CATALOG_ITEM));
-        assertEquals(3, result.options().get(InventoryScreenContract.MOVEMENT_TYPE).size());
+        assertEquals("MOVEMENT", result.inputs().get(InventoryScreenContract.STOCK_TASK));
+        assertEquals(ITEM_ID.toString(), result.inputs().get(
+                InventoryScreenContract.MOVEMENT_ITEM));
+        assertEquals(4, result.options().get(InventoryScreenContract.STOCK_TASK).size());
+        assertEquals(ScreenInteraction.ElementState.hidden(), result.elementStates().get(
+                InventoryScreenContract.MOVEMENT_LOT));
+        assertFalse(result.inputs().containsKey(InventoryScreenContract.MOVEMENT_SOURCE_TYPE));
+        assertFalse(result.inputs().containsKey(InventoryScreenContract.MOVEMENT_SOURCE_ID));
     }
 
     @Test
@@ -97,13 +109,14 @@ class InventoryStockScreenHandlerTest {
         ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
                 Optional.of(InventoryScreenContract.POST_MOVEMENT),
                 Map.of(
+                        InventoryScreenContract.STOCK_TASK, "MOVEMENT",
+                        InventoryScreenContract.MOVEMENT_ITEM, ITEM_ID.toString(),
                         InventoryScreenContract.MOVEMENT_TYPE, "RECEIPT",
                         InventoryScreenContract.MOVEMENT_WAREHOUSE, WAREHOUSE_ID.toString(),
                         InventoryScreenContract.MOVEMENT_LOCATION, LOCATION_ID.toString(),
                         InventoryScreenContract.MOVEMENT_QUANTITY, "5",
                         InventoryScreenContract.MOVEMENT_REASON, "INITIAL_RECEIPT",
-                        InventoryScreenContract.MOVEMENT_SOURCE_ID, "DEMO-1",
-                        InventoryScreenContract.MOVEMENT_IDEMPOTENCY, "demo-receipt-1"),
+                        InventoryScreenContract.MOVEMENT_IDEMPOTENCY, TOKEN),
                 Optional.of(ITEM_ID.toString()), Optional.of(0L)));
 
         assertEquals(List.of(
@@ -113,6 +126,11 @@ class InventoryStockScreenHandlerTest {
         assertEquals("EA", recording.lastMovement.lines().getFirst().quantity().baseUnitCode());
         assertEquals(new BigDecimal("5"),
                 recording.lastMovement.lines().getFirst().quantity().baseQuantity());
+        assertEquals("MANUAL_UI", recording.lastMovement.source().sourceType());
+        assertEquals("movement-ui:" + TOKEN, recording.lastMovement.source().sourceId());
+        assertEquals("movement-ui-" + TOKEN, recording.lastMovement.idempotencyKey());
+        assertNotEquals(TOKEN, result.inputs().get(
+                InventoryScreenContract.MOVEMENT_IDEMPOTENCY));
         assertTrue(result.notices().stream().anyMatch(
                 notice -> notice.level() == ScreenInteraction.NoticeLevel.SUCCESS));
     }
@@ -122,6 +140,8 @@ class InventoryStockScreenHandlerTest {
         ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
                 Optional.of(InventoryScreenContract.CHECK_AVAILABILITY),
                 Map.of(
+                        InventoryScreenContract.STOCK_TASK, "AVAILABILITY",
+                        InventoryScreenContract.MOVEMENT_ITEM, ITEM_ID.toString(),
                         InventoryScreenContract.AVAILABILITY_WAREHOUSE, WAREHOUSE_ID.toString(),
                         InventoryScreenContract.AVAILABILITY_LOCATION, LOCATION_ID.toString()),
                 Optional.of(ITEM_ID.toString()), Optional.of(0L)));
@@ -138,11 +158,116 @@ class InventoryStockScreenHandlerTest {
     void invalidEnrollmentIsRejectedBeforeItemsAuthorization() {
         ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
                 Optional.of(InventoryScreenContract.ENROLL_STOCK_ITEM),
-                Map.of(), Optional.empty(), Optional.empty()));
+                Map.of(InventoryScreenContract.STOCK_TASK, "ITEM_ADMIN"),
+                Optional.empty(), Optional.empty()));
 
         assertEquals(List.of(InventoryPermissions.VIEW.value()), authorization.permissions);
         assertEquals(ScreenInteraction.NoticeLevel.ERROR, result.notices().getFirst().level());
         assertTrue(recording.invocations.stream().noneMatch("enrollItem"::equals));
+    }
+
+    @Test
+    void transferRequiresDestinationAndPostsTwoAtomicLines() {
+        ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
+                Optional.of(InventoryScreenContract.POST_MOVEMENT),
+                Map.ofEntries(
+                        Map.entry(InventoryScreenContract.STOCK_TASK, "MOVEMENT"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_ITEM, ITEM_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_TYPE, "TRANSFER"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_WAREHOUSE, WAREHOUSE_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_LOCATION, LOCATION_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_TARGET_WAREHOUSE, WAREHOUSE_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_TARGET_LOCATION, TARGET_LOCATION_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_CONDITION, StockCondition.AVAILABLE.name()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_QUANTITY, "3"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_REASON, "REUBICACION"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_IDEMPOTENCY, TOKEN)),
+                Optional.of(ITEM_ID.toString()), Optional.of(0L)));
+
+        assertEquals(2, recording.lastMovement.lines().size());
+        assertEquals(TARGET_LOCATION_ID,
+                recording.lastMovement.lines().getLast().key().locationId());
+        assertEquals(ScreenInteraction.ElementState.requiredInput(), result.elementStates().get(
+                InventoryScreenContract.MOVEMENT_TARGET_LOCATION));
+    }
+
+    @Test
+    void selectedItemPolicyDrivesLotAndExpiryStates() {
+        recording.item = item(
+                ITEM_ID, CATALOG_ID, TrackingMode.LOT, ExpiryPolicy.REQUIRED, 0);
+
+        ScreenInteraction.Result result = handler.interact(
+                ScreenInteraction.Request.load(Map.of()));
+
+        assertEquals(ScreenInteraction.ElementState.requiredInput(), result.elementStates().get(
+                InventoryScreenContract.MOVEMENT_LOT));
+        assertEquals(ScreenInteraction.ElementState.hidden(), result.elementStates().get(
+                InventoryScreenContract.MOVEMENT_SERIAL));
+        assertEquals(ScreenInteraction.ElementState.requiredInput(), result.elementStates().get(
+                InventoryScreenContract.MOVEMENT_EXPIRY));
+    }
+
+    @Test
+    void tamperedHiddenDimensionIsRejectedBeforeMovementPermission() {
+        ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
+                Optional.of(InventoryScreenContract.POST_MOVEMENT),
+                Map.ofEntries(
+                        Map.entry(InventoryScreenContract.STOCK_TASK, "MOVEMENT"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_ITEM, ITEM_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_TYPE, "RECEIPT"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_WAREHOUSE, WAREHOUSE_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_LOCATION, LOCATION_ID.toString()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_CONDITION, StockCondition.AVAILABLE.name()),
+                        Map.entry(InventoryScreenContract.MOVEMENT_LOT, "TAMPERED"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_QUANTITY, "1"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_REASON, "ENTRADA"),
+                        Map.entry(InventoryScreenContract.MOVEMENT_IDEMPOTENCY, TOKEN)),
+                Optional.of(ITEM_ID.toString()), Optional.of(0L)));
+
+        assertEquals(List.of(
+                InventoryPermissions.VIEW.value(),
+                InventoryPermissions.VIEW.value()), authorization.permissions);
+        assertTrue(recording.invocations.stream().noneMatch("postMovement"::equals));
+        assertTrue(result.notices().stream().anyMatch(
+                notice -> notice.level() == ScreenInteraction.NoticeLevel.ERROR));
+        assertEquals(TOKEN, result.inputs().get(InventoryScreenContract.MOVEMENT_IDEMPOTENCY));
+    }
+
+    @Test
+    void invalidTechnicalTokenIsRejectedAndRotatedWithoutPosting() {
+        ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
+                Optional.of(InventoryScreenContract.POST_MOVEMENT),
+                Map.of(
+                        InventoryScreenContract.STOCK_TASK, "MOVEMENT",
+                        InventoryScreenContract.MOVEMENT_ITEM, ITEM_ID.toString(),
+                        InventoryScreenContract.MOVEMENT_TYPE, "RECEIPT",
+                        InventoryScreenContract.MOVEMENT_WAREHOUSE, WAREHOUSE_ID.toString(),
+                        InventoryScreenContract.MOVEMENT_LOCATION, LOCATION_ID.toString(),
+                        InventoryScreenContract.MOVEMENT_CONDITION, StockCondition.AVAILABLE.name(),
+                        InventoryScreenContract.MOVEMENT_QUANTITY, "1",
+                        InventoryScreenContract.MOVEMENT_REASON, "ENTRADA",
+                        InventoryScreenContract.MOVEMENT_IDEMPOTENCY, "not-a-token"),
+                Optional.of(ITEM_ID.toString()), Optional.of(0L)));
+
+        assertTrue(recording.invocations.stream().noneMatch("postMovement"::equals));
+        String repaired = result.inputs().get(InventoryScreenContract.MOVEMENT_IDEMPOTENCY);
+        assertNotEquals("not-a-token", repaired);
+        assertEquals(repaired, UUID.fromString(repaired).toString());
+    }
+
+    @Test
+    void actionFromAnotherTaskIsRejectedBeforeMovementAuthorization() {
+        ScreenInteraction.Result result = handler.interact(new ScreenInteraction.Request(
+                Optional.of(InventoryScreenContract.POST_MOVEMENT),
+                Map.of(
+                        InventoryScreenContract.STOCK_TASK, "AVAILABILITY",
+                        InventoryScreenContract.MOVEMENT_ITEM, ITEM_ID.toString()),
+                Optional.of(ITEM_ID.toString()), Optional.of(0L)));
+
+        assertEquals(List.of(InventoryPermissions.VIEW.value()), authorization.permissions);
+        assertTrue(recording.invocations.stream().noneMatch("postMovement"::equals));
+        assertTrue(result.notices().stream().anyMatch(
+                notice -> notice.level() == ScreenInteraction.NoticeLevel.ERROR));
     }
 
     private static final class RecordingAuthorization implements CurrentCompanyAuthorization {
@@ -235,17 +360,30 @@ class InventoryStockScreenHandlerTest {
 
     private static InventoryItemSnapshot item(
             InventoryItemId id, CatalogItemId catalogId, long version) {
+        return item(id, catalogId, TrackingMode.NONE, ExpiryPolicy.NONE, version);
+    }
+
+    private static InventoryItemSnapshot item(
+            InventoryItemId id,
+            CatalogItemId catalogId,
+            TrackingMode trackingMode,
+            ExpiryPolicy expiryPolicy,
+            long version) {
         return new InventoryItemSnapshot(
                 COMPANY, id, catalogId, "ITEM-1", "Producto demo", "EA", 4,
-                TrackingMode.NONE, ExpiryPolicy.NONE, true, version);
+                trackingMode, expiryPolicy, true, version);
     }
 
     private static WarehouseSnapshot warehouse() {
         return new WarehouseSnapshot(
                 COMPANY, WAREHOUSE_ID, "CENTRAL", "Depósito central", true, 0,
-                List.of(new StockLocationSnapshot(
-                        COMPANY, WAREHOUSE_ID, LOCATION_ID, "GENERAL", "General",
-                        StockLocationType.GENERAL, true, 0)));
+                List.of(
+                        new StockLocationSnapshot(
+                                COMPANY, WAREHOUSE_ID, LOCATION_ID, "GENERAL", "General",
+                                StockLocationType.GENERAL, true, 0),
+                        new StockLocationSnapshot(
+                                COMPANY, WAREHOUSE_ID, TARGET_LOCATION_ID, "DESTINO", "Destino",
+                                StockLocationType.GENERAL, true, 0)));
     }
 
     private static CatalogItemReference reference() {

@@ -395,7 +395,7 @@ def bullet(text: str) -> Paragraph:
 
 
 def topology_drawing(root: Path):
-    source = root / "docs/sprints/sprint-09/estructura-plugins-y-dependencias.svg"
+    source = root / "docs/sprints/sprint-10/estructura-plugins-y-dependencias.svg"
     drawing = svg2rlg(str(source))
     if drawing is None or not drawing.width or not drawing.height:
         raise RuntimeError(f"No se pudo convertir el diagrama SVG: {source}")
@@ -473,7 +473,7 @@ def draw_cover(canvas, doc):
     canvas.setTitle(f"Smart ERP - Guía de estructura - {doc.sprint}")
     canvas.setAuthor("Proyecto Smart ERP")
     canvas.setSubject("Arquitectura, carpetas, archivos, estado y continuidad del ERP modular")
-    canvas.setKeywords("Smart ERP, Jakarta EE 11, Sprint 9, reference data, business partners, commercial catalog, inventory, purchasing, plugins, repositorio")
+    canvas.setKeywords("Smart ERP, Jakarta EE 11, Sprint 10, floorplans, reference data, business partners, commercial catalog, inventory, purchasing, plugins, repositorio")
     canvas.restoreState()
 
 
@@ -513,14 +513,14 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
             data_table(
                 [
                     ["EDICIÓN", "CORTE", "ESTADO"],
-                    [sprint, edition_date, "Instalador interno creado; G7 y matriz Windows pendientes"],
+                    [sprint, edition_date, "Gate técnico verde; instalador Sprint 10: NO; validación independiente pendiente"],
                 ],
                 [43 * mm, 35 * mm, 78 * mm],
             ),
             Spacer(1, 10 * mm),
             paragraph(
                 "Esta edición explica la organización real del ERP modular, la responsabilidad de cada carpeta y archivo mantenido, "
-                "la ejecución con Docker y la demo visual de cinco plugins productivos. El instalador interno 0.9.0-internal.1 representa este baseline, pero permanece sin firma y restringido a evaluación interna.",
+                "la ejecución con Docker y la demo visual de cinco plugins productivos. Sprint 10 incorpora floorplans operativos v2 sobre Inventario y Compras; producto decidió NO crear un nuevo instalador y sólo la validación independiente permanece pendiente.",
                 "CoverSub",
             ),
             Spacer(1, 22 * mm),
@@ -558,7 +558,7 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
                 ["Directorios mantenidos", len(directories), "Todos contienen al menos un archivo inventariado"],
                 ["Java / Markdown / XHTML", f"{counts['.java']} / {counts['.md']} / {counts['.xhtml']}", "Implementación, conocimiento y UI"],
                 ["PDF derivados", len(derived_pdfs), "Consulta; nunca fuente primaria"],
-                ["Módulos Maven", 26, "Reactor completo; el arnés JTA es opt-in"],
+                ["Módulos Maven", 28, "Reactor completo; integración runtime y Playwright son opt-in"],
             ],
             [42 * mm, 35 * mm, 83 * mm],
         )
@@ -598,7 +598,7 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
     )
 
     story.append(paragraph("3. Arquitectura vigente", "Heading1"))
-    story.append(paragraph("3.1 Dependencias y composición física de Sprint 9", "Heading2"))
+    story.append(paragraph("3.1 Dependencias y composición física de Sprint 10", "Heading2"))
     story.append(topology_drawing(root))
     story.append(
         paragraph(
@@ -642,8 +642,8 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
     story.append(
         paragraph(
             "`docker compose down` retira contenedores y redes, pero conserva los volúmenes. `down --volumes` también elimina los datos y solo "
-            "se admite sobre un proyecto sintético inequívoco. En el corte J11-S9-07 se recreó únicamente `app`: PostgreSQL y Keycloak conservaron "
-            "sus volúmenes explícitos y los datos de los cinco plugins productivos; dos ejecuciones del migrador informaron cero cambios.",
+            "se admite sobre un proyecto sintético inequívoco. J11-S10-06 usa un nombre Compose exclusivo, verifica las migraciones dos veces y "
+            "elimina únicamente sus fixtures y volúmenes efímeros al terminar; nunca reutiliza servicios del IDE o del usuario.",
             "Callout",
         )
     )
@@ -664,18 +664,19 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
         )
     )
 
-    story.append(paragraph("6. Estado del baseline J11-S9-08", "Heading1"))
+    story.append(paragraph("6. Estado técnico J11-S10-06 y decisión J11-S10-07", "Heading1"))
     story.append(
         data_table(
             [
                 ["Gate", "Resultado"],
-                ["Reactor", "28/28 módulos; 535 pruebas sin fallos, errores u omisiones; 34 ArchUnit"],
-                ["Persistencia", "Compras PostgreSQL/Testcontainers 7/7; Flyway V1-V4/V1-V2 e idempotencia acumulada"],
-                ["Seguridad", "Health 2/2 y OIDC 4/4 contra la imagen final; autorización negativa cubierta por Playwright"],
-                ["UI", "Playwright acumulado 9/9; 170 capturas revisadas en 375/720/1280 sin overflow normal"],
-                ["Imagen", "App `sha256:60f5de23...d49a`; migrator `sha256:5e1d1db7...fb95`"],
+                ["Reactor", "28/28 módulos; 565 pruebas Surefire sin fallos, errores u omisiones; 34 ArchUnit"],
+                ["Persistencia", "23 migraciones iniciales y segunda ejecución sin cambios; datasource y arnés JTA 6/6"],
+                ["Seguridad", "Health 2/2, JTA 6/6 y OIDC 4/4; autorización y plugin inactivo cubiertos por Playwright"],
+                ["UI", "9/9 Playwright y 171 PNG; floorplans v2, foco, teclado, movimiento reducido y límites 375/599/600/720/839/840/1280"],
+                ["Imagen", "App `j11-s10-06-closing-v3` sha256:cfaf4295… y migrador `j11-s10-06-closing` sha256:09bcda5…"],
                 ["Instalador", "0.9.0-internal.1; 8 archivos, 58 aserciones, preflight bloqueado sin cambios, UI smoke verde; NotSigned"],
-                ["Pendiente", "Validación independiente G7, Authenticode y matriz Windows real"],
+                ["Decisión", "J11-S10-07: NO crear instalador de Sprint 10; `current` de Sprint 9 permanece intacto"],
+                ["Pendiente", "Validación independiente G7; Authenticode y matriz Windows siguen como deuda del instalador de Sprint 9"],
             ],
             [43 * mm, 117 * mm],
         )
@@ -685,11 +686,13 @@ def build_story(root: Path, files: list[Path], directories: list[Path], sprint: 
             bullet("Disponible: empresas, catálogo, activación, personalización, identidad, sesión, autorización, administración y auditoría visual."),
             bullet("Disponible: composición física única, migraciones `plg_*`, plantilla reproducible y contrato rector de eventos/outbox."),
             bullet("Disponible: demo empresarial A/B, administración, Datos de referencia, Socios, Catálogo, Inventario y Compras responsive con Material Design sobre JSF."),
+            bullet("Disponible: cinco floorplans cerrados, contratos v1/v2 compatibles, operación guiada de Inventario y bandeja/editor/operaciones/consulta de Compras."),
             bullet("Disponible: cinco plugins productivos con dominio, API, persistencia, aplicación, seguridad y UI."),
             bullet("Disponible: instalador interno 0.9.0-internal.1 ligado a los digests de J11-S9-07; distribución externa bloqueada."),
             bullet("Pendiente: plugins siguientes del roadmap y despliegue productivo."),
-            bullet("Decisión registrada: producto respondió SÍ el 2026-08-14 y J11-S9-08 promovió los ocho derivados declarados."),
-            bullet("Bloqueos restantes: validación independiente G7, Authenticode y matriz Windows externa; este PDF no los sustituye."),
+            bullet("El instalador 0.9.0-internal.1 pertenece al baseline de Sprint 9 y no representa Sprint 10."),
+            bullet("J11-S10-07 registró NO: no se construyó ni promovió un instalador para Sprint 10."),
+            bullet("El único bloqueo de cierre de Sprint 10 es la validación independiente; Authenticode y matriz Windows pertenecen a la edición de Sprint 9."),
         ]
     )
 
@@ -817,7 +820,7 @@ docker compose --env-file infra/compose/compose.env.local `
 GET /logixone/health/live
 GET /logixone/health/ready
 
-# Instalador Windows interno de Sprint 9; no distribuible externamente
+# Instalador Windows interno de Sprint 9; no representa Sprint 10
 powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstrapper.ps1 -Test
 .\installer\windows\current\Logixone-Setup-0.9.0-internal.1.exe
 
@@ -847,11 +850,11 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
                 ["Datos de referencia", "Publicaciones 248/178, búsqueda paginada, N.A., políticas e historia"],
                 ["Socios Comerciales", "Directorio, alta, ficha, roles, contacto, dirección y ciclo de vida"],
                 ["Catálogo Comercial", "Artículos, servicios, clasificación, identificadores, listas y precios"],
-                ["Inventario", "Depósitos, ubicaciones, existencias, movimientos, reservas y conteos"],
-                ["Compras", "Solicitudes, aprobación separada, órdenes, recepciones, devoluciones y seguimiento"],
+                ["Inventario", "Operación guiada para incorporar, consultar, mover y reservar; maestros y conteos conservados"],
+                ["Compras", "Bandeja de solicitudes, editor de órdenes, recepción/devolución guiadas y seguimiento"],
                 ["Responsive", "Material Design sobre JSF en compacto, medio y expandido"],
                 ["Negativa", "Sin autoridad o con plugin inactivo se obtiene una denegación genérica"],
-                ["Instalador Windows", "Diagnóstico sin cambios, plan completo y consentimiento previo; edición interna sin firma"],
+                ["Instalador Windows", "No se crea edición de Sprint 10; `current` conserva la edición interna sin firma de Sprint 9"],
             ],
             [50 * mm, 110 * mm],
         )
@@ -870,12 +873,13 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
         [
             bullet("Completar y firmar `docs/implementation-guide/VALIDATION.md` con una persona independiente."),
             bullet("Resolver y revalidar cualquier hallazgo bloqueante o mayor del recorrido."),
-            bullet("Elevar la guía de `1.0-rc103` a `1.0` solamente con dictamen satisfactorio."),
+            bullet("Publicar la guía `1.0` solamente con dictamen independiente satisfactorio."),
             bullet("Conservar `installer/windows/current` como edición 0.9.0-internal.1 y no distribuirla mientras siga NotSigned."),
             bullet("Ejecutar instalación, actualización, reparación, UAC/cancelación y persistencia en la matriz Windows independiente."),
             bullet("Aplicar Authenticode antes de cualquier entrega externa."),
-            bullet("No declarar cerrado Sprint 9 ni promover imágenes mientras G7 y la matriz externa continúen pendientes."),
-            bullet("Sprint 10 permanece planificado; no se inició código dentro de J11-S9-08."),
+            bullet("No declarar cerrado Sprint 10 ni promover imágenes mientras la validación independiente continúe pendiente."),
+            bullet("J11-S10-07 registró NO; conservar `installer/windows/current` sin cambios y no presentarlo como instalador de Sprint 10."),
+            bullet("Queda autorizado caracterizar `sales` en Sprint 11; no adelantar plugins posteriores."),
         ]
     )
 
@@ -888,7 +892,7 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
                 ["Contenido", "Arquitectura, carpetas, archivos, estado, demo, pendientes y continuidad"],
                 ["PDF lógico", "Metadatos, páginas, texto extraíble y ausencia de páginas vacías"],
                 ["PDF visual", "Todas las páginas renderizadas; portada, índice, tablas, cortes y caracteres revisados"],
-                ["Evidencia", "Ruta estable, bytes, páginas y SHA-256 registrados en la evidencia J11-S9-08"],
+                ["Evidencia", "Ruta estable, bytes, páginas y SHA-256 registrados en la evidencia J11-S10-07"],
             ],
             [44 * mm, 116 * mm],
         )
@@ -897,7 +901,7 @@ powershell -ExecutionPolicy Bypass -File installer\windows\scripts\build-bootstr
         [
             Spacer(1, 2 * mm),
             paragraph(
-                "Fin de la guía de estructura - baseline J11-S9-08 de Sprint 9. Fuentes canónicas: AGENTS.md, POM, código, infraestructura y docs/.",
+                "Fin de la guía de estructura - decisión J11-S10-07 sobre el baseline técnico J11-S10-06. Fuentes canónicas: AGENTS.md, POM, código, infraestructura y docs/.",
                 "Caption",
             ),
         ]
@@ -943,7 +947,7 @@ def main():
         type=Path,
         default=Path("docs/output/pdf/guia-estructura-repositorio-logixone.pdf"),
     )
-    parser.add_argument("--sprint", default="Sprint 9 - J11-S9-08")
+    parser.add_argument("--sprint", default="Sprint 10 - J11-S10-07")
     parser.add_argument("--date", default=date.today().isoformat())
     args = parser.parse_args()
     root = args.root.resolve()

@@ -238,20 +238,32 @@ public class PurchasingRequestScreenHandler implements ScreenInteraction.Handler
                         PurchaseRequestState.class), offset, limit)).value().orElseThrow();
         Optional<ScreenInteraction.Detail> detail = Optional.empty();
         Optional<Long> version = Optional.empty();
+        Optional<PurchaseRequest> selectedRequest = Optional.empty();
         if (selected.isPresent()) {
             var result = useCases.requestDetail(view, PurchaseRequestId.parse(selected.orElseThrow()));
             if (result.successful()) {
                 PurchaseRequest value = result.value().orElseThrow();
+                selectedRequest = Optional.of(value);
                 detail = Optional.of(detail(value));
                 version = Optional.of(value.version());
+                inputs.put(PurchasingScreenContract.REQUEST_SUMMARY, summary(value));
             } else {
                 selected = Optional.empty();
                 notices.add(PurchasingScreenSupport.error(
                         "Solicitud no disponible", "Vuelve a buscar el documento."));
             }
         }
-        return new ScreenInteraction.Result(inputs, options(inputs), Optional.of(table(page)),
-                detail, notices, selected, version);
+        Optional<ScreenInteraction.Table> visibleTable = selectedRequest
+                .map(PurchasingRequestScreenHandler::linesTable)
+                .or(() -> Optional.of(table(page)));
+        boolean requester = selectedRequest
+                .map(value -> value.snapshot().requesterId().equals(
+                        view.companyContext().actor().userId()))
+                .orElse(false);
+        return new ScreenInteraction.Result(inputs, options(inputs), visibleTable,
+                detail, notices, selected, version,
+                PurchasingFloorplanStates.requests(
+                        selectedRequest.map(PurchaseRequest::state), requester));
     }
 
     private Map<ScreenElementId, List<ScreenInteraction.Option>> options(
@@ -336,6 +348,32 @@ public class PurchasingRequestScreenHandler implements ScreenInteraction.Handler
                 page.total(), "No hay solicitudes",
                 "Ajusta los filtros o crea la primera solicitud.",
                 Optional.of(new ScreenInteraction.TablePage(page.offset(), page.limit())));
+    }
+
+    private static ScreenInteraction.Table linesTable(PurchaseRequest request) {
+        return new ScreenInteraction.Table(PurchasingScreenContract.REQUEST_LINES,
+                List.of(new ScreenInteraction.Column("description", "Descripción"),
+                        new ScreenInteraction.Column("kind", "Tipo"),
+                        new ScreenInteraction.Column("quantity", "Cantidad"),
+                        new ScreenInteraction.Column("unit", "Unidad"),
+                        new ScreenInteraction.Column("expected", "Precio esperado")),
+                request.lines().stream().map(line -> new ScreenInteraction.Row(
+                        line.id().toString(), List.of(
+                                line.item().description(),
+                                line.item().kind().name(),
+                                line.quantity().toPlainString(),
+                                line.item().presentedUnitCode(),
+                                line.expectedPrice().map(price -> price.amount().toPlainString()
+                                                + " " + price.currency().code().value())
+                                        .orElse("Sin estimación"))))
+                        .toList(),
+                request.lines().size(), "Solicitud sin líneas",
+                "Agrega al menos una línea antes de enviar." );
+    }
+
+    private static String summary(PurchaseRequest request) {
+        return request.snapshot().number() + " · " + label(request.state())
+                + " · " + request.lines().size() + " línea(s) · solicitante original conservado";
     }
 
     private static ScreenInteraction.Detail detail(PurchaseRequest request) {

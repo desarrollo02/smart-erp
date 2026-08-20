@@ -2,7 +2,12 @@ package py.com.logixone.web.shell;
 
 import java.util.Objects;
 import java.util.Optional;
+import py.com.logixone.plugin.api.ScreenActionDefinition;
+import py.com.logixone.plugin.api.ScreenActionEmphasis;
+import py.com.logixone.plugin.api.ScreenActionIntent;
+import py.com.logixone.plugin.api.ScreenConfirmationMode;
 import py.com.logixone.plugin.api.ScreenElementType;
+import py.com.logixone.plugin.api.ScreenSemanticType;
 
 /** JSF-safe presentation of one element accepted by the closed shell renderer. */
 public final class ShellScreenElementView {
@@ -13,6 +18,8 @@ public final class ShellScreenElementView {
     private final Optional<String> help;
     private final boolean enabled;
     private final boolean required;
+    private final Optional<ScreenSemanticType> semantic;
+    private final Optional<ScreenActionDefinition> action;
 
     ShellScreenElementView(
             String id,
@@ -21,12 +28,26 @@ public final class ShellScreenElementView {
             Optional<String> help,
             boolean enabled,
             boolean required) {
+        this(id, type, label, help, enabled, required, Optional.empty(), Optional.empty());
+    }
+
+    ShellScreenElementView(
+            String id,
+            ScreenElementType type,
+            String label,
+            Optional<String> help,
+            boolean enabled,
+            boolean required,
+            Optional<ScreenSemanticType> semantic,
+            Optional<ScreenActionDefinition> action) {
         this.id = Objects.requireNonNull(id, "id");
         this.type = Objects.requireNonNull(type, "type");
         this.label = Objects.requireNonNull(label, "label");
         this.help = Objects.requireNonNull(help, "help");
         this.enabled = enabled;
         this.required = required;
+        this.semantic = Objects.requireNonNull(semantic, "semantic");
+        this.action = Objects.requireNonNull(action, "action");
     }
 
     public String getId() {
@@ -82,5 +103,67 @@ public final class ShellScreenElementView {
             classes.append(" composed-element-required");
         }
         return classes.toString();
+    }
+
+    public String getSemanticClass() {
+        return semantic
+                .map(value -> "semantic-" + value.name().toLowerCase(java.util.Locale.ROOT)
+                        .replace('_', '-'))
+                .orElse("semantic-action");
+    }
+
+    public String getActionClass() {
+        ScreenActionEmphasis emphasis = action
+                .map(ScreenActionDefinition::emphasis)
+                .orElse(ScreenActionEmphasis.SECONDARY);
+        return switch (emphasis) {
+            case PRIMARY -> "button button-primary";
+            case SECONDARY -> "button button-secondary";
+            case DESTRUCTIVE -> "button button-destructive";
+        };
+    }
+
+    public String getConfirmationScript() {
+        return action
+                .map(ScreenActionDefinition::confirmationMode)
+                .filter(mode -> mode != ScreenConfirmationMode.NONE)
+                .map(ignored -> "return confirm('Confirma que deseas continuar con esta acción.');")
+                .orElse("");
+    }
+
+    public String getConfirmationGuardScript() {
+        return action
+                .map(ScreenActionDefinition::confirmationMode)
+                .filter(mode -> mode != ScreenConfirmationMode.NONE)
+                .map(ignored -> "if (!confirm('Confirma que deseas continuar con esta acción.')) { return false; }")
+                .orElse("");
+    }
+
+    public boolean isCreateIntent() {
+        return action.map(ScreenActionDefinition::intent)
+                .filter(intent -> intent == ScreenActionIntent.CREATE)
+                .isPresent();
+    }
+
+    public boolean isSearchIntent() {
+        return action.map(ScreenActionDefinition::intent)
+                .filter(intent -> intent == ScreenActionIntent.SEARCH)
+                .isPresent();
+    }
+
+    public boolean isNavigateIntent() {
+        return action.map(ScreenActionDefinition::intent)
+                .filter(intent -> intent == ScreenActionIntent.NAVIGATE)
+                .isPresent();
+    }
+
+    public boolean isTechnicalToken() {
+        return semantic.filter(value -> value == ScreenSemanticType.TECHNICAL_TOKEN)
+                .isPresent();
+    }
+
+    public boolean isContextRefreshOnChange() {
+        return semantic.filter(value -> value == ScreenSemanticType.SEARCHABLE_REFERENCE)
+                .isPresent();
     }
 }

@@ -41,8 +41,16 @@ final class InventorySelectorSources {
             locations(SelectorEmptyOptionPolicy.ALLOWED));
 
     static final Map<ScreenElementId, SelectorSourceDefinition> STOCK = Map.ofEntries(
-            entry(InventoryScreenContract.STOCK_SEARCH_STATE,
-                    closed("inventory.stock_item_states", SelectorEmptyOptionPolicy.MEANS_ALL)),
+            entry(InventoryScreenContract.STOCK_TASK,
+                    closed("inventory.stock_tasks", SelectorEmptyOptionPolicy.NOT_ALLOWED)),
+            entry(InventoryScreenContract.MOVEMENT_ITEM,
+                    managed(
+                            "inventory.stock_items",
+                            InventoryIdentity.PLUGIN_ID,
+                            InventoryScreenContract.STOCK_ROUTE,
+                            InventoryPermissions.ITEMS_MANAGE,
+                            FULL_CATALOG,
+                            SelectorEmptyOptionPolicy.NOT_ALLOWED)),
             entry(InventoryScreenContract.STOCK_NEW_CATALOG_ITEM,
                     managed(
                             "commercial_catalog.items",

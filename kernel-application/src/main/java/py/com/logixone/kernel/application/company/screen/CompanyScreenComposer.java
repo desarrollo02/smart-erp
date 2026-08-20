@@ -404,7 +404,12 @@ public final class CompanyScreenComposer {
                             .thenComparing(ComposedSlotContent::fragmentId))
                     .toList();
             return new ComposedScreen(
-                    definition.id(), definition.contractVersion(), composedElements, slots, contents);
+                    definition.id(),
+                    definition.contractVersion(),
+                    composedElements,
+                    slots,
+                    contents,
+                    definition.experience());
         }
     }
 

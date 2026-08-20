@@ -22,7 +22,11 @@ class PurchasingScreenRendererTest {
                 PurchasingScreenContract.requestsDefinition());
 
         assertEquals("Solicitudes de compra", view.getTitle());
-        assertEquals(List.of("lines", "lifecycle", "clone"), detailTabs(view));
+        assertTrue(view.isFloorplanV2());
+        assertEquals("floorplan floorplan-worklist", view.getFloorplanClass());
+        assertEquals(List.of("filters", "work_items", "header", "lines", "summary", "actions"),
+                view.getFloorplanRegions().stream().map(ShellScreenRegionView::getId).toList());
+        assertTrue(view.isHasFloorplanRowAction());
         assertTrue(view.isCreateAction(PurchasingScreenContract.CREATE_REQUEST.value()));
         assertTrue(view.acceptsAction(PurchasingScreenContract.APPROVE_REQUEST.value()));
         assertTrue(view.acceptsAction(PurchasingScreenContract.CLONE_REQUEST.value()));
@@ -35,7 +39,8 @@ class PurchasingScreenRendererTest {
                 PurchasingScreenContract.ORDERS,
                 PurchasingScreenContract.ordersDefinition());
         assertEquals("Órdenes de compra", orders.getTitle());
-        assertEquals(List.of("lines", "lifecycle"), detailTabs(orders));
+        assertEquals("floorplan floorplan-transaction-editor", orders.getFloorplanClass());
+        assertTrue(orders.isHasFloorplanRowAction());
         assertTrue(orders.acceptsAction(PurchasingScreenContract.ISSUE_ORDER.value()));
 
         ShellScreenView receipts = render(
@@ -43,7 +48,7 @@ class PurchasingScreenRendererTest {
                 PurchasingScreenContract.RECEIPTS,
                 PurchasingScreenContract.receiptsDefinition());
         assertEquals("Recepciones de compra", receipts.getTitle());
-        assertEquals(List.of("lifecycle"), detailTabs(receipts));
+        assertEquals("floorplan floorplan-guided-operation", receipts.getFloorplanClass());
         assertTrue(receipts.acceptsAction(PurchasingScreenContract.CONFIRM_RECEIPT.value()));
 
         ShellScreenView returns = render(
@@ -51,7 +56,7 @@ class PurchasingScreenRendererTest {
                 PurchasingScreenContract.RETURNS,
                 PurchasingScreenContract.returnsDefinition());
         assertEquals("Devoluciones a proveedores", returns.getTitle());
-        assertEquals(List.of("lifecycle"), detailTabs(returns));
+        assertEquals("floorplan floorplan-guided-operation", returns.getFloorplanClass());
         assertTrue(returns.acceptsAction(PurchasingScreenContract.CONFIRM_RETURN.value()));
 
         ShellScreenView tracking = render(
@@ -59,6 +64,7 @@ class PurchasingScreenRendererTest {
                 PurchasingScreenContract.TRACKING,
                 PurchasingScreenContract.trackingDefinition());
         assertEquals("Seguimiento de compras", tracking.getTitle());
+        assertEquals("floorplan floorplan-inquiry", tracking.getFloorplanClass());
         assertTrue(tracking.isSearchAction(PurchasingScreenContract.TRACKING_SEARCH.value()));
         assertFalse(tracking.isCreateAction(PurchasingScreenContract.TRACKING_SEARCH.value()));
     }
@@ -71,10 +77,6 @@ class PurchasingScreenRendererTest {
         assertEquals(screenId,
                 registry.screenFor(PurchasingPluginDefinition.ID, route).orElseThrow());
         return registry.render(composed(definition), new ShellTextCatalog()).orElseThrow();
-    }
-
-    private static List<String> detailTabs(ShellScreenView view) {
-        return view.getDetailTabs().stream().map(ShellDetailTabView::getId).toList();
     }
 
     private static ComposedScreen composed(ScreenDefinition definition) {
@@ -94,6 +96,7 @@ class PurchasingScreenRendererTest {
                                 element.required()))
                         .toList(),
                 definition.slots(),
-                List.of());
+                List.of(),
+                definition.experience());
     }
 }

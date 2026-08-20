@@ -193,22 +193,47 @@ public class PurchasingReturnScreenHandler implements ScreenInteraction.Handler 
                 filter(inputs, PurchasingScreenContract.RETURN_SEARCH_TEXT),
                 filterEnum(inputs, PurchasingScreenContract.RETURN_SEARCH_STATE,
                         SupplierReturnState.class), offset, limit)).value().orElseThrow();
+        Map<PurchaseOrderId, String> orderNumbers = new HashMap<>();
+        page.items().forEach(value -> orderNumbers.computeIfAbsent(
+                value.orderId(), orderId -> useCases.order(view, orderId).value()
+                        .map(reference -> reference.number())
+                        .orElse("Orden no disponible")));
         Optional<ScreenInteraction.Detail> detail = Optional.empty();
         Optional<Long> version = Optional.empty();
+        Optional<SupplierReturn> selectedReturn = Optional.empty();
         if (selected.isPresent()) {
             var result = useCases.returnDetail(view, SupplierReturnId.parse(selected.orElseThrow()));
             if (result.successful()) {
                 SupplierReturn value = result.value().orElseThrow();
+                selectedReturn = Optional.of(value);
                 detail = Optional.of(detail(value));
                 version = Optional.of(value.version());
+                inputs.put(PurchasingScreenContract.RETURN_SUMMARY, summary(value));
             } else {
                 selected = Optional.empty();
                 notices.add(PurchasingScreenSupport.error(
                         "Devolución no disponible", "Vuelve a buscar el documento."));
             }
         }
-        return new ScreenInteraction.Result(inputs, options(inputs), Optional.of(table(page)),
-                detail, notices, selected, version);
+        Optional<GoodsReceipt> sourceReceipt = selectedReceipt(inputs);
+        boolean creationReady = sourceReceipt
+                .filter(receipt -> receipt.state() == GoodsReceiptState.CONFIRMED)
+                .flatMap(receipt -> optional(
+                                inputs, PurchasingScreenContract.RETURN_RECEIPT_LINE)
+                        .map(GoodsReceiptLineId::parse)
+                        .flatMap(lineId -> receipt.lines().stream()
+                                .filter(line -> line.id().equals(lineId))
+                                .findFirst()))
+                .isPresent();
+        inputs.put(PurchasingScreenContract.RETURN_GUIDANCE,
+                selectedReturn.isPresent()
+                        ? "La devolución confirmada es inmutable y conserva la recepción de origen."
+                        : "Selecciona una recepción confirmada; el servidor revalida la cantidad retornable y el inventario.");
+        return new ScreenInteraction.Result(inputs, options(inputs),
+                Optional.of(table(page, orderNumbers)),
+                detail, notices, selected, version,
+                PurchasingFloorplanStates.returns(
+                        selectedReturn.map(SupplierReturn::state), creationReady));
     }
 
     private Map<ScreenElementId, List<ScreenInteraction.Option>> options(
@@ -222,9 +247,18 @@ public class PurchasingReturnScreenHandler implements ScreenInteraction.Handler 
         selectedReceipt(inputs).ifPresent(receipt -> {
             values.put(PurchasingScreenContract.RETURN_RECEIPT,
                     List.of(option(receipt.id().toString(), receipt.snapshot().number())));
+            Map<py.com.logixone.plugins.purchasing.api.PurchaseOrderLineId, String> descriptions =
+                    useCases.orderDetail(context(authorization, PurchasingPermissions.VIEW),
+                                    receipt.orderId()).value()
+                            .map(order -> order.lines().stream().collect(
+                                    java.util.stream.Collectors.toUnmodifiableMap(
+                                            PurchaseOrder.LineSnapshot::id,
+                                            line -> line.item().description())))
+                            .orElse(Map.of());
             values.put(PurchasingScreenContract.RETURN_RECEIPT_LINE,
                     receipt.lines().stream().map(line -> option(line.id().toString(),
-                            line.orderLineId() + " · " + line.quantity().toPlainString()))
+                            descriptions.getOrDefault(line.orderLineId(), "Línea recibida")
+                                    + " · " + line.quantity().toPlainString()))
                             .toList());
             inputs.put(PurchasingScreenContract.RETURN_ORDER, receipt.orderId().toString());
         });
@@ -248,7 +282,8 @@ public class PurchasingReturnScreenHandler implements ScreenInteraction.Handler 
     }
 
     private static ScreenInteraction.Table table(
-            PurchasingDirectoryQueries.Page<PurchasingDirectoryQueries.ReturnSummary> page) {
+            PurchasingDirectoryQueries.Page<PurchasingDirectoryQueries.ReturnSummary> page,
+            Map<PurchaseOrderId, String> orderNumbers) {
         return new ScreenInteraction.Table(PurchasingScreenContract.RETURN_RESULTS,
                 List.of(new ScreenInteraction.Column("number", "Número"),
                         new ScreenInteraction.Column("order", "Orden"),
@@ -256,7 +291,8 @@ public class PurchasingReturnScreenHandler implements ScreenInteraction.Handler 
                         new ScreenInteraction.Column("state", "Estado"),
                         new ScreenInteraction.Column("lines", "Líneas")),
                 page.items().stream().map(value -> new ScreenInteraction.Row(
-                        value.id().toString(), List.of(value.number(), value.orderId().toString(),
+                        value.id().toString(), List.of(value.number(),
+                                orderNumbers.getOrDefault(value.orderId(), "Orden no disponible"),
                                 value.reason(), value.state() == SupplierReturnState.DRAFT
                                         ? "Borrador" : "Confirmada",
                                 Long.toString(value.lineCount())))).toList(),
@@ -277,7 +313,17 @@ public class PurchasingReturnScreenHandler implements ScreenInteraction.Handler 
                         new ScreenInteraction.DetailItem("Estado",
                                 value.state() == SupplierReturnState.DRAFT ? "Borrador" : "Confirmada"),
                         new ScreenInteraction.DetailItem("Líneas", lines),
-                        new ScreenInteraction.DetailItem("Versión", Long.toString(value.version()))));
+                                new ScreenInteraction.DetailItem("Versión", Long.toString(value.version()))));
+    }
+
+    private static String summary(SupplierReturn value) {
+        return value.snapshot().number() + " · " + (value.state() == SupplierReturnState.DRAFT
+                        ? "Borrador" : "Confirmada")
+                + " · " + value.lines().stream()
+                        .map(SupplierReturn.Line::quantity)
+                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add)
+                        .toPlainString()
+                + " unidad(es) · " + value.snapshot().reason();
     }
 
     private static Map<ScreenElementId, String> defaults(Map<ScreenElementId, String> submitted) {

@@ -33,3 +33,5 @@ hasta completar además composición, gates runtime y aceptación independiente.
 - [J11-S9-07 — Validación integral y demo oficial de Sprint 9](sprint-09/J11-S9-07-validacion-demo-cierre.md)
 - [J11-S9-08 — Instalador Windows interno de Sprint 9](sprint-09/J11-S9-08-instalador-windows-cierre.md)
 - [Sprint 10 — Floorplans operativos y transaccionales](sprint-10/README.md)
+- [J11-S10-06 — Validación integral y demo oficial de Sprint 10](sprint-10/J11-S10-06-validacion-demo-cierre.md)
+- [J11-S10-07 — Decisión de instalador Windows para Sprint 10](sprint-10/J11-S10-07-decision-instalador-windows.md)

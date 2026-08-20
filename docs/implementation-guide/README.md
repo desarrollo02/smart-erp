@@ -1,10 +1,10 @@
 # Guía de implementación del ERP por empresa
 
-- Estado: Edición candidata; J11-S9-07 congela `purchasing` con G0–G6 verdes, demo oficial, fotografía y PDF; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management` y ADR-0046 la familia vertical Flota F1/F2; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
+- Estado: Edición candidata; J11-S10-06 valida automáticamente los floorplans de Inventario y Compras, composición, demo, fotografía y PDF; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management` y ADR-0046 la familia vertical Flota F1/F2; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
   ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo de perfiles tributarios y familias, revisión explícita e historial visible tributario, las cuatro clases empresariales de socios y asignación versionada de familias a artículos validadas; instalador interno J11-S9-08 creado; G7, Authenticode y matriz Windows independiente pendientes
-- Edición: 1.0-rc103
-- Fecha: 2026-08-14
-- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.3`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.1.0` y `purchasing-api = 1.1.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 validada en PostgreSQL 18.4/Testcontainers y fixture `plg_reference_plugin` V1; unidades JPA en `validate`; perfil físico `with-purchasing-demo` para WAR y migrador; imágenes verificadas `logixone/app:j11-s9-07-closing` y `logixone/migrator:j11-s9-07-closing`; Keycloak 26.7.0, WildFly 41 OIDC y Jakarta Faces 4.1; Maven, ArchUnit, PostgreSQL, migraciones, health, OIDC y Playwright acumulado verdes; instalador Windows `0.9.0-internal.1` restringido a `INTERNAL_UNSIGNED`; G7, Authenticode y matriz Windows independiente pendientes
+- Edición: 1.0-rc109
+- Fecha: 2026-08-20
+- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.5`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.2.0` y `purchasing-api = 1.2.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 y fixture `plg_reference_plugin` V1; unidades JPA en `validate`; perfil físico `with-purchasing-demo` para WAR y migrador; candidata técnica `logixone/app:j11-s10-06-closing` y `logixone/migrator:j11-s10-06-closing`; Keycloak 26.7.0, WildFly 41 OIDC y Jakarta Faces 4.1; floorplans v2 de Inventario/Compras, Maven, ArchUnit, PostgreSQL, migraciones, health, OIDC y Playwright acumulado validados automáticamente en Sprint 10; instalador Windows `0.9.0-internal.1` pertenece a Sprint 9 y no representa este baseline; validación independiente, decisión J11-S10-07, Authenticode y matriz Windows externa pendientes
 - Audiencia: implementadores funcionales, desarrolladores de plugins, responsables de infraestructura y soporte de puesta en marcha
 - Fuente canónica: este documento versionado junto al código
 
@@ -558,7 +558,7 @@ escribiendo directamente en tablas `core`.
 
 ## Capítulo 8 — Crear el plugin de personalización exclusivo
 
-Desde `J11-S2-07`, una personalización empresarial es un módulo Maven JAR normal incluido físicamente en la distribución. No es un archivo que se sube en ejecución. Su descriptor debe declarar `PluginKind.CUSTOMIZATION`, una identidad propia, compatibilidad con `PluginApiVersion.CURRENT = 0.4.3` y dependencias requeridas sobre cada plugin funcional cuya pantalla modifica.
+Desde `J11-S2-07`, una personalización empresarial es un módulo Maven JAR normal incluido físicamente en la distribución. No es un archivo que se sube en ejecución. Su descriptor debe declarar `PluginKind.CUSTOMIZATION`, una identidad propia, compatibilidad con `PluginApiVersion.CURRENT = 0.4.5` y dependencias requeridas sobre cada plugin funcional cuya pantalla modifica.
 
 El recorrido técnico para una empresa nueva es:
 
@@ -587,6 +587,64 @@ El propietario funcional decide la superficie extensible. Su descriptor publica 
 - elementos con ID, región, orden, claves de etiqueta/ayuda y estado estándar;
 - conjunto exacto de `ScreenCustomizationOperation` autorizado por elemento;
 - slots con región, orden y capacidad máxima.
+
+Desde J11-S10-01, un contrato v2 agrega una
+`ScreenExperienceDefinition` obligatoria con:
+
+- uno de los cinco `ScreenPurpose` cerrados;
+- regiones semánticas, sin nombres de componentes o CSS;
+- tipo semántico de fecha, cantidad, dinero, estado, referencia buscable, líneas
+  o resumen cuando aplica;
+- acciones con intención, énfasis y confirmación;
+- estados dinámicos de visibilidad, habilitación y obligatoriedad devueltos por el
+  handler.
+
+Un contrato 1.x conserva el constructor anterior y el renderer genérico. No lo
+marque como `MASTER_DATA` por omisión ni cambie a `2.0.0` hasta declarar todas sus
+regiones y acciones. El shell, no el plugin, elige XHTML, componente, responsive,
+foco y Material Design 3. Ocultar o bloquear una acción no sustituye permiso,
+estado, actor, versión o idempotencia del servidor.
+
+Desde J11-S10-02, `CompanyScreenComposer` copia la experiencia al
+`ComposedScreen` final y el shell admite sólo 1.x heredado o 2.x con experiencia.
+Para migrar una pantalla:
+
+1. clasifique la tarea con un único propósito;
+2. declare las regiones mínimas del floorplan y asigne semántica a cada elemento
+   que no sea acción;
+3. declare exactamente una definición por elemento `ACTION`;
+4. mantenga el handler neutral y devuelva estados dinámicos sólo para IDs de la
+   pantalla;
+5. si una acción exige motivo, declare un campo de texto, márquelo dinámicamente
+   requerido y valídelo otra vez en el handler;
+6. pruebe primero el renderer sintético y después la ruta productiva en
+   375/599/600/720/839/840/1280;
+7. no reutilice slots v1 en un contrato 2.x hasta que el shell publique soporte
+   cerrado para ese contenido.
+
+Una acción `NAVIGATE` sirve para aplicar contexto o avanzar de etapa sin ejecutar
+la operación: el shell procesa sólo esa región y vuelve a representar el mismo
+formulario. No la use para mutar. Las acciones de creación, actualización o
+ejecución procesan el formulario completo y el handler conserva la validación
+canónica.
+
+Use `TECHNICAL_TOKEN` para una identidad, versión o clave de idempotencia que el
+handler necesite transportar entre POST. El shell la representa oculta y no la
+incluye en borradores de retorno; nunca la reetiquete como texto visible ni pida
+que una persona la copie. El handler debe validar forma, pertenencia y vigencia,
+rotarla después de una mutación exitosa y rechazar cualquier dimensión técnica
+que no corresponda al estado actual.
+
+La migración no es sólo cambiar `1.0.0` a `2.0.0`. Un major desconocido, un
+propósito incompleto, una semántica incompatible o un estado dinámico huérfano
+dejan la pantalla no disponible de forma segura.
+
+En los postbacks de contexto y acciones, el shell restaura foco sin guardar datos
+funcionales en el navegador: prioriza control inválido, aviso visible y título.
+Una implementación debe conservar ese orden, foco visible por teclado y
+movimiento reducido. Verifique 375/599/600/720/839/840/1280; una prueba de
+overflow no sustituye revisar capturas porque puede existir superposición entre
+controles dentro del ancho disponible.
 
 Una personalización publica un `ScreenOverlay` que indica pantalla objetivo, rango de versión compatible y una lista no vacía de `ScreenChange`. Las operaciones disponibles son deliberadamente pequeñas:
 
@@ -1469,7 +1527,7 @@ recepción o despacho. Nunca se usa ubicación nula. La política del concepto d
 si la clave admite lote, exige una serie o requiere vencimiento; la condición
 operativa es disponible, cuarentena o dañada.
 
-Los consumidores autorizados usan `inventory-api@1.1.0` para consultar una clave
+Los consumidores autorizados usan `inventory-api@1.2.0` para consultar una clave
 exacta, contabilizar un movimiento idempotente o administrar una reserva. Las
 cantidades se guardan en unidad base con hasta seis decimales y el factor de
 conversión con hasta doce. Cada movimiento conserva la entrada presentada y la
@@ -1494,6 +1552,18 @@ Los adaptadores CDI revalidan empresa y permiso exactos y la frontera JTA marca
 rollback ante cualquier mutación fallida. J11-S8-05 publica los menús/pantallas
 `Existencias`, `Depósitos` y `Conteos`; sus handlers usan únicamente estos casos de
 uso y contratos públicos.
+
+Desde J11-S10-03, `Existencias` conserva `/inventory` y `inventory:stock`, pero
+usa el contrato 2.0.0 `GUIDED_OPERATION`. El operador elige artículo y tipo de
+movimiento; el sistema deriva `MANUAL_UI`, identidad de fuente e idempotencia.
+Entrada y salida crean una línea, mientras transferencia crea origen y destino
+atómicos y exige depósitos/ubicaciones diferentes. Lote, serie y vencimiento se
+muestran y revalidan según la política vigente del artículo. Ajuste y reversión
+no se ofrecen en este recorrido; requieren casos administrativos específicos.
+Las acciones usan un puente JSF estable: el shell transporta únicamente valores
+de controles declarados por su `ScreenElementId`, vuelve a resolver el contexto y
+superpone esos valores después de refrescar opciones y tokens. No personalice el
+instalado agregando campos POST, comandos Facelets o JavaScript fuera del shell.
 
 Desde J11-S8-C03, `with-inventory-demo` incorpora físicamente datos normativos,
 participantes, catálogo e inventario con la misma selección para WAR y migrador. El registro
@@ -1710,7 +1780,7 @@ Reglas para una implementación empresarial:
 7. Playwright cubre alta, retorno, actualización, permiso negativo, vacío,
    inactivo, teclado y 375/720/1280 px.
 
-El baseline actual tiene 91 selectores lógicos. `plugin-api` 0.4.3 y los renderers
+El baseline actual tiene 91 selectores lógicos. `plugin-api` 0.4.5 y los renderers
 autorizados cubren 73 selectores de plugins y 18 del kernel/shell, incluidos los
 cuatro tipos de `business_partners` mediante **Definiciones de socios**. Los nativos declaran
 propietario `PLATFORM`, muestran origen/clase y sólo exponen rutas administrativas
@@ -1744,12 +1814,12 @@ Docker/Compose y Playwright antes de considerarse cerrada.
 |---|---|
 | empresas, activación y personalización persistidas; V4–V6, autoridad global y auditoría append-only para kernel/plugins | validación independiente de la guía candidata |
 | actor/empresa OIDC, shell y paneles administrativos validados con OIDC/Servlet/Playwright | administración productiva y operación real de una empresa futura |
-| contrato neutral 0.4.3, fuentes de plugin/plataforma tipadas 91/91, búsqueda bajo demanda y página máxima 50, renderers JSF Material 3, interacción cerrada y retorno seguro de plugins y nativos administrables validados | tipos visuales futuros que requieran nueva versión |
+| contrato neutral 0.4.5, fuentes de plugin/plataforma tipadas 91/91, búsqueda bajo demanda y página máxima 50, floorplans v2 con tokens técnicos ocultos, renderers JSF Material 3, interacción cerrada y retorno seguro de plugins y nativos administrables | pilotos productivos adicionales y tipos visuales futuros que requieran nueva versión |
 | `reference_data` con API `1.1.0`, V1–V4 privadas, procedencia, políticas optimistas, publicaciones `FULL` 248/178, unidad menor opcional, importador determinista y paginación en servidor | gate PostgreSQL/Compose/Playwright de políticas, publicación y responsive |
 | JPA/JTA, PostgreSQL, dominio/API, aplicación, seguridad, UI responsive, composición, gate integral, demo oficial y PDF de `business_partners` verdes | dieciocho plugins productivos posteriores |
 | `business_partners` con API `1.1.0`, V1–V4 privadas, participantes, búsqueda pública paginada y cuatro clases de definiciones por empresa, país resuelto por `reference-data-api`, ciclo activo/inactivo, revisión de nombre e historial append-only versionados, permisos y UI responsive | operaciones futuras sobre datos históricos y pruebas acumuladas de la ampliación 1.1 |
 | `commercial_catalog` con API `1.1.0`, búsqueda paginada por alcance comercial, V1–V4 privadas, repositorios, permisos, casos de uso, auditoría, alta/consulta visual y ciclo activo/inactivo de unidades, categorías, marcas, etiquetas, perfiles tributarios y familias de variantes; revisión/historial append-only y reemplazo seguro de definiciones simples, revisión explícita/historial de perfiles, revisión estructural/historial de familias y asignación versionada a artículos | pruebas acumuladas de la ampliación 1.1 y diecisiete plugins productivos posteriores |
-| `inventory` con API `1.1.0`, V1–V2 privadas, diez entidades, siete repositorios, ocho permisos y movimiento por identidad pública de catálogo; baseline 1.0 previo con perfil físico, imágenes, gate integral, demo oficial y PDF verdes | validar la ampliación 1.1 junto con Compras y dieciséis plugins productivos posteriores |
+| `inventory` con API `1.2.0`, V1–V2 privadas, diez entidades, siete repositorios, ocho permisos, movimiento por identidad pública de catálogo y piloto `GUIDED_OPERATION` en `/inventory` | completar los gates runtime del piloto, validación independiente y dieciséis plugins productivos posteriores |
 | `purchasing-api` y `purchasing` `1.1.0`, V1–V2 privadas de once tablas, JPA, repositorios, doce permisos, aplicación auditada, CDI/JTA, perfil físico WAR/migrador y cinco recorridos visuales; Maven, PostgreSQL, ArchUnit, Docker/Compose, migraciones, health, OIDC y Playwright verdes | gate acumulado J11-S9-07 y validación independiente |
 | Compose con Keycloak 26.7.0, realm declarativo, login/logout y WildFly OIDC | proveedor OIDC y topología de identidad productivos |
 | ADR-0010 y análisis estructural del manual SIFEN v150 | documentos comerciales, adaptador SIFEN y verificación de la especificación oficial vigente |
@@ -1993,3 +2063,9 @@ interno deberá regenerarse si la matriz o G7 modifica el baseline final de cier
 | 1.0-rc101 | 2026-08-12 | J11-S9-06: perfil físico `with-purchasing-demo`, WAR/migrador e imagen app final `sha256:4e7e84da913b64ae08cdd72188640af5a023e824db67dfb0aecdc2d40c38fba8`; 549 pruebas materializadas verdes, raíz protegida, migración idempotente, health/OIDC, Playwright integral y 18 capturas responsive; validación independiente y J11-S9-07 pendientes |
 | 1.0-rc102 | 2026-08-13 | J11-S9-07: G0–G6 verdes, imágenes de cierre identificadas, Maven/ArchUnit/PostgreSQL/migraciones/health/OIDC/Playwright acumulado, demo oficial con 170 capturas, fotografía de ocho plugins y PDF regenerado/revisado; G7 independiente y decisión J11-S9-08 pendientes |
 | 1.0-rc103 | 2026-08-14 | J11-S9-08: decisión `SÍ`, instalador interno `0.9.0-internal.1`, manifiesto `with-purchasing-demo`, 58 aserciones, preflight bloqueado sin cambios, integridad y UI smoke verdes; Authenticode, VM y G7 pendientes |
+| 1.0-rc104 | 2026-08-14 | J11-S10-01: `plugin-api` 0.4.4, propósito/regiones/semántica/acciones de floorplan v2, estados dinámicos y constructores v1 compatibles; 539 pruebas y 28 módulos verdes; renderer v2 pendiente de J11-S10-02 |
+| 1.0-rc105 | 2026-08-14 | J11-S10-02: experiencia preservada en `ComposedScreen`, cinco renderers cerrados del shell, estados dinámicos con rechazo seguro, Facelets/CSS responsive y regresión v1 verde; pilotos productivos pendientes de J11-S10-03/J11-S10-04 |
+| 1.0-rc106 | 2026-08-15 | J11-S10-03: `plugin-api` 0.4.5, `inventory-api` 1.2.0 y `inventory:stock` migrado en su misma ruta a operación guiada; puente JSF y transporte semántico revalidado; 555 pruebas/28 módulos, Docker/health, Playwright integral y 24 capturas verdes; validación independiente pendiente |
+| 1.0-rc107 | 2026-08-15 | J11-S10-04: `purchasing-api`/`purchasing` 1.2.0 y cinco pantallas migradas sobre sus rutas a bandeja, editor transaccional, operaciones guiadas y consulta; dominio/migraciones sin cambios; 565 pruebas, Docker/health, Playwright y 18 capturas verdes |
+| 1.0-rc108 | 2026-08-20 | J11-S10-05: foco postback, teclado, movimiento reducido, seguridad negativa y límites responsive validados; corregida la barra empresarial compacta; 573 pruebas y 42 capturas verdes |
+| 1.0-rc109 | 2026-08-20 | J11-S10-06: composición, demo acumulada, fotografía de ocho plugins, manuales y PDF de Sprint 10; gates automáticos verdes; validación independiente y decisión J11-S10-07 pendientes |

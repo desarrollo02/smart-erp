@@ -15,7 +15,7 @@ import py.com.logixone.plugins.inventory.InventoryScreenContract;
 class InventoryScreenRendererTest {
 
     @Test
-    void rendersStockAsFocusedAvailabilityMovementReservationAndLifecycleTabs() {
+    void rendersStockInPlaceAsTheGuidedOperationFloorplan() {
         ShellScreenRegistry registry = new ShellScreenRegistry();
 
         assertEquals(InventoryScreenContract.STOCK,
@@ -28,15 +28,23 @@ class InventoryScreenRendererTest {
                 new ShellTextCatalog()).orElseThrow();
 
         assertTrue(view.isInteractive());
+        assertTrue(view.isFloorplanV2());
         assertEquals("Existencias", view.getTitle());
-        assertEquals("Incorporar producto", view.getNewActionLabel());
-        assertEquals(2, view.getDirectorySections().size());
-        assertEquals(5, view.getDetailSections().size());
-        assertEquals(List.of("availability", "movements", "reservations", "lifecycle"),
-                view.getDetailTabs().stream().map(ShellDetailTabView::getId).toList());
+        assertEquals("2.0.0", view.getContractVersion());
+        assertEquals("Operación guiada", view.getFloorplanLabel());
+        assertEquals(List.of("context", "content", "guidance", "summary", "actions"),
+                view.getFloorplanRegions().stream().map(ShellScreenRegionView::getId).toList());
         assertTrue(view.acceptsAction(InventoryScreenContract.POST_MOVEMENT.value()));
         assertTrue(view.acceptsAction(InventoryScreenContract.CREATE_RESERVATION.value()));
-        assertFalse(view.acceptsDetailTab("general"));
+        assertTrue(view.isCreateAction(InventoryScreenContract.ENROLL_STOCK_ITEM.value()));
+        assertTrue(view.isSearchAction(InventoryScreenContract.CHECK_AVAILABILITY.value()));
+        assertTrue(view.getFloorplanRegions().stream()
+                .flatMap(region -> region.getFields().stream())
+                .anyMatch(ShellScreenElementView::isTechnicalToken));
+        assertFalse(view.safeDraftInputIds().contains(
+                InventoryScreenContract.MOVEMENT_IDEMPOTENCY.value()));
+        assertTrue(view.safeDraftInputIds().contains(
+                InventoryScreenContract.MOVEMENT_REASON.value()));
     }
 
     @Test
@@ -99,6 +107,7 @@ class InventoryScreenRendererTest {
                                 element.required()))
                         .toList(),
                 definition.slots(),
-                List.of());
+                List.of(),
+                definition.experience());
     }
 }

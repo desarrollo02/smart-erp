@@ -13,7 +13,7 @@ class PluginDescriptorTest {
 
     @Test
     void exposesTheCurrentPluginApiVersion() {
-        assertEquals("0.4.3", PluginApiVersion.CURRENT.toString());
+        assertEquals("0.4.5", PluginApiVersion.CURRENT.toString());
     }
 
     @Test

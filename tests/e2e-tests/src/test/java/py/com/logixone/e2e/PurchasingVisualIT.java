@@ -10,6 +10,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.ReducedMotion;
 import com.microsoft.playwright.options.SelectOption;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -146,6 +147,7 @@ class PurchasingVisualIT {
     private BrowserContext newContext() {
         return browser.newContext(new Browser.NewContextOptions()
                 .setLocale("es-PY")
+                .setReducedMotion(ReducedMotion.REDUCE)
                 .setViewportSize(1280, 900));
     }
 
@@ -298,9 +300,11 @@ class PurchasingVisualIT {
     private void enrollCatalogProduct(Page page, String itemName) {
         page.navigate(routeUrl("%2Finventory", "directory"));
         requireMainHeading(page, "Existencias");
+        requireOne(page.getByLabel("Tarea", new Page.GetByLabelOptions().setExact(true)),
+                "guided stock task").selectOption("ITEM_ADMIN");
         requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Incorporar producto")),
-                "enroll purchasing product action").click();
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Continuar")),
+                "apply item administration task").click();
         Locator product = requireOne(page.getByLabel(
                 "Producto de catálogo", new Page.GetByLabelOptions().setExact(true)),
                 "catalog product for inventory");
@@ -309,6 +313,7 @@ class PurchasingVisualIT {
                 "purchasing product tracking").selectOption("NONE");
         requireOne(page.getByLabel("Vencimiento", new Page.GetByLabelOptions().setExact(true)),
                 "purchasing product expiry").selectOption("NONE");
+        page.onceDialog(dialog -> dialog.accept());
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Incorporar")),
                 "enroll purchasing product").click();
@@ -320,15 +325,13 @@ class PurchasingVisualIT {
     private void createAndSubmitRequest(
             Page page, String requestNumber, String itemName, String unitCode) {
         page.navigate(routeUrl("%2Fpurchasing%2Frequests", "directory"));
+        assertFloorplan(page, "worklist");
         requireMainHeading(page, "Solicitudes de compra");
         assertResponsive(page, 1280, 900, "purchasing-requests-directory-expanded-1280.png");
         assertResponsive(page, 720, 900, "purchasing-requests-directory-medium-720.png");
         assertResponsive(page, 375, 900, "purchasing-requests-directory-compact-375.png");
 
         page.setViewportSize(1280, 900);
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Nueva solicitud")),
-                "new purchase request action").click();
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "request number").fill(requestNumber);
         requireOne(page.getByLabel("Fecha solicitada", new Page.GetByLabelOptions().setExact(true)),
@@ -345,14 +348,13 @@ class PurchasingVisualIT {
         requireOne(page.getByLabel("Precio esperado", new Page.GetByLabelOptions().setExact(true)),
                 "request price").fill("100");
         selectSearchOption(page, "Moneda estimada", "PYG", "PYG");
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Preparar solicitud")),
                 "create purchase request").click();
         requireOne(page.getByText("Solicitud creada", new Page.GetByTextOptions().setExact(true)),
                 "request creation confirmation").waitFor();
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Aprobación")),
-                "request approval tab").click();
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Enviar a aprobación")),
                 "submit purchase request").click();
@@ -380,20 +382,15 @@ class PurchasingVisualIT {
                     AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Buscar").setExact(true)),
                     "search submitted request").click();
             openResult(page, requestNumber);
-            requireOne(page.getByRole(
-                    AriaRole.LINK, new Page.GetByRoleOptions().setName("Aprobación")),
-                    "independent approval tab").click();
+            acceptNextConfirmation(page);
             requireOne(page.getByRole(
                     AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Aprobar").setExact(true)),
                     "approve request as independent actor").click();
             requireOne(page.getByText(
                     "Estado de la solicitud actualizado", new Page.GetByTextOptions().setExact(true)),
                     "request approval confirmation").waitFor();
-            requireOne(page.getByRole(
-                    AriaRole.LINK, new Page.GetByRoleOptions().setName("Resumen").setExact(true)),
-                    "request summary after approval").click();
-            requireOne(page.getByText(
-                    "Aprobada", new Page.GetByTextOptions().setExact(true)),
+            requireOne(page.locator(".floorplan-output").filter(
+                    new Locator.FilterOptions().setHasText("Aprobada")),
                     "approved request state").waitFor();
         }
     }
@@ -402,10 +399,8 @@ class PurchasingVisualIT {
             Page page, String orderNumber, String supplierName, String itemName,
             String unitCode) {
         page.navigate(routeUrl("%2Fpurchasing%2Forders", "directory"));
+        assertFloorplan(page, "transaction-editor");
         requireMainHeading(page, "Órdenes de compra");
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Nueva orden")),
-                "new purchase order action").click();
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "order number").fill(orderNumber);
         selectSearchOption(page, "Proveedor", supplierName, supplierName);
@@ -424,14 +419,13 @@ class PurchasingVisualIT {
                 "order quantity").fill("10");
         requireOne(page.getByLabel("Precio unitario", new Page.GetByLabelOptions().setExact(true)),
                 "order price").fill("100");
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Preparar orden")),
                 "create purchase order").click();
         requireOne(page.getByText("Orden creada", new Page.GetByTextOptions().setExact(true)),
                 "order creation confirmation").waitFor();
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Estado")),
-                "order state tab").click();
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Emitir orden")),
                 "issue purchase order").click();
@@ -447,10 +441,8 @@ class PurchasingVisualIT {
             Page page, String receiptNumber, String orderNumber, String warehouseCode) {
         page.setViewportSize(1280, 900);
         page.navigate(routeUrl("%2Fpurchasing%2Freceipts", "directory"));
+        assertFloorplan(page, "guided-operation");
         requireMainHeading(page, "Recepciones de compra");
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Nueva recepción")),
-                "new receipt action").click();
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "receipt number").fill(receiptNumber);
         selectSearchOption(page, "Orden emitida", orderNumber, orderNumber);
@@ -461,15 +453,14 @@ class PurchasingVisualIT {
         selectContaining(page, "Ubicación", "GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
                 "receipt stock condition").selectOption("AVAILABLE");
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Preparar recepción")),
                 "prepare receipt").click();
         requireOne(page.getByText(
                 "Recepción preparada", new Page.GetByTextOptions().setExact(true)),
                 "receipt preparation confirmation").waitFor();
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Confirmar")),
-                "receipt confirmation tab").click();
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Confirmar recepción")),
                 "confirm receipt").click();
@@ -483,10 +474,8 @@ class PurchasingVisualIT {
             Page page, String returnNumber, String orderNumber, String receiptNumber) {
         page.setViewportSize(1280, 900);
         page.navigate(routeUrl("%2Fpurchasing%2Freturns", "directory"));
+        assertFloorplan(page, "guided-operation");
         requireMainHeading(page, "Devoluciones a proveedores");
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Nueva devolución")),
-                "new supplier return action").click();
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "return number").fill(returnNumber);
         selectSearchOption(page, "Orden", orderNumber, orderNumber);
@@ -496,15 +485,14 @@ class PurchasingVisualIT {
                 "returned quantity").fill("2");
         requireOne(page.getByLabel("Causa", new Page.GetByLabelOptions().setExact(true)),
                 "return reason").fill("Embalaje dañado en la inspección de recepción");
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Preparar devolución")),
                 "prepare supplier return").click();
         requireOne(page.getByText(
                 "Devolución preparada", new Page.GetByTextOptions().setExact(true)),
                 "return preparation confirmation").waitFor();
-        requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Confirmar")),
-                "return confirmation tab").click();
+        acceptNextConfirmation(page);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Confirmar devolución")),
                 "confirm supplier return").click();
@@ -517,6 +505,7 @@ class PurchasingVisualIT {
     private void verifyTracking(Page page, String orderNumber) {
         page.setViewportSize(1280, 900);
         page.navigate(routeUrl("%2Fpurchasing%2Ftracking", "directory"));
+        assertFloorplan(page, "inquiry");
         requireMainHeading(page, "Seguimiento de compras");
         requireOne(page.getByLabel(
                 "Número o proveedor", new Page.GetByLabelOptions().setExact(true)),
@@ -525,9 +514,9 @@ class PurchasingVisualIT {
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Buscar").setExact(true)),
                 "search order tracking").click();
         openResult(page, orderNumber);
-        requireOne(page.getByRole(
-                AriaRole.HEADING, new Page.GetByRoleOptions().setName("Seguimiento de " + orderNumber)),
-                "tracking detail heading").waitFor();
+        requireOne(page.locator(".floorplan-output").filter(
+                new Locator.FilterOptions().setHasText(orderNumber)),
+                "tracking fulfillment summary").waitFor();
         String detail = page.locator("main").innerText();
         assertTrue(detail.contains("pedida 10"), "tracking must show the ordered quantity");
         assertTrue(detail.contains("recibida 6"), "tracking must show the received quantity");
@@ -801,11 +790,33 @@ class PurchasingVisualIT {
                 """);
         int documentWidth = ((Number) page.evaluate(
                 "() => document.documentElement.scrollWidth")).intValue();
+        String overflowSources = (String) page.evaluate("""
+                () => Array.from(document.querySelectorAll('body *'))
+                  .map(element => {
+                    const bounds = element.getBoundingClientRect();
+                    return {
+                      tag: element.tagName.toLowerCase(),
+                      id: element.id,
+                      classes: Array.from(element.classList).join('.'),
+                      left: Math.round(bounds.left),
+                      right: Math.round(bounds.right),
+                      width: Math.round(bounds.width)
+                    };
+                  })
+                  .filter(item => item.right > window.innerWidth + 1 || item.left < -1)
+                  .sort((left, right) => right.right - left.right)
+                  .slice(0, 12)
+                  .map(item => `${item.tag}${item.id ? '#' + item.id : ''}`
+                    + `${item.classes ? '.' + item.classes : ''}`
+                    + ` [${item.left},${item.right}; ${item.width}px]`)
+                  .join(' | ')
+                """);
         assertTrue(stylesLoaded,
                 description + " must load the application Material Design stylesheets");
         assertTrue(documentWidth <= width + 1,
                 description + " has horizontal overflow: document="
-                        + documentWidth + " px, viewport=" + width + " px");
+                        + documentWidth + " px, viewport=" + width + " px; sources="
+                        + overflowSources);
     }
 
     private static void assertAccessibleStructure(Page page) {
@@ -813,11 +824,54 @@ class PurchasingVisualIT {
                 "the purchasing screen must expose exactly one main heading");
         boolean everyEditableControlHasLabel = (Boolean) page.evaluate("""
                 () => Array.from(document.querySelectorAll(
-                    "input:not([type='hidden']):not([type='submit']), select, textarea"))
+                    "input:not([type='hidden']):not([type='submit']):not([type='button']), select, textarea"))
                   .every(control => control.labels && control.labels.length > 0)
+                """);
+        boolean everyActionHasAccessibleName = (Boolean) page.evaluate("""
+                () => Array.from(document.querySelectorAll(
+                    "button:not([aria-hidden='true']), input[type='button']:not([aria-hidden='true']), input[type='submit']:not([aria-hidden='true'])"))
+                  .every(control => (control.getAttribute('aria-label')
+                    || control.value || control.textContent || '').trim().length > 0)
                 """);
         assertTrue(everyEditableControlHasLabel,
                 "every editable purchasing control must have a label");
+        assertTrue(everyActionHasAccessibleName,
+                "every purchasing action must expose an accessible name");
+        assertReducedMotionAndKeyboardFocus(page, "purchasing");
+    }
+
+    private static void assertReducedMotionAndKeyboardFocus(Page page, String journey) {
+        boolean reducedMotionActive = (Boolean) page.evaluate(
+                "() => window.matchMedia('(prefers-reduced-motion: reduce)').matches");
+        String transitionDuration = (String) page.evaluate(
+                "() => getComputedStyle(document.body).transitionDuration");
+        assertTrue(reducedMotionActive,
+                journey + " journey must execute with the reduced-motion preference");
+        assertEquals("0s", transitionDuration,
+                journey + " must remove non-essential transitions");
+
+        page.evaluate("() => document.activeElement && document.activeElement.blur()");
+        page.keyboard().press("Tab");
+        boolean keyboardFocusVisible = (Boolean) page.evaluate("""
+                () => document.activeElement
+                  && document.activeElement !== document.body
+                  && document.activeElement.matches(':focus-visible')
+                """);
+        assertTrue(keyboardFocusVisible,
+                journey + " must expose a visible focus target during keyboard navigation");
+    }
+
+    private static void assertFloorplan(Page page, String expectedCode) {
+        requireOne(page.locator("main .floorplan-" + expectedCode),
+                expectedCode + " floorplan").waitFor();
+        requireOne(page.getByText("Contrato 2.0.0", new Page.GetByTextOptions().setExact(true)),
+                expectedCode + " contract version").waitFor();
+        assertEquals(0, page.locator(".screen-mode-tabs").count(),
+                "v2 purchasing screens must not render legacy mode tabs");
+    }
+
+    private static void acceptNextConfirmation(Page page) {
+        page.onceDialog(dialog -> dialog.accept());
     }
 
     private static void requireMainHeading(Page page, String expectedText) {

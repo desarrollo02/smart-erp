@@ -1,7 +1,9 @@
 package py.com.logixone.web.shell;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -13,10 +15,14 @@ import py.com.logixone.kernel.application.company.screen.ComposedScreen;
 import py.com.logixone.kernel.application.company.screen.ComposedScreenElement;
 import py.com.logixone.kernel.application.company.screen.ComposedSlotContent;
 import py.com.logixone.plugin.api.PluginId;
+import py.com.logixone.plugin.api.ScreenActionDefinition;
 import py.com.logixone.plugin.api.ScreenElementType;
+import py.com.logixone.plugin.api.ScreenExperienceDefinition;
 import py.com.logixone.plugin.api.ScreenFragmentId;
 import py.com.logixone.plugin.api.ScreenId;
 import py.com.logixone.plugin.api.ScreenRegionId;
+import py.com.logixone.plugin.api.ScreenRegionRole;
+import py.com.logixone.plugin.api.ScreenSemanticType;
 import py.com.logixone.plugin.api.ScreenSlotDefinition;
 import py.com.logixone.plugin.api.ScreenSlotId;
 
@@ -114,6 +120,14 @@ public class ShellScreenRegistry {
             ShellTextCatalog textCatalog) {
         Objects.requireNonNull(screen, "screen");
         Objects.requireNonNull(textCatalog, "textCatalog");
+        if (screen.contractVersion().major().equals(BigInteger.TWO)) {
+            return entitySpecFor(screen.id())
+                    .flatMap(spec -> renderFloorplan(screen, textCatalog, spec));
+        }
+        if (!screen.contractVersion().major().equals(BigInteger.ONE)
+                || screen.experience().isPresent()) {
+            return Optional.empty();
+        }
         if (REFERENCE_SCREEN.equals(screen.id())) {
             return renderReference(screen, textCatalog);
         }
@@ -166,6 +180,122 @@ public class ShellScreenRegistry {
             return renderEntity(screen, textCatalog, purchasingTrackingSpec());
         }
         return Optional.empty();
+    }
+
+    private Optional<ShellScreenView> renderFloorplan(
+            ComposedScreen screen,
+            ShellTextCatalog textCatalog,
+            EntityScreenSpec spec) {
+        if (!screen.slots().isEmpty() || !screen.slotContents().isEmpty()) {
+            return Optional.empty();
+        }
+        ScreenExperienceDefinition experience = screen.experience().orElse(null);
+        if (experience == null) {
+            return Optional.empty();
+        }
+        ShellFloorplan floorplan = ShellFloorplan.from(experience.purpose());
+        Set<ScreenRegionRole> roles = experience.regions().stream()
+                .map(py.com.logixone.plugin.api.ScreenRegionDefinition::role)
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        if (!floorplan.accepts(roles)) {
+            return Optional.empty();
+        }
+
+        Map<py.com.logixone.plugin.api.ScreenElementId, ScreenActionDefinition> actions =
+                experience.actions().stream().collect(java.util.stream.Collectors.toUnmodifiableMap(
+                        ScreenActionDefinition::elementId,
+                        action -> action));
+        Map<String, List<ShellScreenElementView>> elementsByRegion = new LinkedHashMap<>();
+        int hidden = 0;
+        for (ComposedScreenElement element : screen.elements()) {
+            Optional<ScreenSemanticType> semantic = Optional.ofNullable(
+                    experience.elementSemantics().get(element.id()));
+            Optional<ScreenActionDefinition> action = Optional.ofNullable(actions.get(element.id()));
+            if (!validFloorplanElement(element, semantic, action)) {
+                return Optional.empty();
+            }
+            Optional<String> label = textCatalog.screenText(element.labelKey());
+            Optional<String> help = element.helpKey().isEmpty()
+                    ? Optional.empty()
+                    : textCatalog.screenText(element.helpKey().orElseThrow());
+            if (label.isEmpty() || (element.helpKey().isPresent() && help.isEmpty())) {
+                return Optional.empty();
+            }
+            if (!element.visible()) {
+                hidden++;
+                continue;
+            }
+            elementsByRegion.computeIfAbsent(element.regionId().value(), ignored -> new ArrayList<>())
+                    .add(new ShellScreenElementView(
+                            element.id().value(),
+                            element.type(),
+                            label.orElseThrow(),
+                            help,
+                            element.enabled(),
+                            element.required(),
+                            semantic,
+                            action));
+        }
+
+        Set<String> declaredRegions = experience.regions().stream()
+                .map(region -> region.id().value())
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        if (!declaredRegions.containsAll(elementsByRegion.keySet())) {
+            return Optional.empty();
+        }
+        List<ShellScreenRegionView> regions = experience.regions().stream()
+                .sorted(Comparator.comparingInt(
+                                py.com.logixone.plugin.api.ScreenRegionDefinition::order)
+                        .thenComparing(region -> region.id().value()))
+                .map(region -> new ShellScreenRegionView(
+                        region.id().value(),
+                        region.role(),
+                        elementsByRegion.getOrDefault(region.id().value(), List.of())))
+                .toList();
+        return Optional.of(new ShellScreenView(
+                screen.id().toString(),
+                screen.contractVersion().toString(),
+                "Operación gobernada",
+                spec.title(),
+                spec.description(),
+                floorplan.label(),
+                "screen-variant-business",
+                hidden,
+                floorplan,
+                regions));
+    }
+
+    private static boolean validFloorplanElement(
+            ComposedScreenElement element,
+            Optional<ScreenSemanticType> semantic,
+            Optional<ScreenActionDefinition> action) {
+        if (!SUPPORTED_TYPES.contains(element.type())) {
+            return false;
+        }
+        if (element.type() == ScreenElementType.ACTION) {
+            return action.isPresent() && semantic.isEmpty();
+        }
+        return action.isEmpty()
+                && semantic.isPresent()
+                && validSemantic(element.type(), semantic.orElseThrow());
+    }
+
+    private static boolean validSemantic(
+            ScreenElementType type,
+            ScreenSemanticType semantic) {
+        return switch (semantic) {
+            case TEXT -> type == ScreenElementType.TEXT_INPUT
+                    || type == ScreenElementType.DISPLAY_TEXT;
+            case DATE, QUANTITY, MONEY -> type == ScreenElementType.TEXT_INPUT
+                    || type == ScreenElementType.DISPLAY_TEXT;
+            case STATUS -> type == ScreenElementType.SELECT
+                    || type == ScreenElementType.DISPLAY_TEXT;
+            case SEARCHABLE_REFERENCE -> type == ScreenElementType.SELECT;
+            case EDITABLE_LINES -> type == ScreenElementType.DATA_TABLE;
+            case SUMMARY -> type == ScreenElementType.DATA_TABLE
+                    || type == ScreenElementType.DISPLAY_TEXT;
+            case TECHNICAL_TOKEN -> type == ScreenElementType.TEXT_INPUT;
+        };
     }
 
     private Optional<ShellScreenView> renderReference(
@@ -311,6 +441,58 @@ public class ShellScreenRegistry {
                 table,
                 rowAction,
                 spec.presentation()));
+    }
+
+    private static Optional<EntityScreenSpec> entitySpecFor(ScreenId screenId) {
+        if (REFERENCE_DATA_CATALOGS.equals(screenId)) {
+            return Optional.of(referenceDataSpec());
+        }
+        if (BUSINESS_PARTNERS_SCREEN.equals(screenId)) {
+            return Optional.of(businessPartnersSpec());
+        }
+        if (BUSINESS_PARTNERS_DEFINITIONS.equals(screenId)) {
+            return Optional.of(businessPartnerDefinitionsSpec());
+        }
+        if (COMMERCIAL_CATALOG_ITEMS.equals(screenId)) {
+            return Optional.of(catalogItemsSpec());
+        }
+        if (COMMERCIAL_CATALOG_PRICE_LISTS.equals(screenId)) {
+            return Optional.of(catalogPriceListsSpec());
+        }
+        if (COMMERCIAL_CATALOG_DEFINITIONS.equals(screenId)) {
+            return Optional.of(catalogDefinitionsSpec());
+        }
+        if (COMMERCIAL_CATALOG_VARIANT_FAMILIES.equals(screenId)) {
+            return Optional.of(catalogVariantFamiliesSpec());
+        }
+        if (COMMERCIAL_CATALOG_TAX_PROFILES.equals(screenId)) {
+            return Optional.of(catalogTaxProfilesSpec());
+        }
+        if (INVENTORY_STOCK.equals(screenId)) {
+            return Optional.of(inventoryStockSpec());
+        }
+        if (INVENTORY_WAREHOUSES.equals(screenId)) {
+            return Optional.of(inventoryWarehousesSpec());
+        }
+        if (INVENTORY_COUNTS.equals(screenId)) {
+            return Optional.of(inventoryCountsSpec());
+        }
+        if (PURCHASING_REQUESTS.equals(screenId)) {
+            return Optional.of(purchasingRequestsSpec());
+        }
+        if (PURCHASING_ORDERS.equals(screenId)) {
+            return Optional.of(purchasingOrdersSpec());
+        }
+        if (PURCHASING_RECEIPTS.equals(screenId)) {
+            return Optional.of(purchasingReceiptsSpec());
+        }
+        if (PURCHASING_RETURNS.equals(screenId)) {
+            return Optional.of(purchasingReturnsSpec());
+        }
+        if (PURCHASING_TRACKING.equals(screenId)) {
+            return Optional.of(purchasingTrackingSpec());
+        }
+        return Optional.empty();
     }
 
     private static ShellScreenSectionView section(

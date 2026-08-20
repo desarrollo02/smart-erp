@@ -202,22 +202,46 @@ public class PurchasingReceiptScreenHandler implements ScreenInteraction.Handler
                         filter(inputs, PurchasingScreenContract.RECEIPT_SEARCH_TEXT),
                         filterEnum(inputs, PurchasingScreenContract.RECEIPT_SEARCH_STATE,
                                 GoodsReceiptState.class), offset, limit)).value().orElseThrow();
+        Map<PurchaseOrderId, String> orderNumbers = new HashMap<>();
+        page.items().forEach(value -> orderNumbers.computeIfAbsent(
+                value.orderId(), orderId -> useCases.order(view, orderId).value()
+                        .map(reference -> reference.number())
+                        .orElse("Orden no disponible")));
         Optional<ScreenInteraction.Detail> detail = Optional.empty();
         Optional<Long> version = Optional.empty();
+        Optional<GoodsReceipt> selectedReceipt = Optional.empty();
         if (selected.isPresent()) {
             var result = useCases.receiptDetail(view, GoodsReceiptId.parse(selected.orElseThrow()));
             if (result.successful()) {
                 GoodsReceipt value = result.value().orElseThrow();
+                selectedReceipt = Optional.of(value);
                 detail = Optional.of(detail(value));
                 version = Optional.of(value.version());
+                inputs.put(PurchasingScreenContract.RECEIPT_SUMMARY, summary(value));
             } else {
                 selected = Optional.empty();
                 notices.add(PurchasingScreenSupport.error(
                         "Recepción no disponible", "Vuelve a buscar el documento."));
             }
         }
-        return new ScreenInteraction.Result(inputs, options(inputs), Optional.of(table(page)),
-                detail, notices, selected, version);
+        Optional<PurchaseOrder.LineSnapshot> orderLine = selectedOrderLine(inputs);
+        boolean stockLine = orderLine
+                .map(line -> line.item().kind() == PurchaseLineKind.STOCK)
+                .orElse(false);
+        inputs.put(PurchasingScreenContract.RECEIPT_GUIDANCE,
+                selectedReceipt.isPresent()
+                        ? "La recepción conserva su trazabilidad y no expone identidades técnicas."
+                        : stockLine
+                                ? "La línea mueve existencias: completa depósito, ubicación y la trazabilidad aplicable."
+                                : "Las líneas sin stock no solicitan destino ni trazabilidad de inventario.");
+        boolean creationReady = orderLine
+                .filter(line -> line.pendingQuantity().signum() > 0)
+                .isPresent();
+        return new ScreenInteraction.Result(inputs, options(inputs),
+                Optional.of(table(page, orderNumbers)),
+                detail, notices, selected, version,
+                PurchasingFloorplanStates.receipts(
+                        selectedReceipt.map(GoodsReceipt::state), stockLine, creationReady));
     }
 
     private Map<ScreenElementId, List<ScreenInteraction.Option>> options(
@@ -259,6 +283,19 @@ public class PurchasingReceiptScreenHandler implements ScreenInteraction.Handler
         });
     }
 
+    private Optional<PurchaseOrder.LineSnapshot> selectedOrderLine(
+            Map<ScreenElementId, String> inputs) {
+        Optional<String> selectedLine = optional(
+                inputs, PurchasingScreenContract.RECEIPT_ORDER_LINE);
+        if (selectedLine.isEmpty()) {
+            return Optional.empty();
+        }
+        PurchaseOrderLineId lineId = PurchaseOrderLineId.parse(selectedLine.orElseThrow());
+        return selectedOrder(inputs).flatMap(order -> order.lines().stream()
+                .filter(line -> line.id().equals(lineId))
+                .findFirst());
+    }
+
     private Optional<WarehouseReference> selectedWarehouse(
             Map<ScreenElementId, String> inputs) {
         Optional<String> selected = optional(inputs, PurchasingScreenContract.RECEIPT_WAREHOUSE);
@@ -271,14 +308,16 @@ public class PurchasingReceiptScreenHandler implements ScreenInteraction.Handler
     }
 
     private static ScreenInteraction.Table table(
-            PurchasingDirectoryQueries.Page<PurchasingDirectoryQueries.ReceiptSummary> page) {
+            PurchasingDirectoryQueries.Page<PurchasingDirectoryQueries.ReceiptSummary> page,
+            Map<PurchaseOrderId, String> orderNumbers) {
         return new ScreenInteraction.Table(PurchasingScreenContract.RECEIPT_RESULTS,
                 List.of(new ScreenInteraction.Column("number", "Número"),
                         new ScreenInteraction.Column("order", "Orden"),
                         new ScreenInteraction.Column("state", "Estado"),
                         new ScreenInteraction.Column("lines", "Líneas")),
                 page.items().stream().map(value -> new ScreenInteraction.Row(
-                        value.id().toString(), List.of(value.number(), value.orderId().toString(),
+                        value.id().toString(), List.of(value.number(),
+                                orderNumbers.getOrDefault(value.orderId(), "Orden no disponible"),
                                 value.state() == GoodsReceiptState.DRAFT ? "Borrador" : "Confirmada",
                                 Long.toString(value.lineCount())))).toList(),
                 page.total(), "No hay recepciones",
@@ -297,7 +336,17 @@ public class PurchasingReceiptScreenHandler implements ScreenInteraction.Handler
                         new ScreenInteraction.DetailItem("Estado",
                                 receipt.state() == GoodsReceiptState.DRAFT ? "Borrador" : "Confirmada"),
                         new ScreenInteraction.DetailItem("Líneas", lines),
-                        new ScreenInteraction.DetailItem("Versión", Long.toString(receipt.version()))));
+                                new ScreenInteraction.DetailItem("Versión", Long.toString(receipt.version()))));
+    }
+
+    private static String summary(GoodsReceipt receipt) {
+        return receipt.snapshot().number() + " · " + (receipt.state() == GoodsReceiptState.DRAFT
+                        ? "Borrador" : "Confirmada")
+                + " · " + receipt.lines().stream()
+                        .map(GoodsReceipt.Line::quantity)
+                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add)
+                        .toPlainString()
+                + " unidad(es)";
     }
 
     private static Map<ScreenElementId, String> defaults(Map<ScreenElementId, String> submitted) {

@@ -2,15 +2,25 @@ package py.com.logixone.plugins.inventory;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import py.com.logixone.plugin.api.ScreenActionDefinition;
+import py.com.logixone.plugin.api.ScreenActionEmphasis;
+import py.com.logixone.plugin.api.ScreenActionIntent;
+import py.com.logixone.plugin.api.ScreenConfirmationMode;
 import py.com.logixone.plugin.api.ScreenCustomizationOperation;
 import py.com.logixone.plugin.api.ScreenDefinition;
 import py.com.logixone.plugin.api.ScreenElementDefinition;
 import py.com.logixone.plugin.api.ScreenElementId;
 import py.com.logixone.plugin.api.ScreenElementType;
+import py.com.logixone.plugin.api.ScreenExperienceDefinition;
 import py.com.logixone.plugin.api.ScreenId;
+import py.com.logixone.plugin.api.ScreenPurpose;
+import py.com.logixone.plugin.api.ScreenRegionDefinition;
 import py.com.logixone.plugin.api.ScreenRegionId;
+import py.com.logixone.plugin.api.ScreenRegionRole;
+import py.com.logixone.plugin.api.ScreenSemanticType;
 import py.com.logixone.plugin.api.ScreenSlotDefinition;
 import py.com.logixone.plugin.api.ScreenSlotId;
 import py.com.logixone.plugin.api.ScreenTextKey;
@@ -56,6 +66,10 @@ public final class InventoryScreenContract {
     public static final ScreenElementId STOCK_SEARCH = id("stock_search");
     public static final ScreenElementId STOCK_RESULTS = id("stock_results");
     public static final ScreenElementId SELECT_STOCK_ITEM = id("select_stock_item");
+    public static final ScreenElementId STOCK_TASK = id("stock_task");
+    public static final ScreenElementId APPLY_STOCK_TASK = id("apply_stock_task");
+    public static final ScreenElementId STOCK_GUIDANCE = id("stock_guidance");
+    public static final ScreenElementId STOCK_SUMMARY = id("stock_summary");
     public static final ScreenElementId STOCK_NEW_CATALOG_ITEM = id("stock_new_catalog_item");
     public static final ScreenElementId STOCK_NEW_TRACKING = id("stock_new_tracking");
     public static final ScreenElementId STOCK_NEW_EXPIRY = id("stock_new_expiry");
@@ -68,6 +82,7 @@ public final class InventoryScreenContract {
     public static final ScreenElementId AVAILABILITY_EXPIRY = id("availability_expiry");
     public static final ScreenElementId CHECK_AVAILABILITY = id("check_availability");
     public static final ScreenElementId MOVEMENT_TYPE = id("movement_type");
+    public static final ScreenElementId MOVEMENT_ITEM = id("movement_item");
     public static final ScreenElementId MOVEMENT_WAREHOUSE = id("movement_warehouse");
     public static final ScreenElementId MOVEMENT_LOCATION = id("movement_location");
     public static final ScreenElementId MOVEMENT_TARGET_WAREHOUSE = id("movement_target_warehouse");
@@ -82,6 +97,8 @@ public final class InventoryScreenContract {
     public static final ScreenElementId MOVEMENT_SOURCE_ID = id("movement_source_id");
     public static final ScreenElementId MOVEMENT_IDEMPOTENCY = id("movement_idempotency");
     public static final ScreenElementId POST_MOVEMENT = id("post_movement");
+    public static final ScreenElementId MOVEMENT_GUIDANCE = id("movement_guidance");
+    public static final ScreenElementId MOVEMENT_SUMMARY = id("movement_summary");
     public static final ScreenElementId RESERVATION_WAREHOUSE = id("reservation_warehouse");
     public static final ScreenElementId RESERVATION_LOCATION = id("reservation_location");
     public static final ScreenElementId RESERVATION_CONDITION = id("reservation_condition");
@@ -173,59 +190,128 @@ public final class InventoryScreenContract {
     }
 
     public static ScreenDefinition stockDefinition() {
-        return definition(STOCK, "stock", List.of(
-                field(STOCK_SEARCH_TEXT, ScreenElementType.TEXT_INPUT, "search", 10, false, "stock"),
-                field(STOCK_SEARCH_STATE, ScreenElementType.SELECT, "search", 20, false, "stock"),
-                action(STOCK_SEARCH, "search_actions", 10, "stock"),
-                content(STOCK_RESULTS, ScreenElementType.DATA_TABLE, "results", 10, "stock"),
-                action(SELECT_STOCK_ITEM, "row_actions", 10, "stock"),
-                field(STOCK_NEW_CATALOG_ITEM, ScreenElementType.SELECT, "create", 10, true, "stock"),
-                field(STOCK_NEW_TRACKING, ScreenElementType.SELECT, "create", 20, true, "stock"),
-                field(STOCK_NEW_EXPIRY, ScreenElementType.SELECT, "create", 30, true, "stock"),
-                action(ENROLL_STOCK_ITEM, "create_actions", 10, "stock"),
-                field(AVAILABILITY_WAREHOUSE, ScreenElementType.SELECT, "availability", 10, true, "stock"),
-                field(AVAILABILITY_LOCATION, ScreenElementType.SELECT, "availability", 20, true, "stock"),
-                field(AVAILABILITY_CONDITION, ScreenElementType.SELECT, "availability", 30, true, "stock"),
-                field(AVAILABILITY_LOT, ScreenElementType.TEXT_INPUT, "availability", 40, false, "stock"),
-                field(AVAILABILITY_SERIAL, ScreenElementType.TEXT_INPUT, "availability", 50, false, "stock"),
-                field(AVAILABILITY_EXPIRY, ScreenElementType.TEXT_INPUT, "availability", 60, false, "stock"),
-                action(CHECK_AVAILABILITY, "availability_actions", 10, "stock"),
-                field(MOVEMENT_TYPE, ScreenElementType.SELECT, "movements", 10, true, "stock"),
-                field(MOVEMENT_WAREHOUSE, ScreenElementType.SELECT, "movements", 20, true, "stock"),
-                field(MOVEMENT_LOCATION, ScreenElementType.SELECT, "movements", 30, true, "stock"),
-                field(MOVEMENT_TARGET_WAREHOUSE, ScreenElementType.SELECT, "movements", 40, false, "stock"),
-                field(MOVEMENT_TARGET_LOCATION, ScreenElementType.SELECT, "movements", 50, false, "stock"),
-                field(MOVEMENT_CONDITION, ScreenElementType.SELECT, "movements", 60, true, "stock"),
-                field(MOVEMENT_LOT, ScreenElementType.TEXT_INPUT, "movements", 70, false, "stock"),
-                field(MOVEMENT_SERIAL, ScreenElementType.TEXT_INPUT, "movements", 80, false, "stock"),
-                field(MOVEMENT_EXPIRY, ScreenElementType.TEXT_INPUT, "movements", 90, false, "stock"),
-                field(MOVEMENT_QUANTITY, ScreenElementType.TEXT_INPUT, "movements", 100, true, "stock"),
-                field(MOVEMENT_REASON, ScreenElementType.TEXT_INPUT, "movements", 110, true, "stock"),
-                field(MOVEMENT_SOURCE_TYPE, ScreenElementType.TEXT_INPUT, "movements", 120, true, "stock"),
-                field(MOVEMENT_SOURCE_ID, ScreenElementType.TEXT_INPUT, "movements", 130, true, "stock"),
-                field(MOVEMENT_IDEMPOTENCY, ScreenElementType.TEXT_INPUT, "movements", 140, true, "stock"),
-                action(POST_MOVEMENT, "movements_actions", 10, "stock"),
-                field(RESERVATION_WAREHOUSE, ScreenElementType.SELECT, "reservation_create", 10, true, "stock"),
-                field(RESERVATION_LOCATION, ScreenElementType.SELECT, "reservation_create", 20, true, "stock"),
-                field(RESERVATION_CONDITION, ScreenElementType.SELECT, "reservation_create", 30, true, "stock"),
-                field(RESERVATION_LOT, ScreenElementType.TEXT_INPUT, "reservation_create", 40, false, "stock"),
-                field(RESERVATION_SERIAL, ScreenElementType.TEXT_INPUT, "reservation_create", 50, false, "stock"),
-                field(RESERVATION_EXPIRY_DATE, ScreenElementType.TEXT_INPUT, "reservation_create", 60, false, "stock"),
-                field(RESERVATION_QUANTITY, ScreenElementType.TEXT_INPUT, "reservation_create", 70, true, "stock"),
-                field(RESERVATION_EXPIRES_AT, ScreenElementType.TEXT_INPUT, "reservation_create", 80, true, "stock"),
-                field(RESERVATION_SOURCE_TYPE, ScreenElementType.TEXT_INPUT, "reservation_create", 90, true, "stock"),
-                field(RESERVATION_SOURCE_ID, ScreenElementType.TEXT_INPUT, "reservation_create", 100, true, "stock"),
-                field(RESERVATION_IDEMPOTENCY, ScreenElementType.TEXT_INPUT, "reservation_create", 110, true, "stock"),
-                action(CREATE_RESERVATION, "reservation_create_actions", 10, "stock"),
-                field(MANAGE_RESERVATION_ID, ScreenElementType.TEXT_INPUT, "reservation_manage", 10, true, "stock"),
-                field(MANAGE_RESERVATION_VERSION, ScreenElementType.TEXT_INPUT, "reservation_manage", 20, true, "stock"),
-                field(MANAGE_RESERVATION_QUANTITY, ScreenElementType.TEXT_INPUT, "reservation_manage", 30, false, "stock"),
-                field(MANAGE_RESERVATION_IDEMPOTENCY, ScreenElementType.TEXT_INPUT, "reservation_manage", 40, true, "stock"),
-                action(CONSUME_RESERVATION, "reservation_manage_actions", 10, "stock"),
-                action(RELEASE_RESERVATION, "reservation_manage_actions", 20, "stock"),
-                action(EXPIRE_RESERVATION, "reservation_manage_actions", 30, "stock"),
-                action(REFRESH_STOCK_ITEM, "lifecycle_actions", 10, "stock"),
-                action(INACTIVATE_STOCK_ITEM, "lifecycle_actions", 20, "stock")));
+        List<ScreenElementDefinition> elements = List.of(
+                field(STOCK_TASK, ScreenElementType.SELECT, "context", 10, true, "stock"),
+                field(MOVEMENT_ITEM, ScreenElementType.SELECT, "context", 20, false, "movements"),
+                field(MOVEMENT_TYPE, ScreenElementType.SELECT, "context", 30, true, "movements"),
+                action(APPLY_STOCK_TASK, "context", 40, "stock"),
+                field(STOCK_NEW_CATALOG_ITEM, ScreenElementType.SELECT, "content", 10, true, "stock"),
+                field(STOCK_NEW_TRACKING, ScreenElementType.SELECT, "content", 20, true, "stock"),
+                field(STOCK_NEW_EXPIRY, ScreenElementType.SELECT, "content", 30, true, "stock"),
+                field(AVAILABILITY_WAREHOUSE, ScreenElementType.SELECT, "content", 40, true, "stock"),
+                field(AVAILABILITY_LOCATION, ScreenElementType.SELECT, "content", 50, true, "stock"),
+                field(AVAILABILITY_CONDITION, ScreenElementType.SELECT, "content", 60, true, "stock"),
+                field(AVAILABILITY_LOT, ScreenElementType.TEXT_INPUT, "content", 70, false, "stock"),
+                field(AVAILABILITY_SERIAL, ScreenElementType.TEXT_INPUT, "content", 80, false, "stock"),
+                field(AVAILABILITY_EXPIRY, ScreenElementType.TEXT_INPUT, "content", 90, false, "stock"),
+                field(MOVEMENT_WAREHOUSE, ScreenElementType.SELECT, "content", 20, true, "movements"),
+                field(MOVEMENT_LOCATION, ScreenElementType.SELECT, "content", 30, true, "movements"),
+                field(MOVEMENT_TARGET_WAREHOUSE, ScreenElementType.SELECT, "content", 40, false, "movements"),
+                field(MOVEMENT_TARGET_LOCATION, ScreenElementType.SELECT, "content", 50, false, "movements"),
+                field(MOVEMENT_CONDITION, ScreenElementType.SELECT, "content", 60, true, "movements"),
+                field(MOVEMENT_LOT, ScreenElementType.TEXT_INPUT, "content", 70, false, "movements"),
+                field(MOVEMENT_SERIAL, ScreenElementType.TEXT_INPUT, "content", 80, false, "movements"),
+                field(MOVEMENT_EXPIRY, ScreenElementType.TEXT_INPUT, "content", 90, false, "movements"),
+                field(MOVEMENT_QUANTITY, ScreenElementType.TEXT_INPUT, "content", 100, true, "movements"),
+                field(MOVEMENT_REASON, ScreenElementType.TEXT_INPUT, "content", 110, true, "movements"),
+                field(MOVEMENT_IDEMPOTENCY, ScreenElementType.TEXT_INPUT, "content", 120, true, "movements"),
+                field(RESERVATION_WAREHOUSE, ScreenElementType.SELECT, "content", 130, true, "stock"),
+                field(RESERVATION_LOCATION, ScreenElementType.SELECT, "content", 140, true, "stock"),
+                field(RESERVATION_CONDITION, ScreenElementType.SELECT, "content", 150, true, "stock"),
+                field(RESERVATION_LOT, ScreenElementType.TEXT_INPUT, "content", 160, false, "stock"),
+                field(RESERVATION_SERIAL, ScreenElementType.TEXT_INPUT, "content", 170, false, "stock"),
+                field(RESERVATION_EXPIRY_DATE, ScreenElementType.TEXT_INPUT, "content", 180, false, "stock"),
+                field(RESERVATION_QUANTITY, ScreenElementType.TEXT_INPUT, "content", 190, true, "stock"),
+                field(RESERVATION_EXPIRES_AT, ScreenElementType.TEXT_INPUT, "content", 200, true, "stock"),
+                field(RESERVATION_IDEMPOTENCY, ScreenElementType.TEXT_INPUT, "content", 210, true, "stock"),
+                field(MANAGE_RESERVATION_ID, ScreenElementType.TEXT_INPUT, "content", 220, true, "stock"),
+                field(MANAGE_RESERVATION_VERSION, ScreenElementType.TEXT_INPUT, "content", 230, true, "stock"),
+                field(MANAGE_RESERVATION_QUANTITY, ScreenElementType.TEXT_INPUT, "content", 240, false, "stock"),
+                field(MANAGE_RESERVATION_IDEMPOTENCY, ScreenElementType.TEXT_INPUT, "content", 250, true, "stock"),
+                content(STOCK_GUIDANCE, ScreenElementType.DISPLAY_TEXT, "guidance", 10, "stock"),
+                content(STOCK_SUMMARY, ScreenElementType.DISPLAY_TEXT, "summary", 10, "stock"),
+                action(ENROLL_STOCK_ITEM, "actions", 10, "stock"),
+                action(CHECK_AVAILABILITY, "actions", 20, "stock"),
+                action(POST_MOVEMENT, "actions", 30, "stock"),
+                action(CREATE_RESERVATION, "actions", 40, "stock"),
+                action(CONSUME_RESERVATION, "actions", 50, "stock"),
+                action(RELEASE_RESERVATION, "actions", 60, "stock"),
+                action(EXPIRE_RESERVATION, "actions", 70, "stock"),
+                action(REFRESH_STOCK_ITEM, "actions", 80, "stock"),
+                action(INACTIVATE_STOCK_ITEM, "actions", 90, "stock"));
+        return new ScreenDefinition(
+                STOCK,
+                SemanticVersion.parse("2.0.0"),
+                elements,
+                List.of(),
+                Optional.of(new ScreenExperienceDefinition(
+                        ScreenPurpose.GUIDED_OPERATION,
+                        List.of(
+                                region("context", ScreenRegionRole.CONTEXT, 10),
+                                region("content", ScreenRegionRole.CONTENT, 20),
+                                region("guidance", ScreenRegionRole.GUIDANCE, 30),
+                                region("summary", ScreenRegionRole.SUMMARY, 40),
+                                region("actions", ScreenRegionRole.ACTIONS, 50)),
+                        Map.ofEntries(
+                                semantic(STOCK_TASK, ScreenSemanticType.STATUS),
+                                semantic(MOVEMENT_ITEM, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(STOCK_NEW_CATALOG_ITEM, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(STOCK_NEW_TRACKING, ScreenSemanticType.STATUS),
+                                semantic(STOCK_NEW_EXPIRY, ScreenSemanticType.STATUS),
+                                semantic(AVAILABILITY_WAREHOUSE, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(AVAILABILITY_LOCATION, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(AVAILABILITY_CONDITION, ScreenSemanticType.STATUS),
+                                semantic(AVAILABILITY_LOT, ScreenSemanticType.TEXT),
+                                semantic(AVAILABILITY_SERIAL, ScreenSemanticType.TEXT),
+                                semantic(AVAILABILITY_EXPIRY, ScreenSemanticType.DATE),
+                                semantic(MOVEMENT_TYPE, ScreenSemanticType.STATUS),
+                                semantic(MOVEMENT_WAREHOUSE, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(MOVEMENT_LOCATION, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(MOVEMENT_TARGET_WAREHOUSE, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(MOVEMENT_TARGET_LOCATION, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(MOVEMENT_CONDITION, ScreenSemanticType.STATUS),
+                                semantic(MOVEMENT_LOT, ScreenSemanticType.TEXT),
+                                semantic(MOVEMENT_SERIAL, ScreenSemanticType.TEXT),
+                                semantic(MOVEMENT_EXPIRY, ScreenSemanticType.DATE),
+                                semantic(MOVEMENT_QUANTITY, ScreenSemanticType.QUANTITY),
+                                semantic(MOVEMENT_REASON, ScreenSemanticType.TEXT),
+                                semantic(MOVEMENT_IDEMPOTENCY, ScreenSemanticType.TECHNICAL_TOKEN),
+                                semantic(RESERVATION_WAREHOUSE, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(RESERVATION_LOCATION, ScreenSemanticType.SEARCHABLE_REFERENCE),
+                                semantic(RESERVATION_CONDITION, ScreenSemanticType.STATUS),
+                                semantic(RESERVATION_LOT, ScreenSemanticType.TEXT),
+                                semantic(RESERVATION_SERIAL, ScreenSemanticType.TEXT),
+                                semantic(RESERVATION_EXPIRY_DATE, ScreenSemanticType.DATE),
+                                semantic(RESERVATION_QUANTITY, ScreenSemanticType.QUANTITY),
+                                semantic(RESERVATION_EXPIRES_AT, ScreenSemanticType.DATE),
+                                semantic(RESERVATION_IDEMPOTENCY, ScreenSemanticType.TECHNICAL_TOKEN),
+                                semantic(MANAGE_RESERVATION_ID, ScreenSemanticType.TECHNICAL_TOKEN),
+                                semantic(MANAGE_RESERVATION_VERSION, ScreenSemanticType.TECHNICAL_TOKEN),
+                                semantic(MANAGE_RESERVATION_QUANTITY, ScreenSemanticType.QUANTITY),
+                                semantic(MANAGE_RESERVATION_IDEMPOTENCY, ScreenSemanticType.TECHNICAL_TOKEN),
+                                semantic(STOCK_GUIDANCE, ScreenSemanticType.SUMMARY),
+                                semantic(STOCK_SUMMARY, ScreenSemanticType.SUMMARY)),
+                        List.of(
+                                actionDefinition(APPLY_STOCK_TASK, ScreenActionIntent.NAVIGATE,
+                                        ScreenActionEmphasis.SECONDARY, ScreenConfirmationMode.NONE),
+                                actionDefinition(ENROLL_STOCK_ITEM, ScreenActionIntent.CREATE,
+                                        ScreenActionEmphasis.PRIMARY, ScreenConfirmationMode.ACKNOWLEDGEMENT),
+                                actionDefinition(CHECK_AVAILABILITY, ScreenActionIntent.SEARCH,
+                                        ScreenActionEmphasis.SECONDARY, ScreenConfirmationMode.NONE),
+                                actionDefinition(POST_MOVEMENT, ScreenActionIntent.EXECUTE,
+                                        ScreenActionEmphasis.PRIMARY, ScreenConfirmationMode.ACKNOWLEDGEMENT),
+                                actionDefinition(CREATE_RESERVATION, ScreenActionIntent.EXECUTE,
+                                        ScreenActionEmphasis.PRIMARY, ScreenConfirmationMode.ACKNOWLEDGEMENT),
+                                actionDefinition(CONSUME_RESERVATION, ScreenActionIntent.EXECUTE,
+                                        ScreenActionEmphasis.SECONDARY, ScreenConfirmationMode.ACKNOWLEDGEMENT),
+                                actionDefinition(RELEASE_RESERVATION, ScreenActionIntent.EXECUTE,
+                                        ScreenActionEmphasis.SECONDARY, ScreenConfirmationMode.ACKNOWLEDGEMENT),
+                                actionDefinition(EXPIRE_RESERVATION, ScreenActionIntent.EXECUTE,
+                                        ScreenActionEmphasis.DESTRUCTIVE, ScreenConfirmationMode.ACKNOWLEDGEMENT),
+                                actionDefinition(REFRESH_STOCK_ITEM, ScreenActionIntent.EXECUTE,
+                                        ScreenActionEmphasis.SECONDARY, ScreenConfirmationMode.ACKNOWLEDGEMENT),
+                                actionDefinition(INACTIVATE_STOCK_ITEM, ScreenActionIntent.EXECUTE,
+                                        ScreenActionEmphasis.DESTRUCTIVE, ScreenConfirmationMode.ACKNOWLEDGEMENT)))));
     }
 
     public static ScreenDefinition countsDefinition() {
@@ -295,5 +381,23 @@ public final class InventoryScreenContract {
 
     private static ScreenElementId id(String value) {
         return new ScreenElementId(value);
+    }
+
+    private static ScreenRegionDefinition region(
+            String id, ScreenRegionRole role, int order) {
+        return new ScreenRegionDefinition(new ScreenRegionId(id), role, order);
+    }
+
+    private static Map.Entry<ScreenElementId, ScreenSemanticType> semantic(
+            ScreenElementId id, ScreenSemanticType type) {
+        return Map.entry(id, type);
+    }
+
+    private static ScreenActionDefinition actionDefinition(
+            ScreenElementId id,
+            ScreenActionIntent intent,
+            ScreenActionEmphasis emphasis,
+            ScreenConfirmationMode confirmation) {
+        return new ScreenActionDefinition(id, intent, emphasis, confirmation);
     }
 }

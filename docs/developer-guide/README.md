@@ -1,7 +1,7 @@
 # Manual técnico para desarrolladores de Smart ERP
 
-- Edición: 0.1-rc55
-- Fecha: 2026-08-14
+- Edición: 0.1-rc60
+- Fecha: 2026-08-20
 - Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C07 implementa publicaciones
   completas, unidad menor opcional y búsqueda paginada de `reference_data`;
   J11-S8-C06 mantiene políticas optimistas y V2 append-only; PostgreSQL, Docker,
@@ -13,7 +13,10 @@
   `legacy_migration`, ADR-0045 `business_process_management`, ADR-0046 la familia
   Flota F1/F2 y ADR-0047 el gate de floorplans operativos previo a `sales`;
   J11-S9-08 creó el instalador interno `0.9.0-internal.1`; G7, Authenticode y
-  matriz Windows independiente permanecen pendientes
+  matriz Windows independiente permanecen pendientes; J11-S10-03/J11-S10-04
+  migraron Inventario y Compras a floorplans v2 y J11-S10-05/J11-S10-06
+  validan foco, movimiento reducido, responsive, seguridad negativa y la demo
+  acumulada; la validación independiente y J11-S10-07 permanecen pendientes
 - Audiencia: desarrolladores, revisores, arquitectos e implementadores técnicos
 - Estado: inicial; G7 independiente y autorización de producción pendientes
 
@@ -332,18 +335,81 @@ detalle técnico seguro queda en auditoría/log.
 Un plugin aporta menú por `MenuContribution`; el shell lo ordena y filtra. Agregar
 otro plugin fusiona contribuciones, no archivos XHTML.
 
-ADR-0047 agrega una distinción obligatoria entre maestros y tareas operativas.
-`MASTER_DATA` conserva directorio, alta y ficha; `WORKLIST` procesa pendientes;
-`TRANSACTION_EDITOR` organiza cabecera, líneas, resumen y finalización;
-`GUIDED_OPERATION` ordena capturas dependientes; `INQUIRY` consulta sin mutar. Los
-nombres definitivos se materializarán en J11-S10-01, pero la taxonomía permanece
-cerrada y neutral. El plugin declara propósito y semántica; el shell continúa
-decidiendo el componente Faces y la adaptación visual.
+ADR-0047 y J11-S10-01 agregan una distinción obligatoria entre maestros y tareas
+operativas. `ScreenPurpose` contiene sólo `MASTER_DATA`, `WORKLIST`,
+`TRANSACTION_EDITOR`, `GUIDED_OPERATION` e `INQUIRY`.
+`ScreenExperienceDefinition` declara regiones por `ScreenRegionRole`, datos por
+`ScreenSemanticType` y acciones por intención, énfasis y confirmación. Ninguno de
+esos tipos selecciona XHTML, componente Faces o clase CSS.
+
+Un `ScreenDefinition` 1.x conserva el constructor de cuatro argumentos y carece
+de experiencia; el shell usa el renderer genérico compatible. Un contrato 2.x o
+posterior exige experiencia y valida que cada elemento pertenezca a una región,
+que las semánticas apunten a elementos reales y que cada elemento `ACTION` tenga
+exactamente una `ScreenActionDefinition`. Versiones mayores desconocidas se
+modelan en la API, pero el shell debe rechazarlas hasta soportarlas expresamente.
+
+`ScreenInteraction.Result` mantiene el constructor v1 y agrega
+`elementStates`. Un `ElementState` puede mostrar, ocultar, requerir o bloquear un
+elemento con explicación; no puede habilitar algo oculto, requerir algo
+deshabilitado ni adjuntar una causa de bloqueo a un elemento habilitado. La
+visibilidad dinámica orienta la tarea; la autorización se revalida siempre en el
+servidor.
+
+Desde J11-S10-02, `CompanyScreenComposer` conserva la experiencia en
+`ComposedScreen` después de aplicar el overlay. `ShellScreenRegistry` admite
+exactamente contratos 1.x heredados y 2.x con experiencia. Los majors futuros,
+regiones mínimas ausentes, semánticas incompatibles, acciones no declaradas y
+slots v2 todavía no soportados producen rechazo seguro, no un renderer aproximado.
+
+El enum interno `ShellFloorplan` selecciona cinco layouts shell-owned. La vista
+v2 usa un solo formulario por tarea y regiones con roles cerrados; los plugins no
+aportan clases CSS ni nombres de componentes. Un estado dinámico ausente conserva
+el estado estático. La vista combina restricciones con `visible = static AND
+dynamic`, `enabled = static AND dynamic` y `required = static OR dynamic`; además,
+el servidor rechaza IDs dinámicos ajenos y vuelve a comprobar el bloqueo de una
+acción antes de invocar el handler.
+
+Una acción v2 con intención `NAVIGATE` procesa por Ajax solamente la región que
+la contiene y vuelve a representar el formulario. Esto permite elegir tarea,
+artículo y tipo antes de que existan todos los datos de una mutación. Las acciones
+`CREATE`, `EXECUTE`, `UPDATE` o destructivas continúan procesando el formulario
+completo; el handler revalida de todos modos los campos requeridos y el permiso.
 
 No exponga al usuario identidad técnica, versión optimista o claves de
 idempotencia. No muestre simultáneamente transiciones que no aplican al estado,
 actor o permiso vigentes. La visibilidad mejora la tarea, pero la autorización se
 repite siempre en el servidor.
+
+J11-S10-03 incorpora `TECHNICAL_TOKEN` de forma aditiva en `plugin-api` 0.4.5.
+El shell lo representa como control oculto y lo excluye de
+`safeDraftInputIds()`: un retorno desde un selector no puede conservar ni
+sobrescribir claves de idempotencia, identidades internas o versiones técnicas.
+El handler propietario genera, valida y rota esos valores; recibir un UUID no
+canónico o un ID técnico visible en el POST debe producir rechazo antes de mutar.
+
+Las acciones dinámicas del floorplan v2 no dependen de conservar el bean
+request-scoped entre solicitudes. `view.xhtml` usa un único comando JSF estable y
+serializa sólo los controles declarados mediante `data-screen-input` bajo nombres
+`floorplanInput.<ScreenElementId>`. `ShellViewBean` valida que cada nombre sea un
+ID semántico único, vuelve a resolver pantalla, tarea, opciones, empresa y
+permiso, conserva el estado técnico recién generado y superpone los valores
+enviados antes de llamar al handler. No agregue comandos dinámicos por acción ni
+confíe en campos arbitrarios del POST.
+
+J11-S10-04 aplica esos contratos a Compras sin cambiar rutas, dominio ni
+persistencia: solicitudes usa `WORKLIST`, órdenes `TRANSACTION_EDITOR`,
+recepciones/devoluciones `GUIDED_OPERATION` y seguimiento `INQUIRY`. Las tablas
+conservan semántica en medio/expandido y publican tarjetas estáticas en compacto.
+
+Desde J11-S10-05, el shell marca en `sessionStorage` únicamente la intención de
+restaurar foco después de un postback de contexto o acción. Al cargar, enfoca el
+primer control inválido, el aviso visible o el `h1` con `tabindex=-1`; nunca
+persiste valores funcionales. Bajo `prefers-reduced-motion: reduce` elimina
+transiciones no esenciales. Toda pantalla visual debe probar Tab, `:focus-visible`
+y los límites 375/599/600/720/839/840/1280, además de autorización negativa y
+plugin inactivo. La revisión visual sigue siendo obligatoria: puede detectar
+superposiciones que una aserción de overflow no observa.
 
 ## 13. Personalización empresarial
 
@@ -751,6 +817,17 @@ handlers para existencias, depósitos y conteos. El descriptor publica las rutas
 `/inventory`, `/inventory/warehouses` y `/inventory/counts`, siempre protegidas por
 `inventory.view`.
 
+J11-S10-03 mantiene esas tres rutas y migra deliberadamente
+`inventory:stock` a contrato 2.0.0 con propósito `GUIDED_OPERATION`. La tarea
+predeterminada registra una entrada, salida o transferencia; disponibilidad,
+reservas y administración de artículos continúan subordinadas en la misma
+pantalla. `inventory-api@1.2.0` conserva los contratos públicos y eleva su versión
+para identificar este baseline. La UI no solicita fuente, identidad de fuente ni
+clave de idempotencia: el handler deriva `MANUAL_UI`, genera tokens UUID, revalida
+artículo activo y política de lote/serie/vencimiento y contabiliza una
+transferencia como dos líneas atómicas. Ajustes y reversiones siguen fuera del
+recorrido manual ordinario.
+
 La fuente vigente para desarrollarlo es la
 [caracterización de inventario](../knowledge-base/inventory/legacy-characterization.md).
 El dominio exige depósito/ubicación, crea `GENERAL`, inscribe solo productos
@@ -1127,6 +1204,25 @@ autorización en cada solicitud. `reference-data-api` 1.1.0 agrega
 los accesores 1.x existentes continúan disponibles para unidades definidas; un
 valor SIX `N.A.` se expone como `OptionalInt.empty()` y el acceso entero falla de
 forma explícita en vez de inventar cero.
+
+`plugin-api` 0.4.4 agrega de forma aditiva los contratos v2 de floorplan y el mapa
+de estado dinámico. Los constructores v1 de `ScreenDefinition` y
+`ScreenInteraction.Result` siguen disponibles; las pantallas vigentes continúan
+compilando y renderizándose como v1 hasta una migración deliberada. Consulte la
+[historia J11-S10-01](../sprints/sprint-10/J11-S10-01-contrato-neutral-floorplans.md)
+y su [evidencia](../evidence/J11-S10-01-contrato-neutral-floorplans.md).
+El primer consumidor es el shell de
+[J11-S10-02](../sprints/sprint-10/J11-S10-02-renderers-shell-floorplans.md): la
+experiencia sobrevive la composición, el renderer distingue los cinco propósitos
+y las pantallas v1 siguen usando directorio/alta/ficha hasta una migración
+deliberada.
+
+`plugin-api` 0.4.5 agrega la semántica `TECHNICAL_TOKEN`; el primer piloto es
+`inventory:stock` con `inventory-api@1.2.0`. La migración conserva `ScreenId`,
+ruta y menú, y reemplaza el directorio genérico por una operación guiada con
+estados cerrados por tarea y tipo de movimiento. Consulte la
+[historia J11-S10-03](../sprints/sprint-10/J11-S10-03-piloto-movimientos-inventario.md)
+y su [evidencia](../evidence/J11-S10-03-piloto-movimientos-inventario.md).
 
 `plg_reference_data` V3 permite `NULL` para esa ausencia y V4 publica 248 países y
 178 códigos únicos de moneda o fondo, conservando el seed V1 como edición

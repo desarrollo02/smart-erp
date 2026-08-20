@@ -1,14 +1,11 @@
 package py.com.logixone.plugins.inventory.infrastructure.ui;
 
-import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.ALL;
-import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.PAGE_SIZE;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.clear;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.context;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.date;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.decimal;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.enumValue;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.error;
-import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.filter;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.first;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.instant;
 import static py.com.logixone.plugins.inventory.infrastructure.ui.InventoryScreenSupport.longValue;
@@ -27,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import py.com.logixone.kernel.api.security.CurrentCompanyAuthorization;
 import py.com.logixone.plugin.api.ScreenElementId;
 import py.com.logixone.plugin.api.ScreenId;
@@ -70,6 +68,10 @@ import py.com.logixone.plugins.inventory.domain.WarehouseSnapshot;
 public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
     private static final Logger LOGGER = System.getLogger(
             InventoryStockScreenHandler.class.getName());
+    private static final String TASK_MOVEMENT = "MOVEMENT";
+    private static final String TASK_AVAILABILITY = "AVAILABILITY";
+    private static final String TASK_RESERVATION = "RESERVATION";
+    private static final String TASK_ITEM_ADMIN = "ITEM_ADMIN";
 
     @Inject
     InventoryUseCases useCases;
@@ -93,14 +95,15 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
     @Override
     public ScreenInteraction.Result interact(ScreenInteraction.Request request) {
         Map<ScreenElementId, String> inputs = defaults(request.inputs());
-        Optional<String> selectedId = request.selectedResourceId();
+        Optional<String> selectedId = selectedItemValue(request, inputs);
         List<ScreenInteraction.Notice> notices = new ArrayList<>();
         try {
             if (request.actionId().isPresent()) {
                 ScreenElementId action = request.actionId().orElseThrow();
-                if (action.equals(InventoryScreenContract.STOCK_SEARCH)) {
-                    selectedId = Optional.empty();
+                if (action.equals(InventoryScreenContract.APPLY_STOCK_TASK)) {
+                    selectedId = optional(inputs, InventoryScreenContract.MOVEMENT_ITEM);
                 } else if (action.equals(InventoryScreenContract.CHECK_AVAILABILITY)) {
+                    requireTask(inputs, TASK_AVAILABILITY);
                     notices.add(availabilityNotice(request, inputs));
                 } else if (!action.equals(InventoryScreenContract.SELECT_STOCK_ITEM)) {
                     InventoryScreenSupport.Mutation mutation = execute(action, request, inputs);
@@ -119,6 +122,9 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
             notices.add(error(
                     "Revisa los datos ingresados",
                     "Uno o más valores no cumplen el formato permitido."));
+            repairTechnicalToken(inputs, InventoryScreenContract.MOVEMENT_IDEMPOTENCY);
+            repairTechnicalToken(inputs, InventoryScreenContract.RESERVATION_IDEMPOTENCY);
+            repairTechnicalToken(inputs, InventoryScreenContract.MANAGE_RESERVATION_IDEMPOTENCY);
         }
         return load(inputs, selectedId, notices);
     }
@@ -128,6 +134,7 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
             ScreenInteraction.Request request,
             Map<ScreenElementId, String> inputs) {
         if (action.equals(InventoryScreenContract.ENROLL_STOCK_ITEM)) {
+            requireTask(inputs, TASK_ITEM_ADMIN);
             var command = new InventoryCommands.EnrollItem(
                     CatalogItemId.parse(required(inputs, InventoryScreenContract.STOCK_NEW_CATALOG_ITEM)),
                     enumValue(inputs, InventoryScreenContract.STOCK_NEW_TRACKING, TrackingMode.class),
@@ -139,12 +146,11 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                     Optional.empty());
         }
 
-        InventoryItemId itemId = selectedItem(request);
-        long version = request.selectedResourceVersion().orElseThrow(
-                () -> new IllegalArgumentException("A selected inventory item version is required"));
+        InventoryItemId itemId = selectedItem(request, inputs);
         Optional<String> fallback = Optional.of(itemId.toString());
 
         if (action.equals(InventoryScreenContract.POST_MOVEMENT)) {
+            requireTask(inputs, TASK_MOVEMENT);
             StockMovementRequest movement = movement(itemId, inputs);
             return InventoryScreenSupport.mutation(
                     useCases.postMovement(
@@ -154,6 +160,9 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                     fallback);
         }
         if (action.equals(InventoryScreenContract.CREATE_RESERVATION)) {
+            requireTask(inputs, TASK_RESERVATION);
+            String reservationToken = canonicalToken(
+                    inputs, InventoryScreenContract.RESERVATION_IDEMPOTENCY);
             StockReservationRequest reservation = new StockReservationRequest(
                     stockKey(
                             itemId,
@@ -165,12 +174,10 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                             InventoryScreenContract.RESERVATION_SERIAL,
                             InventoryScreenContract.RESERVATION_EXPIRY_DATE),
                     decimal(inputs, InventoryScreenContract.RESERVATION_QUANTITY),
-                    source(
-                            inputs,
-                            InventoryScreenContract.RESERVATION_SOURCE_TYPE,
-                            InventoryScreenContract.RESERVATION_SOURCE_ID),
+                    new StockSourceReference(
+                            "MANUAL_UI", "reservation-ui:" + reservationToken),
                     instant(inputs, InventoryScreenContract.RESERVATION_EXPIRES_AT),
-                    required(inputs, InventoryScreenContract.RESERVATION_IDEMPOTENCY));
+                    "reservation-ui-" + reservationToken);
             return InventoryScreenSupport.mutation(
                     useCases.reserve(
                             context(authorization, InventoryPermissions.RESERVATIONS_MANAGE), reservation),
@@ -181,6 +188,7 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
         if (action.equals(InventoryScreenContract.CONSUME_RESERVATION)
                 || action.equals(InventoryScreenContract.RELEASE_RESERVATION)
                 || action.equals(InventoryScreenContract.EXPIRE_RESERVATION)) {
+            requireTask(inputs, TASK_RESERVATION);
             StockReservationReference reservation = reservationForSelected(itemId, inputs);
             String key = required(inputs, InventoryScreenContract.MANAGE_RESERVATION_IDEMPOTENCY);
             InventoryOperationResult<StockReservationReference> result;
@@ -210,6 +218,8 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                     result, summary, ignored -> itemId.toString(), fallback);
         }
         if (action.equals(InventoryScreenContract.REFRESH_STOCK_ITEM)) {
+            requireTask(inputs, TASK_ITEM_ADMIN);
+            long version = selectedItemSnapshot(itemId).version();
             return InventoryScreenSupport.mutation(
                     useCases.refreshItem(
                             context(authorization, InventoryPermissions.ITEMS_MANAGE),
@@ -219,6 +229,8 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                     fallback);
         }
         if (action.equals(InventoryScreenContract.INACTIVATE_STOCK_ITEM)) {
+            requireTask(inputs, TASK_ITEM_ADMIN);
+            long version = selectedItemSnapshot(itemId).version();
             return InventoryScreenSupport.mutation(
                     useCases.inactivateItem(
                             context(authorization, InventoryPermissions.ITEMS_MANAGE),
@@ -232,7 +244,7 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
 
     private ScreenInteraction.Notice availabilityNotice(
             ScreenInteraction.Request request, Map<ScreenElementId, String> inputs) {
-        InventoryItemId itemId = selectedItem(request);
+        InventoryItemId itemId = selectedItem(request, inputs);
         StockKey key = stockKey(
                 itemId,
                 inputs,
@@ -260,6 +272,7 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
     private StockMovementRequest movement(
             InventoryItemId itemId, Map<ScreenElementId, String> inputs) {
         InventoryItemSnapshot item = selectedItemSnapshot(itemId);
+        validateDimensions(item, inputs);
         StockMovementType type = enumValue(
                 inputs, InventoryScreenContract.MOVEMENT_TYPE, StockMovementType.class);
         if (type == StockMovementType.ADJUSTMENT || type == StockMovementType.REVERSAL) {
@@ -285,6 +298,10 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                     WarehouseId.parse(required(inputs, InventoryScreenContract.MOVEMENT_TARGET_WAREHOUSE)),
                     StockLocationId.parse(required(inputs, InventoryScreenContract.MOVEMENT_TARGET_LOCATION)),
                     sourceKey.lotCode(), sourceKey.serialNumber(), sourceKey.expiryDate(), sourceKey.condition());
+            if (sourceKey.warehouseId().equals(targetKey.warehouseId())
+                    && sourceKey.locationId().equals(targetKey.locationId())) {
+                throw new IllegalArgumentException("Transfer target must differ from source");
+            }
             lines = List.of(
                     new StockMovementLine(sourceKey, StockMovementDirection.DECREASE, movementQuantity),
                     new StockMovementLine(targetKey, StockMovementDirection.INCREASE, movementQuantity));
@@ -295,14 +312,12 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                             ? StockMovementDirection.INCREASE : StockMovementDirection.DECREASE,
                     movementQuantity));
         }
+        String token = canonicalToken(inputs, InventoryScreenContract.MOVEMENT_IDEMPOTENCY);
         return new StockMovementRequest(
                 type,
                 required(inputs, InventoryScreenContract.MOVEMENT_REASON),
-                source(
-                        inputs,
-                        InventoryScreenContract.MOVEMENT_SOURCE_TYPE,
-                        InventoryScreenContract.MOVEMENT_SOURCE_ID),
-                required(inputs, InventoryScreenContract.MOVEMENT_IDEMPOTENCY),
+                new StockSourceReference("MANUAL_UI", "movement-ui:" + token),
+                "movement-ui-" + token,
                 lines,
                 Optional.empty());
     }
@@ -341,13 +356,15 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
             var search = useCases.searchItems(
                     viewContext,
                     new InventoryDirectoryQueries.Criteria(
-                            filter(inputs, InventoryScreenContract.STOCK_SEARCH_TEXT),
-                            activeFilter(inputs, InventoryScreenContract.STOCK_SEARCH_STATE),
+                            Optional.empty(),
+                            Optional.of(true),
                             0,
-                            PAGE_SIZE));
+                            100));
             if (!search.successful()) {
                 throw new IllegalStateException("Authorized inventory item search failed");
             }
+            List<InventoryDirectoryQueries.ItemSummary> items =
+                    search.value().orElseThrow().items();
             stage = "warehouses";
             var warehouseSearch = useCases.searchWarehouses(
                     viewContext,
@@ -364,8 +381,16 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                             "", Set.of(CatalogItemType.PRODUCT), Set.of(CatalogItemState.ACTIVE), 0, 100))
                     .items();
 
+            Map<ScreenElementId, List<ScreenInteraction.Option>> options =
+                    options(items, catalogItems, warehouses);
+            selectedId.ifPresent(value -> inputs.putIfAbsent(
+                    InventoryScreenContract.MOVEMENT_ITEM, value));
+            applyOptionDefaults(inputs, options);
+            selectedId = optional(inputs, InventoryScreenContract.MOVEMENT_ITEM);
+
             Optional<ScreenInteraction.Detail> detail = Optional.empty();
             Optional<Long> selectedVersion = Optional.empty();
+            Optional<InventoryItemSnapshot> selectedItem = Optional.empty();
             if (selectedId.isPresent()) {
                 InventoryItemId id = InventoryItemId.parse(selectedId.orElseThrow());
                 var found = useCases.itemSummary(viewContext, id);
@@ -373,6 +398,7 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                     InventoryDirectoryQueries.ItemSummary summary = found.value().orElseThrow();
                     detail = Optional.of(detail(summary));
                     selectedVersion = Optional.of(summary.item().version());
+                    selectedItem = Optional.of(summary.item());
                 } else {
                     selectedId = Optional.empty();
                     notices.add(error(
@@ -381,9 +407,10 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                 }
             }
 
-            Map<ScreenElementId, List<ScreenInteraction.Option>> options =
-                    options(catalogItems, warehouses);
-            applyOptionDefaults(inputs, options);
+            inputs.put(InventoryScreenContract.STOCK_GUIDANCE,
+                    guidance(inputs, selectedItem));
+            inputs.put(InventoryScreenContract.STOCK_SUMMARY,
+                    summary(inputs, selectedItem));
             if (catalogItems.isEmpty()) {
                 notices.add(new ScreenInteraction.Notice(
                         ScreenInteraction.NoticeLevel.INFO,
@@ -400,11 +427,15 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
             return new ScreenInteraction.Result(
                     inputs,
                     options,
-                    Optional.of(table(search.value().orElseThrow())),
+                    Optional.empty(),
                     detail,
                     notices,
                     selectedId,
-                    selectedVersion);
+                    selectedVersion,
+                    states(inputs, selectedItem,
+                            items.isEmpty()
+                                    || warehouses.isEmpty()
+                                    || options.get(InventoryScreenContract.MOVEMENT_LOCATION).isEmpty()));
         } catch (RuntimeException failure) {
             LOGGER.log(Level.ERROR,
                     "event=inventory_stock_screen_load_failed stage={0} type={1}",
@@ -432,14 +463,18 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
                 enumValue(inputs, condition, StockCondition.class));
     }
 
-    private static StockSourceReference source(
-            Map<ScreenElementId, String> inputs, ScreenElementId type, ScreenElementId id) {
-        return new StockSourceReference(required(inputs, type), required(inputs, id));
+    private static InventoryItemId selectedItem(
+            ScreenInteraction.Request request,
+            Map<ScreenElementId, String> inputs) {
+        return InventoryItemId.parse(selectedItemValue(request, inputs).orElseThrow(
+                () -> new IllegalArgumentException("A selected inventory item is required")));
     }
 
-    private static InventoryItemId selectedItem(ScreenInteraction.Request request) {
-        return InventoryItemId.parse(request.selectedResourceId().orElseThrow(
-                () -> new IllegalArgumentException("A selected inventory item is required")));
+    private static Optional<String> selectedItemValue(
+            ScreenInteraction.Request request,
+            Map<ScreenElementId, String> inputs) {
+        return optional(inputs, InventoryScreenContract.MOVEMENT_ITEM)
+                .or(request::selectedResourceId);
     }
 
     private static ScreenInteraction.Table table(
@@ -492,12 +527,20 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
     }
 
     private static Map<ScreenElementId, List<ScreenInteraction.Option>> options(
-            List<CatalogItemReference> catalogItems, List<WarehouseSnapshot> warehouses) {
+            List<InventoryDirectoryQueries.ItemSummary> items,
+            List<CatalogItemReference> catalogItems,
+            List<WarehouseSnapshot> warehouses) {
         Map<ScreenElementId, List<ScreenInteraction.Option>> options = new LinkedHashMap<>();
-        options.put(InventoryScreenContract.STOCK_SEARCH_STATE, List.of(
-                option(ALL, "Todos los estados"),
-                option("ACTIVE", "Activo"),
-                option("INACTIVE", "Inactivo")));
+        options.put(InventoryScreenContract.STOCK_TASK, List.of(
+                option(TASK_MOVEMENT, "Registrar movimiento"),
+                option(TASK_AVAILABILITY, "Consultar disponibilidad"),
+                option(TASK_RESERVATION, "Administrar reserva"),
+                option(TASK_ITEM_ADMIN, "Administrar artículo")));
+        options.put(InventoryScreenContract.MOVEMENT_ITEM, items.stream()
+                .map(item -> option(
+                        item.id().toString(),
+                        item.item().catalogCode() + " · " + item.item().catalogName()))
+                .toList());
         options.put(InventoryScreenContract.STOCK_NEW_CATALOG_ITEM,
                 catalogItems.stream().map(item -> option(
                         item.id().toString(), item.code() + " · " + item.displayName())).toList());
@@ -558,15 +601,20 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
 
     private static Map<ScreenElementId, String> defaults(Map<ScreenElementId, String> submitted) {
         Map<ScreenElementId, String> inputs = InventoryScreenSupport.copy(submitted);
-        inputs.putIfAbsent(InventoryScreenContract.STOCK_SEARCH_STATE, ALL);
+        inputs.putIfAbsent(InventoryScreenContract.STOCK_TASK, TASK_MOVEMENT);
         inputs.putIfAbsent(InventoryScreenContract.STOCK_NEW_TRACKING, TrackingMode.NONE.name());
         inputs.putIfAbsent(InventoryScreenContract.STOCK_NEW_EXPIRY, ExpiryPolicy.NONE.name());
         inputs.putIfAbsent(InventoryScreenContract.MOVEMENT_TYPE, StockMovementType.RECEIPT.name());
         inputs.putIfAbsent(InventoryScreenContract.MOVEMENT_CONDITION, StockCondition.AVAILABLE.name());
         inputs.putIfAbsent(InventoryScreenContract.AVAILABILITY_CONDITION, StockCondition.AVAILABLE.name());
         inputs.putIfAbsent(InventoryScreenContract.RESERVATION_CONDITION, StockCondition.AVAILABLE.name());
-        inputs.putIfAbsent(InventoryScreenContract.MOVEMENT_SOURCE_TYPE, "MANUAL_UI");
-        inputs.putIfAbsent(InventoryScreenContract.RESERVATION_SOURCE_TYPE, "MANUAL_UI");
+        inputs.putIfAbsent(
+                InventoryScreenContract.MOVEMENT_IDEMPOTENCY, UUID.randomUUID().toString());
+        inputs.putIfAbsent(
+                InventoryScreenContract.RESERVATION_IDEMPOTENCY, UUID.randomUUID().toString());
+        inputs.putIfAbsent(
+                InventoryScreenContract.MANAGE_RESERVATION_IDEMPOTENCY,
+                UUID.randomUUID().toString());
         return inputs;
     }
 
@@ -574,6 +622,7 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
             Map<ScreenElementId, String> inputs,
             Map<ScreenElementId, List<ScreenInteraction.Option>> options) {
         for (ScreenElementId field : List.of(
+                InventoryScreenContract.MOVEMENT_ITEM,
                 InventoryScreenContract.STOCK_NEW_CATALOG_ITEM,
                 InventoryScreenContract.AVAILABILITY_WAREHOUSE,
                 InventoryScreenContract.AVAILABILITY_LOCATION,
@@ -587,9 +636,245 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
         }
     }
 
-    private static Optional<Boolean> activeFilter(
-            Map<ScreenElementId, String> inputs, ScreenElementId field) {
-        return filter(inputs, field).map("ACTIVE"::equals);
+    private static void validateDimensions(
+            InventoryItemSnapshot item,
+            Map<ScreenElementId, String> inputs) {
+        Optional<String> lot = optional(inputs, InventoryScreenContract.MOVEMENT_LOT);
+        Optional<String> serial = optional(inputs, InventoryScreenContract.MOVEMENT_SERIAL);
+        Optional<java.time.LocalDate> expiry = date(
+                inputs, InventoryScreenContract.MOVEMENT_EXPIRY);
+        if ((item.trackingMode() == TrackingMode.LOT) != lot.isPresent()
+                || (item.trackingMode() == TrackingMode.SERIAL) != serial.isPresent()
+                || (item.trackingMode() == TrackingMode.NONE
+                        && (lot.isPresent() || serial.isPresent()))) {
+            throw new IllegalArgumentException("Tracking dimensions do not match item policy");
+        }
+        if (item.expiryPolicy() == ExpiryPolicy.NONE && expiry.isPresent()) {
+            throw new IllegalArgumentException("Expiry is not allowed for this item");
+        }
+        if (item.expiryPolicy() == ExpiryPolicy.REQUIRED && expiry.isEmpty()) {
+            throw new IllegalArgumentException("Expiry is required for this item");
+        }
+    }
+
+    private static String canonicalToken(
+            Map<ScreenElementId, String> inputs,
+            ScreenElementId field) {
+        String token = required(inputs, field);
+        UUID parsed = UUID.fromString(token);
+        if (!parsed.toString().equals(token)) {
+            throw new IllegalArgumentException("Technical token is not canonical");
+        }
+        return token;
+    }
+
+    private static void repairTechnicalToken(
+            Map<ScreenElementId, String> inputs,
+            ScreenElementId field) {
+        try {
+            canonicalToken(inputs, field);
+        } catch (IllegalArgumentException invalidToken) {
+            inputs.put(field, UUID.randomUUID().toString());
+        }
+    }
+
+    private static void requireTask(
+            Map<ScreenElementId, String> inputs,
+            String expected) {
+        if (!expected.equals(required(inputs, InventoryScreenContract.STOCK_TASK))) {
+            throw new IllegalArgumentException("Action does not belong to the selected task");
+        }
+    }
+
+    private static Map<ScreenElementId, ScreenInteraction.ElementState> states(
+            Map<ScreenElementId, String> inputs,
+            Optional<InventoryItemSnapshot> item,
+            boolean movementPrerequisitesMissing) {
+        Map<ScreenElementId, ScreenInteraction.ElementState> states = new LinkedHashMap<>();
+        String task = inputs.getOrDefault(InventoryScreenContract.STOCK_TASK, TASK_MOVEMENT);
+        if (!Set.of(TASK_MOVEMENT, TASK_AVAILABILITY, TASK_RESERVATION, TASK_ITEM_ADMIN)
+                .contains(task)) {
+            task = TASK_MOVEMENT;
+            inputs.put(InventoryScreenContract.STOCK_TASK, task);
+        }
+        boolean movement = TASK_MOVEMENT.equals(task);
+        boolean availability = TASK_AVAILABILITY.equals(task);
+        boolean reservation = TASK_RESERVATION.equals(task);
+        boolean itemAdmin = TASK_ITEM_ADMIN.equals(task);
+
+        group(states, itemAdmin,
+                InventoryScreenContract.STOCK_NEW_CATALOG_ITEM,
+                InventoryScreenContract.STOCK_NEW_TRACKING,
+                InventoryScreenContract.STOCK_NEW_EXPIRY,
+                InventoryScreenContract.ENROLL_STOCK_ITEM,
+                InventoryScreenContract.REFRESH_STOCK_ITEM,
+                InventoryScreenContract.INACTIVATE_STOCK_ITEM);
+        group(states, availability,
+                InventoryScreenContract.AVAILABILITY_WAREHOUSE,
+                InventoryScreenContract.AVAILABILITY_LOCATION,
+                InventoryScreenContract.AVAILABILITY_CONDITION,
+                InventoryScreenContract.AVAILABILITY_LOT,
+                InventoryScreenContract.AVAILABILITY_SERIAL,
+                InventoryScreenContract.AVAILABILITY_EXPIRY,
+                InventoryScreenContract.CHECK_AVAILABILITY);
+        group(states, movement,
+                InventoryScreenContract.MOVEMENT_TYPE,
+                InventoryScreenContract.MOVEMENT_WAREHOUSE,
+                InventoryScreenContract.MOVEMENT_LOCATION,
+                InventoryScreenContract.MOVEMENT_TARGET_WAREHOUSE,
+                InventoryScreenContract.MOVEMENT_TARGET_LOCATION,
+                InventoryScreenContract.MOVEMENT_CONDITION,
+                InventoryScreenContract.MOVEMENT_LOT,
+                InventoryScreenContract.MOVEMENT_SERIAL,
+                InventoryScreenContract.MOVEMENT_EXPIRY,
+                InventoryScreenContract.MOVEMENT_QUANTITY,
+                InventoryScreenContract.MOVEMENT_REASON,
+                InventoryScreenContract.MOVEMENT_IDEMPOTENCY,
+                InventoryScreenContract.POST_MOVEMENT);
+        group(states, reservation,
+                InventoryScreenContract.RESERVATION_WAREHOUSE,
+                InventoryScreenContract.RESERVATION_LOCATION,
+                InventoryScreenContract.RESERVATION_CONDITION,
+                InventoryScreenContract.RESERVATION_LOT,
+                InventoryScreenContract.RESERVATION_SERIAL,
+                InventoryScreenContract.RESERVATION_EXPIRY_DATE,
+                InventoryScreenContract.RESERVATION_QUANTITY,
+                InventoryScreenContract.RESERVATION_EXPIRES_AT,
+                InventoryScreenContract.RESERVATION_IDEMPOTENCY,
+                InventoryScreenContract.MANAGE_RESERVATION_ID,
+                InventoryScreenContract.MANAGE_RESERVATION_VERSION,
+                InventoryScreenContract.MANAGE_RESERVATION_QUANTITY,
+                InventoryScreenContract.MANAGE_RESERVATION_IDEMPOTENCY,
+                InventoryScreenContract.CREATE_RESERVATION,
+                InventoryScreenContract.CONSUME_RESERVATION,
+                InventoryScreenContract.RELEASE_RESERVATION,
+                InventoryScreenContract.EXPIRE_RESERVATION);
+
+        if (movement) {
+            boolean transfer = StockMovementType.TRANSFER.name().equals(
+                    inputs.get(InventoryScreenContract.MOVEMENT_TYPE));
+            states.put(InventoryScreenContract.MOVEMENT_TARGET_WAREHOUSE,
+                    transfer ? ScreenInteraction.ElementState.requiredInput()
+                            : ScreenInteraction.ElementState.hidden());
+            states.put(InventoryScreenContract.MOVEMENT_TARGET_LOCATION,
+                    transfer ? ScreenInteraction.ElementState.requiredInput()
+                            : ScreenInteraction.ElementState.hidden());
+            trackingStates(states, item,
+                    InventoryScreenContract.MOVEMENT_LOT,
+                    InventoryScreenContract.MOVEMENT_SERIAL,
+                    InventoryScreenContract.MOVEMENT_EXPIRY);
+            if (movementPrerequisitesMissing || item.isEmpty()) {
+                states.put(InventoryScreenContract.POST_MOVEMENT,
+                        ScreenInteraction.ElementState.blocked(
+                                "Configura un artículo, depósito y ubicación activos."));
+            }
+        }
+        if (availability) {
+            trackingStates(states, item,
+                    InventoryScreenContract.AVAILABILITY_LOT,
+                    InventoryScreenContract.AVAILABILITY_SERIAL,
+                    InventoryScreenContract.AVAILABILITY_EXPIRY);
+        }
+        if (reservation) {
+            trackingStates(states, item,
+                    InventoryScreenContract.RESERVATION_LOT,
+                    InventoryScreenContract.RESERVATION_SERIAL,
+                    InventoryScreenContract.RESERVATION_EXPIRY_DATE);
+            boolean manageable = optional(inputs, InventoryScreenContract.MANAGE_RESERVATION_ID).isPresent()
+                    && optional(inputs, InventoryScreenContract.MANAGE_RESERVATION_VERSION).isPresent();
+            if (!manageable) {
+                for (ScreenElementId action : List.of(
+                        InventoryScreenContract.CONSUME_RESERVATION,
+                        InventoryScreenContract.RELEASE_RESERVATION,
+                        InventoryScreenContract.EXPIRE_RESERVATION)) {
+                    states.put(action, ScreenInteraction.ElementState.blocked(
+                            "Primero crea o selecciona una reserva vigente."));
+                }
+            }
+        }
+        if (itemAdmin && item.isEmpty()) {
+            states.put(InventoryScreenContract.REFRESH_STOCK_ITEM,
+                    ScreenInteraction.ElementState.blocked("Selecciona un artículo activo."));
+            states.put(InventoryScreenContract.INACTIVATE_STOCK_ITEM,
+                    ScreenInteraction.ElementState.blocked("Selecciona un artículo activo."));
+        }
+        states.put(InventoryScreenContract.APPLY_STOCK_TASK,
+                ScreenInteraction.ElementState.shown());
+        return Map.copyOf(states);
+    }
+
+    private static void group(
+            Map<ScreenElementId, ScreenInteraction.ElementState> states,
+            boolean visible,
+            ScreenElementId... elements) {
+        ScreenInteraction.ElementState state = visible
+                ? ScreenInteraction.ElementState.shown()
+                : ScreenInteraction.ElementState.hidden();
+        for (ScreenElementId element : elements) {
+            states.put(element, state);
+        }
+    }
+
+    private static void trackingStates(
+            Map<ScreenElementId, ScreenInteraction.ElementState> states,
+            Optional<InventoryItemSnapshot> item,
+            ScreenElementId lot,
+            ScreenElementId serial,
+            ScreenElementId expiryDate) {
+        TrackingMode tracking = item.map(InventoryItemSnapshot::trackingMode)
+                .orElse(TrackingMode.NONE);
+        states.put(lot, tracking == TrackingMode.LOT
+                ? ScreenInteraction.ElementState.requiredInput()
+                : ScreenInteraction.ElementState.hidden());
+        states.put(serial, tracking == TrackingMode.SERIAL
+                ? ScreenInteraction.ElementState.requiredInput()
+                : ScreenInteraction.ElementState.hidden());
+        ExpiryPolicy expiry = item.map(InventoryItemSnapshot::expiryPolicy)
+                .orElse(ExpiryPolicy.NONE);
+        states.put(expiryDate, switch (expiry) {
+            case NONE -> ScreenInteraction.ElementState.hidden();
+            case OPTIONAL -> ScreenInteraction.ElementState.shown();
+            case REQUIRED -> ScreenInteraction.ElementState.requiredInput();
+        });
+    }
+
+    private static String guidance(
+            Map<ScreenElementId, String> inputs,
+            Optional<InventoryItemSnapshot> item) {
+        String task = inputs.getOrDefault(InventoryScreenContract.STOCK_TASK, TASK_MOVEMENT);
+        String policy = item.map(value -> switch (value.trackingMode()) {
+            case NONE -> "El artículo no usa lote ni serie.";
+            case LOT -> "El artículo exige lote.";
+            case SERIAL -> "El artículo exige número de serie y cantidad base uno.";
+        }).orElse("Selecciona un artículo activo para continuar.");
+        return switch (task) {
+            case TASK_AVAILABILITY -> "Consulta una posición exacta sin modificar existencias. " + policy;
+            case TASK_RESERVATION -> "La reserva separa disponibilidad sin borrar historia. " + policy;
+            case TASK_ITEM_ADMIN -> "La administración conserva identidad, versiones e historia.";
+            default -> "La entrada aumenta, la salida disminuye y la transferencia mueve entre posiciones. "
+                    + policy;
+        };
+    }
+
+    private static String summary(
+            Map<ScreenElementId, String> inputs,
+            Optional<InventoryItemSnapshot> item) {
+        String itemLabel = item.map(InventoryItemSnapshot::catalogName)
+                .orElse("Artículo pendiente");
+        if (!TASK_MOVEMENT.equals(inputs.get(InventoryScreenContract.STOCK_TASK))) {
+            return itemLabel + " · tarea "
+                    + inputs.getOrDefault(InventoryScreenContract.STOCK_TASK, TASK_MOVEMENT);
+        }
+        String type = switch (inputs.getOrDefault(
+                InventoryScreenContract.MOVEMENT_TYPE, StockMovementType.RECEIPT.name())) {
+            case "ISSUE" -> "Salida";
+            case "TRANSFER" -> "Transferencia";
+            default -> "Entrada";
+        };
+        String quantity = optional(inputs, InventoryScreenContract.MOVEMENT_QUANTITY)
+                .orElse("cantidad pendiente");
+        String unit = item.map(InventoryItemSnapshot::baseUnitCode).orElse("unidad");
+        return type + " · " + itemLabel + " · " + quantity + " " + unit;
     }
 
     private static void clearMutationInputs(
@@ -597,23 +882,27 @@ public class InventoryStockScreenHandler implements ScreenInteraction.Handler {
         if (action.equals(InventoryScreenContract.POST_MOVEMENT)) {
             clear(inputs,
                     InventoryScreenContract.MOVEMENT_QUANTITY,
-                    InventoryScreenContract.MOVEMENT_REASON,
-                    InventoryScreenContract.MOVEMENT_SOURCE_ID,
-                    InventoryScreenContract.MOVEMENT_IDEMPOTENCY);
+                    InventoryScreenContract.MOVEMENT_REASON);
+            inputs.put(
+                    InventoryScreenContract.MOVEMENT_IDEMPOTENCY,
+                    UUID.randomUUID().toString());
         } else if (action.equals(InventoryScreenContract.CREATE_RESERVATION)) {
             clear(inputs,
                     InventoryScreenContract.RESERVATION_QUANTITY,
-                    InventoryScreenContract.RESERVATION_EXPIRES_AT,
-                    InventoryScreenContract.RESERVATION_SOURCE_ID,
-                    InventoryScreenContract.RESERVATION_IDEMPOTENCY);
+                    InventoryScreenContract.RESERVATION_EXPIRES_AT);
+            inputs.put(
+                    InventoryScreenContract.RESERVATION_IDEMPOTENCY,
+                    UUID.randomUUID().toString());
         } else if (action.equals(InventoryScreenContract.CONSUME_RESERVATION)
                 || action.equals(InventoryScreenContract.RELEASE_RESERVATION)
                 || action.equals(InventoryScreenContract.EXPIRE_RESERVATION)) {
             clear(inputs,
                     InventoryScreenContract.MANAGE_RESERVATION_ID,
                     InventoryScreenContract.MANAGE_RESERVATION_VERSION,
-                    InventoryScreenContract.MANAGE_RESERVATION_QUANTITY,
-                    InventoryScreenContract.MANAGE_RESERVATION_IDEMPOTENCY);
+                    InventoryScreenContract.MANAGE_RESERVATION_QUANTITY);
+            inputs.put(
+                    InventoryScreenContract.MANAGE_RESERVATION_IDEMPOTENCY,
+                    UUID.randomUUID().toString());
         }
     }
 

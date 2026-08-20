@@ -20,23 +20,26 @@ public final class ShellScreenInteractionView {
     private final Optional<TableView> table;
     private final Optional<DetailView> detail;
     private final List<NoticeView> notices;
+    private final Map<String, ElementStateView> elementStates;
 
     private ShellScreenInteractionView(
             Map<String, List<OptionView>> options,
             Map<String, SelectorSourceView> selectorSources,
             Optional<TableView> table,
             Optional<DetailView> detail,
-            List<NoticeView> notices) {
+            List<NoticeView> notices,
+            Map<String, ElementStateView> elementStates) {
         this.options = Map.copyOf(options);
         this.selectorSources = Map.copyOf(selectorSources);
         this.table = Objects.requireNonNull(table, "table");
         this.detail = Objects.requireNonNull(detail, "detail");
         this.notices = List.copyOf(notices);
+        this.elementStates = Map.copyOf(elementStates);
     }
 
     static ShellScreenInteractionView empty() {
         return new ShellScreenInteractionView(
-                Map.of(), Map.of(), Optional.empty(), Optional.empty(), List.of());
+                Map.of(), Map.of(), Optional.empty(), Optional.empty(), List.of(), Map.of());
     }
 
     static ShellScreenInteractionView from(ScreenInteraction.Result result) {
@@ -60,16 +63,32 @@ public final class ShellScreenInteractionView {
                                 Objects.requireNonNull(authorizedManagement,
                                                 "authorizedManagement")
                                         .contains(entry.getKey()))));
+        Map<String, ElementStateView> elementStates = result.elementStates().entrySet().stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        entry -> entry.getKey().value(),
+                        entry -> new ElementStateView(entry.getValue())));
         return new ShellScreenInteractionView(
                 options,
                 selectorSources,
                 result.table().map(TableView::new),
                 result.detail().map(DetailView::new),
-                result.notices().stream().map(NoticeView::new).toList());
+                result.notices().stream().map(NoticeView::new).toList(),
+                elementStates);
     }
 
     public Map<String, List<OptionView>> getOptions() {
         return options;
+    }
+
+    String selectedOptionLabel(String fieldId, String selectedValue) {
+        if (selectedValue == null || selectedValue.isBlank()) {
+            return "Ninguna";
+        }
+        return options.getOrDefault(fieldId, List.of()).stream()
+                .filter(option -> option.getValue().equals(selectedValue))
+                .map(OptionView::getLabel)
+                .findFirst()
+                .orElse("Selección no disponible");
     }
 
     public Map<String, SelectorSourceView> getSelectorSources() {
@@ -94,6 +113,49 @@ public final class ShellScreenInteractionView {
 
     public List<NoticeView> getNotices() {
         return notices;
+    }
+
+    public Map<String, ElementStateView> getElementStates() {
+        return elementStates;
+    }
+
+    boolean acceptsAction(String actionId) {
+        ElementStateView dynamic = elementStates.get(actionId);
+        return dynamic == null || (dynamic.isVisible() && dynamic.isEnabled());
+    }
+
+    public static final class ElementStateView {
+        private final boolean visible;
+        private final boolean enabled;
+        private final boolean required;
+        private final String unavailableReason;
+
+        private ElementStateView(ScreenInteraction.ElementState state) {
+            visible = state.visible();
+            enabled = state.enabled();
+            required = state.required();
+            unavailableReason = state.unavailableReason().orElse("");
+        }
+
+        public boolean isVisible() {
+            return visible;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public boolean isRequired() {
+            return required;
+        }
+
+        public String getUnavailableReason() {
+            return unavailableReason;
+        }
+
+        public boolean isHasUnavailableReason() {
+            return !unavailableReason.isEmpty();
+        }
     }
 
     public static final class OptionView {

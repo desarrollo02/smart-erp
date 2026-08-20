@@ -302,6 +302,8 @@ a { color: inherit; }
 .button-tonal { color: var(--md-sys-color-on-secondary-container); background: var(--md-sys-color-secondary-container); }
 .button-secondary { color: var(--md-sys-color-primary); background: transparent; border-color: var(--md-sys-color-outline); }
 .button-secondary:hover { background: var(--md-sys-color-surface-container); }
+.button-destructive { color: var(--md-sys-color-error); background: transparent; border-color: var(--md-sys-color-error); }
+.button-destructive:hover { color: #ffffff; background: var(--md-sys-color-error); }
 .button-quiet { color: var(--md-sys-color-on-secondary-container); background: var(--md-sys-color-secondary-container); }
 .button-ghost { color: var(--md-sys-color-inverse-on-surface); background: transparent; border-color: rgba(255, 255, 255, 0.38); }
 .button-ghost:hover { background: rgba(255, 255, 255, 0.10); }
@@ -538,6 +540,43 @@ a { color: inherit; }
 .detail-section { display: flex; flex-direction: column; }
 .detail-section .screen-section-form { flex: 1; align-content: space-between; }
 
+/* Closed v2 floorplans. Plugins contribute semantics; the shell owns every layout. */
+.floorplan-page-header { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; padding: 0.6rem 0 1rem; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
+.floorplan-page-header h1 { margin: 0.18rem 0 0.3rem; font-size: clamp(1.55rem, 3vw, 2rem); line-height: 1.2; }
+.floorplan-page-header p { max-width: 48rem; margin: 0; color: var(--ink-soft); font-size: 0.88rem; line-height: 1.45; }
+.floorplan-contract-chip { flex: 0 0 auto; padding: 0.45rem 0.7rem; color: var(--md-sys-color-on-secondary-container); background: var(--md-sys-color-secondary-container); border-radius: var(--md-sys-shape-corner-full); font-size: 0.72rem; font-weight: 750; }
+.floorplan-shell { min-width: 0; display: grid; gap: 1rem; padding-top: 1rem; }
+.floorplan-form { min-width: 0; display: grid; gap: 1rem; }
+.floorplan-region { min-width: 0; padding: 1rem; background: var(--md-sys-color-surface); border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); box-shadow: var(--md-sys-elevation-level-1); }
+.floorplan-region-header { margin-bottom: 0.85rem; }
+.floorplan-region-header h2 { margin: 0; font-size: 1rem; }
+.floorplan-field-grid { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 0.85rem; }
+.floorplan-field { min-width: 0; display: grid; align-content: start; gap: 0.35rem; }
+.floorplan-field label, .floorplan-field .field-label { color: var(--ink-soft); font-size: 0.76rem; font-weight: 750; }
+.floorplan-field .field-help { margin: 0; color: var(--ink-soft); font-size: 0.76rem; line-height: 1.4; }
+.floorplan-output { min-width: 0; overflow-wrap: anywhere; font-size: 0.92rem; }
+.floorplan-table { min-width: 0; margin-top: 0.85rem; overflow: hidden; border: 1px solid var(--md-sys-color-outline-variant); border-radius: var(--md-sys-shape-corner-medium); }
+.floorplan-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.6rem; }
+.floorplan-actions:empty { display: none; }
+.floorplan-action { display: grid; justify-items: end; gap: 0.3rem; }
+.floorplan-command-bridge { display: none; }
+.floorplan-unavailable-reason { max-width: 24rem; color: var(--md-sys-color-error); font-size: 0.74rem; line-height: 1.4; }
+.floorplan-region-actions { background: var(--md-sys-color-surface-container-low); box-shadow: none; }
+.floorplan-master-data .floorplan-region-content { max-width: 64rem; }
+.floorplan-worklist .floorplan-region-work-items { padding: 0; overflow: hidden; }
+.floorplan-transaction-editor .floorplan-form { grid-template-columns: minmax(0, 1fr) minmax(18rem, 0.38fr); align-items: start; }
+.floorplan-transaction-editor .floorplan-region-header,
+.floorplan-transaction-editor .floorplan-region-lines { grid-column: 1; }
+.floorplan-transaction-editor .floorplan-region-summary { grid-column: 2; grid-row: 1 / span 2; }
+.floorplan-transaction-editor .floorplan-region-actions { grid-column: 1 / -1; }
+.floorplan-guided-operation .floorplan-form { grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.34fr); align-items: start; }
+.floorplan-guided-operation .floorplan-region-content,
+.floorplan-guided-operation .floorplan-region-summary,
+.floorplan-guided-operation .floorplan-region-actions { grid-column: 1; }
+.floorplan-guided-operation .floorplan-region-context,
+.floorplan-guided-operation .floorplan-region-guidance { grid-column: 2; }
+.floorplan-inquiry .floorplan-region-content { background: var(--md-sys-color-surface-container-low); }
+
 /* Productive ERP floorplan: directory -> create -> object detail. */
 .composed-screen-business { overflow: visible; background: transparent; border: 0; border-radius: 0; box-shadow: none; }
 .entity-page-header { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; padding: 0.6rem 0 1rem; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
@@ -577,6 +616,7 @@ a { color: inherit; }
 .row-open-link:hover { background: var(--md-sys-color-primary-container); }
 .row-open-link:focus-visible { outline: 3px solid var(--md-sys-color-primary-container); }
 .business-mobile-list { display: none; }
+.business-mobile-item-static { padding-right: 0.9rem !important; }
 .directory-pagination,
 .directory-page-actions,
 .selector-page-actions { display: flex; align-items: center; gap: 0.6rem; }
@@ -643,8 +683,14 @@ a { color: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (min-width: 600px) and (max-width: 839px) {
-    .topbar { align-items: center; flex-wrap: nowrap; }
-    .session-panel { width: auto; margin-left: 0; }
+    .topbar { align-items: center; flex-wrap: wrap; gap: 0.75rem; }
+    .session-panel { min-width: 0; width: 100%; margin-left: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.5rem 1rem; }
+    .identity-copy { min-width: 0; grid-column: 1; grid-row: 1; text-align: left; }
+    .session-panel > form:not(.company-switcher) { grid-column: 2; grid-row: 1; }
+    .company-switcher { min-width: 0; width: 100%; grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+    .company-switcher .select-control { min-width: 0; width: 100%; max-width: none; grid-column: 1; grid-row: 1; }
+    .company-switcher .button { grid-column: 2; grid-row: 1; }
+    .company-switcher .native-selector-source { grid-column: 1 / -1; grid-row: 2; margin-top: 0; }
     .shell-layout { grid-template-columns: minmax(0, 1fr); }
     .app-navigation { display: none; }
     .mobile-navigation { display: block; position: relative; margin-left: auto; }
@@ -658,6 +704,17 @@ a { color: inherit; }
     .business-directory-layout { grid-template-columns: minmax(0, 1fr); }
     .screen-section-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .detail-section-grid { grid-template-columns: minmax(0, 1fr); }
+    .floorplan-transaction-editor .floorplan-form,
+    .floorplan-guided-operation .floorplan-form { grid-template-columns: minmax(0, 1fr); }
+    .floorplan-transaction-editor .floorplan-region-header,
+    .floorplan-transaction-editor .floorplan-region-lines,
+    .floorplan-transaction-editor .floorplan-region-summary,
+    .floorplan-transaction-editor .floorplan-region-actions,
+    .floorplan-guided-operation .floorplan-region-content,
+    .floorplan-guided-operation .floorplan-region-summary,
+    .floorplan-guided-operation .floorplan-region-actions,
+    .floorplan-guided-operation .floorplan-region-context,
+    .floorplan-guided-operation .floorplan-region-guidance { grid-column: 1; grid-row: auto; }
     .directory-filter-form { align-items: stretch; flex-direction: column; }
     .directory-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .search-main-field { grid-column: 1 / -1; }
@@ -692,7 +749,9 @@ a { color: inherit; }
     .session-panel > form:not(.company-switcher) { flex: 0 0 auto; }
     .identity-copy { min-width: 0; flex: 1 1 10rem; text-align: left; }
     .company-switcher { order: 3; width: 100%; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) auto; }
-    .company-switcher .select-control { min-width: 0; width: 100%; }
+    .company-switcher .select-control { grid-column: 1; grid-row: 1; min-width: 0; width: 100%; }
+    .company-switcher .button { grid-column: 2; grid-row: 1; }
+    .company-switcher .native-selector-source { grid-column: 1 / -1; grid-row: 2; margin-top: 0; }
     .select-control { max-width: none; }
     .main-content { width: 100%; padding: 0.85rem 0.75rem 1.5rem; }
     .workspace { gap: 2rem; }
@@ -722,6 +781,23 @@ a { color: inherit; }
     .interactive-screen { gap: 1.25rem; padding: 1rem; }
     .business-directory-layout, .screen-section-stack, .detail-section-grid { grid-template-columns: minmax(0, 1fr); }
     .screen-section, .directory-results { padding: 1rem; }
+    .floorplan-page-header { align-items: flex-start; flex-direction: column; }
+    .floorplan-contract-chip { align-self: flex-start; }
+    .floorplan-transaction-editor .floorplan-form,
+    .floorplan-guided-operation .floorplan-form { grid-template-columns: minmax(0, 1fr); }
+    .floorplan-transaction-editor .floorplan-region-header,
+    .floorplan-transaction-editor .floorplan-region-lines,
+    .floorplan-transaction-editor .floorplan-region-summary,
+    .floorplan-transaction-editor .floorplan-region-actions,
+    .floorplan-guided-operation .floorplan-region-content,
+    .floorplan-guided-operation .floorplan-region-summary,
+    .floorplan-guided-operation .floorplan-region-actions,
+    .floorplan-guided-operation .floorplan-region-context,
+    .floorplan-guided-operation .floorplan-region-guidance { grid-column: 1; grid-row: auto; }
+    .floorplan-region { padding: 0.85rem; }
+    .floorplan-field-grid { grid-template-columns: minmax(0, 1fr); }
+    .floorplan-actions { align-items: stretch; flex-direction: column; }
+    .floorplan-action { justify-items: stretch; }
     .screen-section-actions { align-items: stretch; flex-direction: column; }
     .business-detail-header { align-items: flex-start; flex-direction: column; }
     .version-chip { white-space: normal; }

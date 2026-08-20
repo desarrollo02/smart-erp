@@ -26,6 +26,8 @@ Cada procedimiento debe declarar prerrequisitos, comandos, resultado esperado, v
 - [Demo reproducible de plugins y `commercial_catalog` — J11-S7-06](demo-commercial-catalog-j11-s7-06.md)
 - [Demo visual de cierre de Sprint 7 — J11-S7-07](demo-cierre-sprint-07.md)
 - [Demo visual oficial de cierre técnico de Sprint 8 — J11-S8-07](demo-cierre-sprint-08.md)
+- [Demo visual oficial de cierre técnico de Sprint 9 — J11-S9-07](demo-cierre-sprint-09.md)
+- [Demo visual oficial de cierre técnico de Sprint 10 — J11-S10-06](demo-cierre-sprint-10.md)
 - [Demo de datos de referencia normativos — J11-S8-C03](demo-datos-referencia-j11-s8-c03.md)
 - [Demo de publicaciones completas y políticas de referencia — J11-S8-C07](demo-datos-referencia-j11-s8-c07.md)
 - [Construcción y operación del migrador](migrator.md)

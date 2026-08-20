@@ -13,6 +13,35 @@ import org.junit.jupiter.api.Test;
 
 class ScreenInteractionTest {
 
+    @Test
+    void dynamicElementStatesAreImmutableAndV1ResultsRemainCompatible() {
+        ScreenElementId action = new ScreenElementId("approve");
+        var legacy = new ScreenInteraction.Result(
+                Map.of(), Map.of(), Optional.empty(), Optional.empty(), List.of(),
+                Optional.empty(), Optional.empty());
+        Map<ScreenElementId, ScreenInteraction.ElementState> states =
+                new java.util.HashMap<>();
+        states.put(action, ScreenInteraction.ElementState.blocked(
+                "La solicitud ya no está pendiente"));
+        var dynamic = new ScreenInteraction.Result(
+                Map.of(), Map.of(), Optional.empty(), Optional.empty(), List.of(),
+                Optional.empty(), Optional.empty(), states);
+        states.clear();
+
+        assertTrue(legacy.elementStates().isEmpty());
+        assertEquals(false, dynamic.elementStates().get(action).enabled());
+        assertEquals("La solicitud ya no está pendiente",
+                dynamic.elementStates().get(action).unavailableReason().orElseThrow());
+        assertThrows(UnsupportedOperationException.class, () -> dynamic.elementStates().clear());
+        assertThrows(IllegalArgumentException.class,
+                () -> new ScreenInteraction.ElementState(false, true, false, Optional.empty()));
+        assertThrows(IllegalArgumentException.class,
+                () -> new ScreenInteraction.ElementState(true, false, true, Optional.empty()));
+        assertThrows(IllegalArgumentException.class,
+                () -> new ScreenInteraction.ElementState(
+                        true, true, false, Optional.of("blocking")));
+    }
+
     private static final PluginId PLUGIN = new PluginId("sample_plugin");
     private static final ScreenElementId QUERY = new ScreenElementId("query");
     private static final ScreenElementId RESULTS = new ScreenElementId("results");

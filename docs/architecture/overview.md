@@ -1,9 +1,9 @@
 # Vista general de arquitectura
 
-- Versión: 62
-- Fecha: 2026-08-13
-- Estado: J11-S9-08 agregó el instalador interno `0.9.0-internal.1` al baseline de `purchasing` congelado en J11-S9-07; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045, la familia Flota F1/F2 por ADR-0046 y Sprint 10 planifica floorplans operativos por ADR-0047 antes de `sales`; G7, Authenticode y matriz Windows independiente pendientes
-- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07`, J11-S9-00 a J11-S9-08 y J11-S10-00 planificada; ADR-0009 a ADR-0047
+- Versión: 63
+- Fecha: 2026-08-20
+- Estado: J11-S10-06 valida automáticamente los floorplans v2 de Inventario y Compras, composición y demo del perfil `with-purchasing-demo`; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045 y la familia Flota F1/F2 por ADR-0046; validación independiente, J11-S10-07, Authenticode y matriz Windows externa pendientes
+- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07`, J11-S9-00 a J11-S9-08 y J11-S10-00 a J11-S10-06; ADR-0009 a ADR-0047
 
 ## Objetivo
 
@@ -625,12 +625,13 @@ familia vertical Flota F1–F2. El catálogo futuro general contiene treinta y t
 reutilizables, pero no existe una composición objetivo que los empaquete a todos.
 La secuencia ERP 1–19 conserva su numeración.
 
-[ADR-0047](../adr/0047-floorplans-operativos-transaccionales.md) agrega un gate de
-plataforma visual entre `purchasing` y `sales`. El gate no es un plugin y no altera
-la secuencia 1–19. Versionará contratos neutrales para distinguir maestros,
-bandejas, editores transaccionales, capturas guiadas y consultas, y los validará
-primero con Inventario y Compras. El shell conserva XHTML, Material Design 3,
-accesibilidad y responsive; los plugins sólo declaran semántica cerrada.
+[ADR-0047](../adr/0047-floorplans-operativos-transaccionales.md) implementa un
+gate de plataforma visual entre `purchasing` y `sales`. El gate no es un plugin y
+no altera la secuencia 1–19. `plugin-api` 0.4.5 distingue `MASTER_DATA`,
+`WORKLIST`, `TRANSACTION_EDITOR`, `GUIDED_OPERATION` e `INQUIRY`, con contratos
+v1 compatibles. Inventario 1.2 y Compras 1.2 son los primeros consumidores. El
+shell conserva XHTML, Material Design 3, foco, movimiento reducido y responsive;
+los plugins sólo declaran semántica cerrada y el servidor revalida cada acción.
 
 El perfil cooperativo planificado separa:
 

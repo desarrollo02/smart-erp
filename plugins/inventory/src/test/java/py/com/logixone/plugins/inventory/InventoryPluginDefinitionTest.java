@@ -39,8 +39,9 @@ class InventoryPluginDefinitionTest {
                         InventoryScreenContract.WAREHOUSES_ROUTE,
                         InventoryScreenContract.COUNTS_ROUTE),
                 descriptor.menuContributions().stream().map(menu -> menu.route()).toList());
-        assertTrue(descriptor.menuContributions().stream().allMatch(menu ->
-                menu.requiredPermission().orElseThrow().equals(InventoryPermissions.VIEW)));
+        assertTrue(descriptor.menuContributions().stream()
+                .allMatch(menu -> menu.requiredPermission().orElseThrow()
+                        .equals(InventoryPermissions.VIEW)));
         assertEquals(1, descriptor.migrations().size());
         assertEquals("plg_inventory", descriptor.migrations().getFirst().schema());
         assertEquals("classpath:db/migration/inventory", descriptor.migrations().getFirst().location());
@@ -49,8 +50,13 @@ class InventoryPluginDefinitionTest {
                         InventoryScreenContract.warehousesDefinition(),
                         InventoryScreenContract.countsDefinition()),
                 descriptor.screenDefinitions());
-        assertTrue(descriptor.screenDefinitions().stream().allMatch(screen ->
-                screen.slots().size() == 2));
+        assertEquals(2, descriptor.screenDefinitions().stream()
+                .filter(screen -> screen.contractVersion().major().intValueExact() == 1)
+                .filter(screen -> screen.slots().size() == 2)
+                .count());
+        assertEquals("2.0.0", InventoryScreenContract.stockDefinition()
+                .contractVersion().toString());
+        assertTrue(InventoryScreenContract.stockDefinition().slots().isEmpty());
         assertTrue(descriptor.screenOverlays().isEmpty());
     }
 

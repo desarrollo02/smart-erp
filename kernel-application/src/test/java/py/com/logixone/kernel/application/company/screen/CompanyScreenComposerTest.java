@@ -34,14 +34,24 @@ import py.com.logixone.plugin.api.PluginDescriptor;
 import py.com.logixone.plugin.api.PluginId;
 import py.com.logixone.plugin.api.PluginKind;
 import py.com.logixone.plugin.api.ScreenChange;
+import py.com.logixone.plugin.api.ScreenActionDefinition;
+import py.com.logixone.plugin.api.ScreenActionEmphasis;
+import py.com.logixone.plugin.api.ScreenActionIntent;
+import py.com.logixone.plugin.api.ScreenConfirmationMode;
 import py.com.logixone.plugin.api.ScreenCustomizationOperation;
 import py.com.logixone.plugin.api.ScreenDefinition;
 import py.com.logixone.plugin.api.ScreenElementDefinition;
 import py.com.logixone.plugin.api.ScreenElementId;
+import py.com.logixone.plugin.api.ScreenElementType;
+import py.com.logixone.plugin.api.ScreenExperienceDefinition;
 import py.com.logixone.plugin.api.ScreenFragmentId;
 import py.com.logixone.plugin.api.ScreenId;
 import py.com.logixone.plugin.api.ScreenOverlay;
+import py.com.logixone.plugin.api.ScreenPurpose;
+import py.com.logixone.plugin.api.ScreenRegionDefinition;
 import py.com.logixone.plugin.api.ScreenRegionId;
+import py.com.logixone.plugin.api.ScreenRegionRole;
+import py.com.logixone.plugin.api.ScreenSemanticType;
 import py.com.logixone.plugin.api.ScreenSlotDefinition;
 import py.com.logixone.plugin.api.ScreenSlotId;
 import py.com.logixone.plugin.api.ScreenTextKey;
@@ -258,6 +268,43 @@ class CompanyScreenComposerTest {
         assertThrows(UnsupportedOperationException.class, () -> result.screens().getFirst().slots().clear());
     }
 
+    @Test
+    void preservesTheV2ExperienceForTheClosedShellRenderer() {
+        ScreenExperienceDefinition experience = new ScreenExperienceDefinition(
+                ScreenPurpose.TRANSACTION_EDITOR,
+                List.of(
+                        new ScreenRegionDefinition(
+                                new ScreenRegionId("header"), ScreenRegionRole.HEADER, 0),
+                        new ScreenRegionDefinition(
+                                new ScreenRegionId("actions"), ScreenRegionRole.ACTIONS, 1)),
+                Map.of(
+                        CUSTOMER, ScreenSemanticType.SEARCHABLE_REFERENCE,
+                        AMOUNT, ScreenSemanticType.MONEY),
+                List.of(new ScreenActionDefinition(
+                        SUBMIT,
+                        ScreenActionIntent.SUBMIT,
+                        ScreenActionEmphasis.PRIMARY,
+                        ScreenConfirmationMode.NONE)));
+        ScreenDefinition definition = new ScreenDefinition(
+                DASHBOARD,
+                SemanticVersion.parse("2.0.0"),
+                List.of(
+                        element(AMOUNT, ScreenElementType.TEXT_INPUT, "header", 0),
+                        element(CUSTOMER, ScreenElementType.SELECT, "header", 1),
+                        element(SUBMIT, ScreenElementType.ACTION, "actions", 0)),
+                List.of(),
+                Optional.of(experience));
+
+        CompanyScreenComposition result = activeService(
+                COMPANY_A,
+                CUSTOM_A,
+                List.of(functional(definition), customization(CUSTOM_A)))
+                .compose(COMPANY_A);
+
+        assertTrue(result.operational());
+        assertEquals(Optional.of(experience), result.screens().getFirst().experience());
+    }
+
     private static CompanyScreenService activeService(
             CompanyId companyId,
             PluginId customizationId,
@@ -359,6 +406,24 @@ class CompanyScreenComposerTest {
                                 Set.of(ScreenCustomizationOperation.DISABLE))),
                 List.of(new ScreenSlotDefinition(
                         SUMMARY, new ScreenRegionId("main"), 2, 1)));
+    }
+
+    private static ScreenElementDefinition element(
+            ScreenElementId id,
+            ScreenElementType type,
+            String region,
+            int order) {
+        return new ScreenElementDefinition(
+                id,
+                type,
+                new ScreenRegionId(region),
+                order,
+                text("functional." + id.value()),
+                Optional.empty(),
+                true,
+                true,
+                false,
+                Set.of());
     }
 
     private static ScreenOverlay overlay(

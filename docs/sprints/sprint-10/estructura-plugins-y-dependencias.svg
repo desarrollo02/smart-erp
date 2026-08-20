@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">Dependencias y composición de plugins de Sprint 10</title>
+  <desc id="desc">Cinco plugins productivos y tres fixtures se seleccionan en with-purchasing-demo. Las flechas sólidas indican dependencias funcionales requeridas y las discontinuas composición física hacia WAR y migrador.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#34495e"/></marker>
+    <style>
+      .bg{fill:#f7f9fc}.title{font:700 30px Arial;fill:#183153}.sub{font:16px Arial;fill:#52667a}
+      .prod{fill:#e4f3ff;stroke:#1666a8;stroke-width:2}.fixture{fill:#f4eaff;stroke:#7048a8;stroke-width:2}
+      .set{fill:#e4f7ef;stroke:#16835b;stroke-width:2}.artifact{fill:#fff3d9;stroke:#b06a00;stroke-width:2}
+      .node{font:700 16px Arial;fill:#183153;text-anchor:middle}.version{font:14px Arial;fill:#52667a;text-anchor:middle}
+      .dep{fill:none;stroke:#34495e;stroke-width:2;marker-end:url(#arrow)}.physical{fill:none;stroke:#16835b;stroke-width:2;stroke-dasharray:8 6;marker-end:url(#arrow)}
+      .label{font:12px Arial;fill:#34495e;text-anchor:middle}.legend{font:14px Arial;fill:#34495e}
+    </style>
+  </defs>
+  <rect class="bg" width="1280" height="720"/>
+  <text class="title" x="50" y="48">Sprint 10 · Plugins y composición física</text>
+  <text class="sub" x="50" y="76">Contrato visual v2 sin cambiar propietarios, esquemas ni selección de ocho JAR</text>
+
+  <g><rect class="prod" x="60" y="130" rx="14" width="220" height="70"/><text class="node" x="170" y="158">reference_data</text><text class="version" x="170" y="184">1.1.0</text></g>
+  <g><rect class="prod" x="350" y="105" rx="14" width="220" height="70"/><text class="node" x="460" y="133">business_partners</text><text class="version" x="460" y="159">1.1.0</text></g>
+  <g><rect class="prod" x="350" y="220" rx="14" width="220" height="70"/><text class="node" x="460" y="248">commercial_catalog</text><text class="version" x="460" y="274">1.1.0</text></g>
+  <g><rect class="prod" x="640" y="220" rx="14" width="220" height="70"/><text class="node" x="750" y="248">inventory</text><text class="version" x="750" y="274">1.2.0</text></g>
+  <g><rect class="prod" x="930" y="162" rx="14" width="220" height="70"/><text class="node" x="1040" y="190">purchasing</text><text class="version" x="1040" y="216">1.2.0</text></g>
+
+  <path class="dep" d="M350 140 L280 158"/><text class="label" x="316" y="136">1.x</text>
+  <path class="dep" d="M350 250 L280 180"/><text class="label" x="319" y="226">1.x</text>
+  <path class="dep" d="M640 255 L570 255"/><text class="label" x="605" y="247">1.x</text>
+  <path class="dep" d="M930 182 L570 142"/><text class="label" x="753" y="146">≥1.1</text>
+  <path class="dep" d="M930 198 L570 252"/><text class="label" x="753" y="238">≥1.1</text>
+  <path class="dep" d="M930 214 L860 260"/><text class="label" x="900" y="249">≥1.1</text>
+  <path class="dep" d="M930 170 C650 90 420 88 280 145"/><text class="label" x="620" y="94">1.x</text>
+
+  <g><rect class="fixture" x="60" y="360" rx="14" width="220" height="70"/><text class="node" x="170" y="388">reference_plugin</text><text class="version" x="170" y="414">1.0.0</text></g>
+  <g><rect class="fixture" x="350" y="330" rx="14" width="220" height="70"/><text class="node" x="460" y="358">reference_custom_a</text><text class="version" x="460" y="384">1.0.0</text></g>
+  <g><rect class="fixture" x="350" y="435" rx="14" width="220" height="70"/><text class="node" x="460" y="463">reference_custom_b</text><text class="version" x="460" y="489">1.0.0</text></g>
+  <path class="dep" d="M350 365 L280 390"/><text class="label" x="315" y="366">1.x</text>
+  <path class="dep" d="M350 470 L280 410"/><text class="label" x="316" y="447">1.x</text>
+
+  <g><rect class="set" x="650" y="390" rx="14" width="250" height="90"/><text class="node" x="775" y="420">logixone-plugin-set</text><text class="version" x="775" y="446">with-purchasing-demo</text><text class="version" x="775" y="468">8 JAR físicos</text></g>
+  <g><rect class="artifact" x="1010" y="350" rx="14" width="190" height="70"/><text class="node" x="1105" y="378">logixone-war</text><text class="version" x="1105" y="404">WildFly 41</text></g>
+  <g><rect class="artifact" x="1010" y="465" rx="14" width="190" height="70"/><text class="node" x="1105" y="493">migrator</text><text class="version" x="1105" y="519">Flyway</text></g>
+  <path class="physical" d="M900 420 L1010 385"/><path class="physical" d="M900 455 L1010 500"/>
+  <path class="physical" d="M650 420 C540 420 570 170 570 150"/>
+  <path class="physical" d="M650 430 C600 430 600 255 570 255"/>
+  <path class="physical" d="M650 440 L570 365"/><path class="physical" d="M650 450 L570 470"/>
+  <path class="physical" d="M775 390 C790 330 790 300 780 290"/>
+  <path class="physical" d="M850 390 C930 340 980 270 1040 232"/>
+  <path class="physical" d="M650 460 C470 560 250 520 170 430"/>
+  <path class="physical" d="M650 470 C420 610 140 540 130 200"/>
+
+  <line x1="70" y1="625" x2="145" y2="625" class="dep"/><text class="legend" x="165" y="630">Dependencia funcional REQUIRED</text>
+  <line x1="430" y1="625" x2="505" y2="625" class="physical"/><text class="legend" x="525" y="630">Selección física común</text>
+  <text class="legend" x="70" y="675">Sin relaciones JPA ni SQL entre esquemas privados · ningún plugin aporta XHTML, CSS, JavaScript o EL</text>
+</svg>

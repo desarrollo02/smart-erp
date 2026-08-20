@@ -10,7 +10,9 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.AriaRole;
+import com.microsoft.playwright.options.ReducedMotion;
 import com.microsoft.playwright.options.SelectOption;
+import com.microsoft.playwright.options.WaitForSelectorState;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -111,6 +114,7 @@ class InventoryVisualIT {
     private BrowserContext newContext() {
         return browser.newContext(new Browser.NewContextOptions()
                 .setLocale("es-PY")
+                .setReducedMotion(ReducedMotion.REDUCE)
                 .setViewportSize(1280, 900));
     }
 
@@ -270,37 +274,105 @@ class InventoryVisualIT {
             Page page, String suffix, String itemName, String unitCode, String warehouseCode) {
         page.navigate(routeUrl("%2Finventory", "directory"));
         requireMainHeading(page, "Existencias");
+        assertEquals(0, page.getByLabel(
+                "Clave de idempotencia", new Page.GetByLabelOptions().setExact(true)).count(),
+                "technical idempotency must never be editable");
+        assertEquals(0, page.getByLabel(
+                "Tipo de origen", new Page.GetByLabelOptions().setExact(true)).count(),
+                "manual movements must derive their source on the server");
+        assertTrue(page.locator("input[type='hidden'][id*='floorplan-token']").count() >= 1,
+                "the shell must transport technical tokens as hidden controls");
         assertResponsive(page, 1280, 900, "inventory-stock-directory-expanded-1280.png");
         assertResponsive(page, 720, 900, "inventory-stock-directory-medium-720.png");
         assertResponsive(page, 375, 900, "inventory-stock-directory-compact-375.png");
 
         page.setViewportSize(1280, 900);
+        requireOne(page.getByLabel("Tarea", new Page.GetByLabelOptions().setExact(true)),
+                "guided stock task").selectOption("ITEM_ADMIN");
         requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Incorporar producto")),
-                "enroll inventory product action").click();
-        Locator product = requireOne(page.getByLabel(
-                "Producto de catálogo", new Page.GetByLabelOptions().setExact(true)),
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Continuar")),
+                "apply item administration task").click();
+        Locator productInput = page.getByLabel(
+                "Producto de catálogo", new Page.GetByLabelOptions().setExact(true));
+        productInput.waitFor();
+        Locator product = requireOne(productInput,
                 "catalog product for inventory");
-        product.selectOption(optionValueContaining(product, itemName));
+        String catalogItemId = optionValueContaining(product, itemName);
+        product.selectOption(catalogItemId);
+        assertEquals(catalogItemId, product.inputValue(),
+                "inventory enrollment must retain the selected catalog product");
         requireOne(page.getByLabel("Seguimiento", new Page.GetByLabelOptions().setExact(true)),
                 "inventory tracking").selectOption("NONE");
         requireOne(page.getByLabel("Vencimiento", new Page.GetByLabelOptions().setExact(true)),
                 "inventory expiry policy").selectOption("NONE");
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Incorporar")),
-                "enroll inventory product").click();
+                "enroll inventory product");
+        AtomicBoolean enrollmentConfirmationAccepted = new AtomicBoolean();
+        AtomicBoolean enrollmentActionPosted = new AtomicBoolean();
+        AtomicBoolean enrollmentCommandPosted = new AtomicBoolean();
+        AtomicBoolean enrollmentCatalogItemPosted = new AtomicBoolean();
+        page.onRequest(request -> {
+            String postData = request.postData();
+            if ("POST".equals(request.method()) && postData != null
+                    && postData.contains("floorplanRequestedAction=enroll_stock_item")) {
+                enrollmentActionPosted.set(true);
+                enrollmentCommandPosted.set(postData.contains("floorplan-command-bridge"));
+                enrollmentCatalogItemPosted.set(postData.contains(
+                        "floorplanInput.stock_new_catalog_item=" + catalogItemId));
+            }
+        });
+        page.onceDialog(dialog -> {
+            dialog.accept();
+            enrollmentConfirmationAccepted.set(true);
+        });
+        page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Incorporar")).click();
+        assertTrue(enrollmentConfirmationAccepted.get(),
+                "inventory enrollment must request explicit confirmation");
+        assertTrue(enrollmentActionPosted.get(),
+                "inventory enrollment must post the requested action");
+        assertTrue(enrollmentCommandPosted.get(),
+                "inventory enrollment must post the stable JSF command bridge");
+        assertTrue(enrollmentCatalogItemPosted.get(),
+                "inventory enrollment must post the selected catalog product semantically");
+        page.waitForTimeout(1_000);
+        assertResponsive(page, 1280, 900,
+                "inventory-stock-enrollment-expanded-1280.png");
         requireOne(page.getByText(
                 "Artículo incorporado al inventario", new Page.GetByTextOptions().setExact(true)),
                 "inventory enrollment confirmation").waitFor();
-        requireOne(page.getByRole(
-                AriaRole.HEADING, new Page.GetByRoleOptions().setName(itemName)),
-                "inventory product detail").waitFor();
 
+        requireOne(page.getByLabel("Tarea", new Page.GetByLabelOptions().setExact(true)),
+                "movement task selector").selectOption("MOVEMENT");
         requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Movimientos")),
-                "inventory movements tab").click();
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Continuar")),
+                "apply movement task").click();
+        Locator movementItemInput = page.locator(
+                "select[data-screen-input='movement_item']");
+        movementItemInput.waitFor();
+        Locator movementItem = requireOne(movementItemInput, "movement item");
+        movementItem.selectOption(optionValueContaining(movementItem, itemName));
+        requireOne(page.getByLabel("Tipo de movimiento", new Page.GetByLabelOptions().setExact(true)),
+                "movement type").selectOption("TRANSFER");
+        requireOne(page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Continuar")),
+                "prepare transfer").click();
+        Locator transferDestination = page.getByLabel(
+                "Depósito destino", new Page.GetByLabelOptions().setExact(true));
+        transferDestination.waitFor();
+        requireOne(transferDestination, "conditional transfer destination");
+
         requireOne(page.getByLabel("Tipo de movimiento", new Page.GetByLabelOptions().setExact(true)),
                 "movement type").selectOption("RECEIPT");
+        requireOne(page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Continuar")),
+                "prepare receipt").click();
+        transferDestination.waitFor(new Locator.WaitForOptions()
+                .setState(WaitForSelectorState.DETACHED));
+        assertEquals(0, page.getByLabel(
+                "Depósito destino", new Page.GetByLabelOptions().setExact(true)).count(),
+                "receipt must not expose transfer destinations");
         selectInputContaining(page, "movement_warehouse", warehouseCode);
         selectInputContaining(page, "movement_location", warehouseCode + " · GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
@@ -309,51 +381,47 @@ class InventoryVisualIT {
                 "movement quantity").fill("12");
         requireOne(page.getByLabel("Motivo", new Page.GetByLabelOptions().setExact(true)),
                 "movement reason").fill("DEMO_RECEIPT");
-        requireOne(page.getByLabel("Tipo de origen", new Page.GetByLabelOptions().setExact(true)),
-                "movement source type").fill("DEMO_UI");
-        requireOne(page.getByLabel("Identidad de origen", new Page.GetByLabelOptions().setExact(true)),
-                "movement source id").fill("MOV-" + suffix);
-        requireOne(page.getByLabel("Clave de idempotencia", new Page.GetByLabelOptions().setExact(true)),
-                "movement idempotency").fill("inventory-demo-movement-" + suffix);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Registrar movimiento")),
-                "post stock receipt").click();
+                "post stock receipt");
+        page.onceDialog(dialog -> dialog.accept());
+        page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Registrar movimiento")).click();
         requireOne(page.getByText(
                 "Movimiento de existencias registrado", new Page.GetByTextOptions().setExact(true)),
                 "stock movement confirmation").waitFor();
         assertResponsive(page, 1280, 900, "inventory-stock-movement-expanded-1280.png");
 
+        requireOne(page.getByLabel("Tarea", new Page.GetByLabelOptions().setExact(true)),
+                "reservation task selector").selectOption("RESERVATION");
         requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Reservas")),
-                "inventory reservations tab").click();
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Continuar")),
+                "apply reservation task").click();
+        page.locator("select[data-screen-input='reservation_warehouse']").waitFor();
         selectInputContaining(page, "reservation_warehouse", warehouseCode);
         selectInputContaining(page, "reservation_location", warehouseCode + " · GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
                 "reservation condition").selectOption("AVAILABLE");
-        Locator createReservation = requireOne(page.getByRole(
-                AriaRole.REGION, new Page.GetByRoleOptions().setName("Crear reserva").setExact(true)),
-                "create reservation region");
-        requireOne(createReservation.getByLabel(
-                "Cantidad", new Locator.GetByLabelOptions().setExact(true)),
+        requireOne(page.locator("[data-screen-input='reservation_quantity']"),
                 "reservation quantity").fill("3");
         requireOne(page.getByLabel("La reserva vence en", new Page.GetByLabelOptions().setExact(true)),
                 "reservation expiration").fill("2027-01-01T00:00:00Z");
-        requireOne(page.getByLabel("Tipo de origen", new Page.GetByLabelOptions().setExact(true)),
-                "reservation source type").fill("DEMO_UI");
-        requireOne(page.getByLabel("Identidad de origen", new Page.GetByLabelOptions().setExact(true)),
-                "reservation source id").fill("RES-" + suffix);
-        requireOne(page.getByLabel("Clave de idempotencia", new Page.GetByLabelOptions().setExact(true)),
-                "reservation idempotency").fill("inventory-demo-reservation-" + suffix);
         requireOne(page.getByRole(
                 AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Crear reserva")),
-                "create stock reservation").click();
+                "create stock reservation");
+        page.onceDialog(dialog -> dialog.accept());
+        page.getByRole(
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Crear reserva")).click();
         requireOne(page.getByText("Reserva creada", new Page.GetByTextOptions().setExact(true)),
                 "reservation confirmation").waitFor();
         assertResponsive(page, 720, 900, "inventory-stock-reservation-medium-720.png");
 
+        requireOne(page.getByLabel("Tarea", new Page.GetByLabelOptions().setExact(true)),
+                "availability task selector").selectOption("AVAILABILITY");
         requireOne(page.getByRole(
-                AriaRole.LINK, new Page.GetByRoleOptions().setName("Disponibilidad")),
-                "inventory availability tab").click();
+                AriaRole.BUTTON, new Page.GetByRoleOptions().setName("Continuar")),
+                "apply availability task").click();
+        page.locator("select[data-screen-input='availability_warehouse']").waitFor();
         selectInputContaining(page, "availability_warehouse", warehouseCode);
         selectInputContaining(page, "availability_location", warehouseCode + " · GENERAL");
         requireOne(page.getByLabel("Condición", new Page.GetByLabelOptions().setExact(true)),
@@ -666,6 +734,19 @@ class InventoryVisualIT {
         assertTrue(documentWidth <= width + 1,
                 description + " has horizontal overflow: document="
                         + documentWidth + " px, viewport=" + width + " px");
+        Locator companySource = page.locator(".company-switcher .native-selector-source");
+        if (width >= 600 && width <= 839 && companySource.count() == 1) {
+            double sourceWidth = ((Number) companySource.evaluate(
+                    "element => element.getBoundingClientRect().width")).doubleValue();
+            double sourceHeight = ((Number) companySource.evaluate(
+                    "element => element.getBoundingClientRect().height")).doubleValue();
+            assertTrue(sourceWidth >= 240,
+                    description + " compresses the company selector source to "
+                            + sourceWidth + " px");
+            assertTrue(sourceHeight <= 80,
+                    description + " wraps the company selector source to "
+                            + sourceHeight + " px high");
+        }
     }
 
     private void assertAccessibleStructure(Page page) {
@@ -673,11 +754,33 @@ class InventoryVisualIT {
                 "the inventory screen must expose exactly one main heading");
         boolean everyEditableControlHasLabel = (Boolean) page.evaluate("""
                 () => Array.from(document.querySelectorAll(
-                    "input:not([type='hidden']):not([type='submit']), select, textarea"))
+                    "input:not([type='hidden']):not([type='submit']):not([type='button']), select, textarea"))
                   .every(control => control.labels && control.labels.length > 0)
                 """);
         assertTrue(everyEditableControlHasLabel,
                 "every editable inventory control must have a label");
+        assertReducedMotionAndKeyboardFocus(page, "inventory");
+    }
+
+    private static void assertReducedMotionAndKeyboardFocus(Page page, String journey) {
+        boolean reducedMotionActive = (Boolean) page.evaluate(
+                "() => window.matchMedia('(prefers-reduced-motion: reduce)').matches");
+        String transitionDuration = (String) page.evaluate(
+                "() => getComputedStyle(document.body).transitionDuration");
+        assertTrue(reducedMotionActive,
+                journey + " journey must execute with the reduced-motion preference");
+        assertEquals("0s", transitionDuration,
+                journey + " must remove non-essential transitions");
+
+        page.evaluate("() => document.activeElement && document.activeElement.blur()");
+        page.keyboard().press("Tab");
+        boolean keyboardFocusVisible = (Boolean) page.evaluate("""
+                () => document.activeElement
+                  && document.activeElement !== document.body
+                  && document.activeElement.matches(':focus-visible')
+                """);
+        assertTrue(keyboardFocusVisible,
+                journey + " must expose a visible focus target during keyboard navigation");
     }
 
     private static void requireMainHeading(Page page, String expectedText) {
@@ -713,6 +816,7 @@ class InventoryVisualIT {
     }
 
     private static Locator requireOne(Locator locator, String description) {
+        locator.first().waitFor();
         int count = locator.count();
         assertEquals(1, count, description + " must resolve exactly one element");
         return locator;

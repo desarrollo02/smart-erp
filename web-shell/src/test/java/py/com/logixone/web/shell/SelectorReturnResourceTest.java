@@ -19,14 +19,21 @@ class SelectorReturnResourceTest {
 
         assertEquals(5, occurrences(source,
                 "action=\"#{shellView.openSelectorManagement(field.id)}\""));
-        assertEquals(3, occurrences(source, "name=\"selectorDraft\""));
+        assertEquals(2, occurrences(source,
+                "action=\"#{shellView.openSelectorManagement(element.id)}\""));
+        assertEquals(4, occurrences(source, "name=\"selectorDraft\""));
         assertEquals(4, occurrences(source, "pt:data-screen-input=\"#{field.id}\""));
         assertEquals(6, occurrences(source, "data-screen-input=\"#{field.id}\""));
         assertTrue(source.contains("<select id=\"create-select-#{field.id}\""));
         assertTrue(source.contains("<select id=\"detail-select-#{field.id}\""));
-        assertEquals(5, occurrences(source, "immediate=\"true\""));
-        assertEquals(5, occurrences(source,
+        assertEquals(9, occurrences(source, "immediate=\"true\""));
+        assertEquals(7, occurrences(source,
                 "onclick=\"LogixoneSelectorReturn.capture(this);\""));
+        assertEquals(2, occurrences(source,
+                "pt:aria-label=\"#{shellView.activeInteraction.selectorSources[element.id].managementLabel} opciones de #{element.label}\""));
+        assertTrue(source.contains("name=\"selectorSearch:#{element.id}\""));
+        assertTrue(source.contains("name=\"selectorOption:#{element.id}\""));
+        assertTrue(source.contains("name=\"selectorValue:#{element.id}\""));
         assertEquals(6, occurrences(source, "name=\"selectorSearch:#{field.id}\""));
         assertEquals(2, occurrences(source, "name=\"selectorQuery:#{field.id}\""));
         assertEquals(4, occurrences(source, "name=\"selectorValue:#{field.id}\""));
@@ -51,7 +58,9 @@ class SelectorReturnResourceTest {
         assertFalse(source.matches("(?s).*<f:param[^>]+inputValues.*"));
 
         String normalized = source.replaceAll("\\s+", " ");
-        assertFalse(normalized.contains("<f:ajax"));
+        String selectorMarkup = normalized.substring(
+                normalized.indexOf("openSelectorManagement"));
+        assertFalse(selectorMarkup.contains("<f:ajax"));
         assertFalse(source.contains("requestedSelectorFieldId"));
         assertFalse(source.contains("requestedSelectorPageDirection"));
         assertFalse(normalized.contains(

@@ -23,6 +23,8 @@
     <link rel="stylesheet" href="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/shell.css?ln=logixone"/>
     <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/selector-return.js?ln=logixone"
             defer="defer"></script>
+    <script src="#{facesContext.externalContext.requestContextPath}/faces/jakarta.faces.resource/floorplan.js?ln=logixone"
+            defer="defer"></script>
 </h:head>
 <h:body styleClass="app-body md3-theme">
     <a class="skip-link" href="#main-content">Saltar al contenido</a>
@@ -109,7 +111,7 @@
                     </h:form>
                 </h:panelGroup>
 
-                <section class="composed-screen #{shellView.activeScreen.interactive ? 'composed-screen-business' : ''}"
+                <section class="composed-screen #{shellView.activeScreen.interactive ? 'composed-screen-business' : ''} #{shellView.activeScreen.floorplanClass}"
                          aria-labelledby="composed-screen-title">
                     <ui:fragment rendered="#{not shellView.activeScreen.interactive}">
                     <header class="composed-screen-header">
@@ -192,7 +194,310 @@
                         </div>
                     </h:form>
 
-                    <ui:fragment rendered="#{shellView.activeScreen.interactive}">
+                    <ui:fragment rendered="#{shellView.activeScreen.floorplanV2}">
+                        <header class="floorplan-page-header">
+                            <div>
+                                <span class="entity-context">#{shellView.activeScreen.floorplanLabel}</span>
+                                <h1 id="composed-screen-title" tabindex="-1">#{shellView.activeScreen.title}</h1>
+                                <p>#{shellView.activeScreen.description}</p>
+                            </div>
+                            <span class="floorplan-contract-chip">
+                                Contrato #{shellView.activeScreen.contractVersion}
+                            </span>
+                        </header>
+
+                        <div class="floorplan-shell">
+                            <div class="screen-notices" aria-live="polite">
+                                <ui:repeat value="#{shellView.activeInteraction.notices}" var="notice">
+                                    <div class="#{notice.styleClass}" role="#{notice.role}">
+                                        <strong>#{notice.summary}</strong>
+                                        <span>#{notice.detail}</span>
+                                    </div>
+                                </ui:repeat>
+                            </div>
+
+                            <h:form styleClass="floorplan-form"
+                                    onsubmit="return LogixoneFloorplan.transport(this);">
+                                <input type="hidden" name="route" value="#{shellView.requestedRoute}"/>
+                                <input type="hidden" name="mode" value="#{shellView.requestedMode}"/>
+                                <input type="hidden" name="tab" value="#{shellView.requestedTab}"/>
+                                <input type="hidden" name="resource" value="#{shellView.selectedResourceId}"/>
+                                <input type="hidden" name="version" value="#{shellView.selectedResourceVersion}"/>
+                                <input type="hidden" name="selectorContext" value="#{shellView.selectorContextId}"/>
+                                <input type="hidden" name="selectorDraft" value=""/>
+                                <input type="hidden" name="floorplanActionRequest" value="false"/>
+                                <input type="hidden" name="floorplanRequestedAction" value=""/>
+                                <h:commandButton id="floorplan-command-bridge"
+                                                 value=""
+                                                 action="#{shellView.executeScreenAction}"
+                                                 immediate="true"
+                                                 styleClass="floorplan-command-bridge"
+                                                 pt:data-floorplan-command-bridge="true"
+                                                 pt:formnovalidate="formnovalidate"
+                                                 pt:aria-hidden="true"
+                                                 tabindex="-1"/>
+                                <h:commandButton id="floorplan-context-bridge"
+                                                 value=""
+                                                 action="#{shellView.refreshFloorplanContext}"
+                                                 immediate="true"
+                                                 styleClass="floorplan-command-bridge"
+                                                 pt:data-floorplan-context-bridge="true"
+                                                 pt:formnovalidate="formnovalidate"
+                                                 pt:aria-hidden="true"
+                                                 tabindex="-1"/>
+                                <ui:repeat value="#{shellView.activeScreen.floorplanRegions}" var="region">
+                                    <section class="#{region.styleClass}"
+                                             aria-labelledby="floorplan-region-#{region.id}">
+                                        <h:panelGroup layout="block">
+                                        <header class="floorplan-region-header">
+                                            <h2 id="floorplan-region-#{region.id}">#{region.title}</h2>
+                                        </header>
+
+                                        <div class="floorplan-field-grid">
+                                            <ui:repeat value="#{region.fields}" var="element">
+                                                <h:inputHidden id="floorplan-token"
+                                                               rendered="#{element.technicalToken}"
+                                                               pt:data-screen-input="#{element.id}"
+                                                               value="#{shellView.inputValues[element.id]}"/>
+                                                <h:panelGroup layout="block"
+                                                              rendered="#{not element.technicalToken and (empty shellView.activeInteraction.elementStates[element.id] or shellView.activeInteraction.elementStates[element.id].visible)}"
+                                                              styleClass="floorplan-field #{element.semanticClass}">
+                                                    <h:panelGroup layout="block" rendered="#{element.displayText}">
+                                                        <span class="field-label">#{element.label}</span>
+                                                        <strong class="floorplan-output">
+                                                            #{shellView.inputValues[element.id]}
+                                                        </strong>
+                                                    </h:panelGroup>
+
+                                                    <h:panelGroup layout="block" rendered="#{element.textInput}">
+                                                        <h:outputLabel for="floorplan-text" value="#{element.label}"/>
+                                                        <h:inputText id="floorplan-text"
+                                                                     value="#{shellView.inputValues[element.id]}"
+                                                                     pt:data-screen-input="#{element.id}"
+                                                                     required="#{not shellView.floorplanActionRequest and not shellView.selectorInteractionRequested and (element.required or (not empty shellView.activeInteraction.elementStates[element.id] and shellView.activeInteraction.elementStates[element.id].required))}"
+                                                                     disabled="#{not element.enabled or (not empty shellView.activeInteraction.elementStates[element.id] and not shellView.activeInteraction.elementStates[element.id].enabled)}"
+                                                                     styleClass="text-control"/>
+                                                    </h:panelGroup>
+
+                                                    <h:panelGroup layout="block"
+                                                                  rendered="#{element.select and not shellView.activeInteraction.selectorSources[element.id].searchOnDemand}">
+                                                        <div class="selector-field-heading">
+                                                            <h:outputLabel for="floorplan-select" value="#{element.label}"/>
+                                                            <h:commandLink
+                                                                    rendered="#{shellView.activeInteraction.selectorSources[element.id].managementAvailable}"
+                                                                    action="#{shellView.openSelectorManagement(element.id)}"
+                                                                    immediate="true"
+                                                                    onclick="LogixoneSelectorReturn.capture(this);"
+                                                                    styleClass="selector-management-link"
+                                                                    pt:aria-label="#{shellView.activeInteraction.selectorSources[element.id].managementLabel} opciones de #{element.label}">
+                                                                #{shellView.activeInteraction.selectorSources[element.id].managementLabel}
+                                                            </h:commandLink>
+                                                        </div>
+                                                        <h:selectOneMenu id="floorplan-select"
+                                                                         value="#{shellView.inputValues[element.id]}"
+                                                                         pt:data-screen-input="#{element.id}"
+                                                                         onchange="#{element.contextRefreshOnChange ? 'return LogixoneFloorplan.refresh(this);' : ''}"
+                                                                         required="#{not shellView.floorplanActionRequest and not shellView.selectorInteractionRequested and (element.required or (not empty shellView.activeInteraction.elementStates[element.id] and shellView.activeInteraction.elementStates[element.id].required))}"
+                                                                         disabled="#{not element.enabled or (not empty shellView.activeInteraction.elementStates[element.id] and not shellView.activeInteraction.elementStates[element.id].enabled)}"
+                                                                         styleClass="select-control">
+                                                            <f:selectItems value="#{shellView.activeInteraction.options[element.id]}"
+                                                                           var="option"
+                                                                           itemValue="#{option.value}"
+                                                                           itemLabel="#{option.label}"/>
+                                                        </h:selectOneMenu>
+                                                    </h:panelGroup>
+
+                                                    <h:panelGroup layout="block"
+                                                                  rendered="#{element.select and shellView.activeInteraction.selectorSources[element.id].searchOnDemand}"
+                                                                  styleClass="selector-search-field">
+                                                        <div class="selector-field-heading">
+                                                            <label for="floorplan-selector-search-#{element.id}">#{element.label}</label>
+                                                            <h:commandLink
+                                                                    rendered="#{shellView.activeInteraction.selectorSources[element.id].managementAvailable}"
+                                                                    action="#{shellView.openSelectorManagement(element.id)}"
+                                                                    immediate="true"
+                                                                    onclick="LogixoneSelectorReturn.capture(this);"
+                                                                    styleClass="selector-management-link"
+                                                                    pt:aria-label="#{shellView.activeInteraction.selectorSources[element.id].managementLabel} opciones de #{element.label}">
+                                                                #{shellView.activeInteraction.selectorSources[element.id].managementLabel}
+                                                            </h:commandLink>
+                                                        </div>
+                                                        <input type="hidden"
+                                                               name="selectorValue:#{element.id}"
+                                                               value="#{shellView.inputValues[element.id]}"
+                                                               data-screen-input="#{element.id}"/>
+                                                        <p class="selector-current-value">
+                                                            Selección actual:
+                                                            <strong>#{shellView.selectedOptionLabel(element.id)}</strong>
+                                                        </p>
+                                                        <div class="selector-search-controls">
+                                                            <input type="search"
+                                                                   id="floorplan-selector-search-#{element.id}"
+                                                                   name="selectorQuery:#{element.id}"
+                                                                   value="#{shellView.selectorSearchValues[element.id]}"
+                                                                   maxlength="100"
+                                                                   aria-label="Buscar opciones de #{element.label}"
+                                                                   class="text-control"/>
+                                                            <button type="submit"
+                                                                    name="selectorSearch:#{element.id}"
+                                                                    value="0"
+                                                                    class="button button-tonal">Buscar opciones</button>
+                                                        </div>
+                                                        <h:panelGroup layout="block" styleClass="selector-search-results"
+                                                                      rendered="#{not empty shellView.selectorOptionPages[element.id]}">
+                                                            <p class="selector-search-summary" role="status">
+                                                                #{shellView.selectorOptionPages[element.id].firstVisible}–#{shellView.selectorOptionPages[element.id].lastVisible}
+                                                                de #{shellView.selectorOptionPages[element.id].total} opciones
+                                                            </p>
+                                                            <ui:repeat value="#{shellView.selectorOptionPages[element.id].options}" var="selectorOption">
+                                                                <button type="submit"
+                                                                        name="selectorOption:#{element.id}"
+                                                                        value="#{selectorOption.value}"
+                                                                        class="selector-option-button">
+                                                                    #{selectorOption.label}
+                                                                </button>
+                                                            </ui:repeat>
+                                                            <div class="selector-page-actions">
+                                                                <ui:fragment rendered="#{shellView.selectorOptionPages[element.id].hasPreviousPage}">
+                                                                    <button type="submit" name="selectorSearch:#{element.id}" value="-1"
+                                                                            class="button button-quiet">Anterior</button>
+                                                                </ui:fragment>
+                                                                <ui:fragment rendered="#{not shellView.selectorOptionPages[element.id].hasPreviousPage}">
+                                                                    <button type="button" class="button button-quiet" disabled="disabled">Anterior</button>
+                                                                </ui:fragment>
+                                                                <ui:fragment rendered="#{shellView.selectorOptionPages[element.id].hasNextPage}">
+                                                                    <button type="submit" name="selectorSearch:#{element.id}" value="1"
+                                                                            class="button button-quiet">Siguiente</button>
+                                                                </ui:fragment>
+                                                                <ui:fragment rendered="#{not shellView.selectorOptionPages[element.id].hasNextPage}">
+                                                                    <button type="button" class="button button-quiet" disabled="disabled">Siguiente</button>
+                                                                </ui:fragment>
+                                                            </div>
+                                                        </h:panelGroup>
+                                                    </h:panelGroup>
+
+                                                    <ui:fragment rendered="#{element.hasHelp}">
+                                                        <p class="field-help">#{element.help}</p>
+                                                    </ui:fragment>
+                                                    <h:panelGroup layout="block"
+                                                                  rendered="#{not empty shellView.activeInteraction.elementStates[element.id] and shellView.activeInteraction.elementStates[element.id].hasUnavailableReason}"
+                                                                  styleClass="floorplan-unavailable-reason" role="status">
+                                                        #{shellView.activeInteraction.elementStates[element.id].unavailableReason}
+                                                    </h:panelGroup>
+                                                </h:panelGroup>
+                                            </ui:repeat>
+                                        </div>
+
+                                        <ui:repeat value="#{region.tables}" var="element">
+                                            <h:panelGroup layout="block" styleClass="floorplan-table"
+                                                          rendered="#{(empty shellView.activeInteraction.elementStates[element.id] or shellView.activeInteraction.elementStates[element.id].visible) and shellView.activeInteraction.hasTable and shellView.activeInteraction.table.elementId eq element.id}">
+                                                <h:panelGroup layout="block" styleClass="empty-card"
+                                                              rendered="#{shellView.activeInteraction.table.rowsEmpty}">
+                                                    <h3>#{shellView.activeInteraction.table.emptyTitle}</h3>
+                                                    <p>#{shellView.activeInteraction.table.emptyDescription}</p>
+                                                </h:panelGroup>
+                                                <h:panelGroup layout="block" styleClass="responsive-table-shell business-table-view"
+                                                              rendered="#{not shellView.activeInteraction.table.rowsEmpty}">
+                                                    <table class="business-table">
+                                                        <thead><tr>
+                                                            <ui:repeat value="#{shellView.activeInteraction.table.columns}" var="column">
+                                                                <th scope="col">#{column.label}</th>
+                                                            </ui:repeat>
+                                                            <ui:fragment rendered="#{shellView.activeScreen.hasFloorplanRowAction and not shellView.activeInteraction.hasDetail}">
+                                                                <th scope="col" class="table-action-heading">
+                                                                    <span class="sr-only">Abrir</span>
+                                                                </th>
+                                                            </ui:fragment>
+                                                        </tr></thead>
+                                                        <tbody>
+                                                            <ui:repeat value="#{shellView.activeInteraction.table.rows}" var="row">
+                                                                <tr>
+                                                                    <ui:repeat value="#{row.cells}" var="cell">
+                                                                        <td>#{cell}</td>
+                                                                    </ui:repeat>
+                                                                    <ui:fragment rendered="#{shellView.activeScreen.hasFloorplanRowAction and not shellView.activeInteraction.hasDetail}">
+                                                                        <td class="table-action-cell">
+                                                                            <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                                                          styleClass="row-open-link"
+                                                                                          pt:aria-label="Abrir #{row.cells[0]}">
+                                                                                <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                                                                <f:param name="mode" value="detail"/>
+                                                                                <f:param name="resource" value="#{row.resourceId}"/>
+                                                                                <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                                                         disable="#{empty shellView.selectorContextId}"/>
+                                                                                Ver <span aria-hidden="true">›</span>
+                                                                            </h:outputLink>
+                                                                        </td>
+                                                                    </ui:fragment>
+                                                                </tr>
+                                                            </ui:repeat>
+                                                        </tbody>
+                                                    </table>
+                                                </h:panelGroup>
+
+                                                <div class="business-mobile-list">
+                                                    <ui:repeat value="#{shellView.activeInteraction.table.rows}" var="row">
+                                                        <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                                      styleClass="business-mobile-item"
+                                                                      rendered="#{shellView.activeScreen.hasFloorplanRowAction and not shellView.activeInteraction.hasDetail}">
+                                                            <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                                            <f:param name="mode" value="detail"/>
+                                                            <f:param name="resource" value="#{row.resourceId}"/>
+                                                            <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                                     disable="#{empty shellView.selectorContextId}"/>
+                                                            <span class="mobile-item-main">
+                                                                <ui:repeat value="#{row.cells}" var="cell" varStatus="cellStatus">
+                                                                    <span class="mobile-data-line">
+                                                                        <small>#{shellView.activeInteraction.table.columns[cellStatus.index].label}</small>
+                                                                        <strong>#{cell}</strong>
+                                                                    </span>
+                                                                </ui:repeat>
+                                                            </span>
+                                                            <span class="mobile-item-arrow" aria-hidden="true">›</span>
+                                                        </h:outputLink>
+                                                        <h:panelGroup layout="block"
+                                                                      styleClass="business-mobile-item business-mobile-item-static"
+                                                                      rendered="#{not shellView.activeScreen.hasFloorplanRowAction or shellView.activeInteraction.hasDetail}">
+                                                            <span class="mobile-item-main">
+                                                                <ui:repeat value="#{row.cells}" var="cell" varStatus="cellStatus">
+                                                                    <span class="mobile-data-line">
+                                                                        <small>#{shellView.activeInteraction.table.columns[cellStatus.index].label}</small>
+                                                                        <strong>#{cell}</strong>
+                                                                    </span>
+                                                                </ui:repeat>
+                                                            </span>
+                                                        </h:panelGroup>
+                                                    </ui:repeat>
+                                                </div>
+                                            </h:panelGroup>
+                                        </ui:repeat>
+
+                                        <div class="floorplan-actions">
+                                            <ui:repeat value="#{region.actions}" var="element">
+                                                <h:panelGroup layout="block"
+                                                              rendered="#{not (shellView.activeScreen.hasFloorplanRowAction and element.navigateIntent) and (empty shellView.activeInteraction.elementStates[element.id] or shellView.activeInteraction.elementStates[element.id].visible)}"
+                                                              styleClass="floorplan-action">
+                                                    <h:commandButton type="button"
+                                                                     value="#{element.label}"
+                                                                     onclick="#{element.confirmationGuardScript}LogixoneFloorplan.markActionSubmission();var floorplanForm=this.form;floorplanForm.elements['floorplanActionRequest'].value='true';floorplanForm.elements['floorplanRequestedAction'].value='#{element.id}';floorplanForm.querySelectorAll('[data-floorplan-submitted-input]').forEach(function(input){input.remove();});floorplanForm.querySelectorAll('[data-screen-input]').forEach(function(control){if(control.disabled){return;}var submitted=document.createElement('input');submitted.type='hidden';submitted.name='floorplanInput.'+control.getAttribute('data-screen-input');submitted.value=control.value;submitted.setAttribute('data-floorplan-submitted-input','true');floorplanForm.appendChild(submitted);});var bridge=floorplanForm.querySelector('[data-floorplan-command-bridge]');if(floorplanForm.requestSubmit){floorplanForm.requestSubmit(bridge);}else{bridge.click();}return false;"
+                                                                     disabled="#{not element.enabled or (not empty shellView.activeInteraction.elementStates[element.id] and not shellView.activeInteraction.elementStates[element.id].enabled)}"
+                                                                     styleClass="#{element.actionClass}"/>
+                                                    <h:panelGroup layout="block"
+                                                                  rendered="#{not empty shellView.activeInteraction.elementStates[element.id] and shellView.activeInteraction.elementStates[element.id].hasUnavailableReason}"
+                                                                  styleClass="floorplan-unavailable-reason" role="status">
+                                                        #{shellView.activeInteraction.elementStates[element.id].unavailableReason}
+                                                    </h:panelGroup>
+                                                </h:panelGroup>
+                                            </ui:repeat>
+                                        </div>
+                                        </h:panelGroup>
+                                    </section>
+                                </ui:repeat>
+                            </h:form>
+                        </div>
+                    </ui:fragment>
+
+                    <ui:fragment rendered="#{shellView.activeScreen.interactive and not shellView.activeScreen.floorplanV2}">
                         <header class="entity-page-header">
                             <div>
                                 <span class="entity-context">#{shellView.activeScreen.entityContext}</span>
@@ -232,7 +537,7 @@
                         </header>
                     </ui:fragment>
 
-                    <ui:fragment rendered="#{shellView.activeScreen.interactive}">
+                    <ui:fragment rendered="#{shellView.activeScreen.interactive and not shellView.activeScreen.floorplanV2}">
                         <div class="interactive-screen">
                             <div class="screen-notices" aria-live="polite">
                                 <h:panelGroup layout="block"

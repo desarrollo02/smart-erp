@@ -119,12 +119,12 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
 </head>
 <body>
 <article>
-  <div class="page-footer">Smart ERP · Manual de Compras · edición 2026-08-13 · página <span class="page-number"></span></div>
+  <div class="page-footer">Smart ERP · Manual de Compras · edición 2026-08-15 · página <span class="page-number"></span></div>
   <header class="cover">
     <div class="eyebrow">Manual de usuario por módulo · orden de lectura 07</div>
     <h1>Compras</h1>
     <p class="subtitle">Solicitudes, aprobación, órdenes, recepciones, devoluciones y seguimiento de cantidades.</p>
-    <div class="meta"><strong>Versión documentada:</strong> plugin <code>purchasing</code> 1.1, historias J11-S9-07/J11-S9-08.<br><strong>Estado:</strong> congelada técnicamente con G0–G6 verdes e instalador interno creado; la validación independiente, Authenticode y la matriz Windows siguen pendientes. No es una versión comercializable ni productiva.<br><strong>Acceso local de la candidata:</strong> <code>http://localhost:18080/logixone/</code>.<br><strong>Audiencia:</strong> solicitantes, aprobadores, compradores, responsables de recepción, supervisores y soporte.<br><strong>Fuente de datos:</strong> código, contratos, migraciones V1–V2 y pruebas automatizadas del repositorio.</div>
+    <div class="meta"><strong>Versión documentada:</strong> plugin <code>purchasing</code> 1.2, historia J11-S10-04 sobre el baseline J11-S9-07/J11-S9-08.<br><strong>Estado:</strong> implementada y validada automáticamente; la validación independiente, Authenticode y la matriz Windows siguen pendientes. No es una versión comercializable ni productiva.<br><strong>Acceso local de la candidata:</strong> <code>http://localhost:18080/logixone/</code>.<br><strong>Audiencia:</strong> solicitantes, aprobadores, compradores, responsables de recepción, supervisores y soporte.<br><strong>Fuente de datos:</strong> código, contratos 2.0, migraciones V1–V2 y pruebas automatizadas del repositorio.</div>
   </header>
 
   <section class="toc">
@@ -145,10 +145,12 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
       <dt>Pendiente</dt><dd>Cantidad ordenada que todavía no quedó recibida neta ni cerrada como faltante.</dd>
       <dt>Cierre con faltante</dt><dd>Decisión explícita de no esperar las cantidades aún pendientes, conservando un motivo.</dd>
       <dt>Snapshot</dt><dd>Copia histórica del nombre, código, unidad, moneda o proveedor conservada al crear el documento.</dd>
-      <dt>Versión</dt><dd>Número de control de concurrencia. Si otra persona cambió el documento, debe recargar antes de operar.</dd>
+      <dt>Versión</dt><dd>Número técnico de control de concurrencia que la pantalla administra sin pedirlo al operador. Si otra persona cambió el documento, debe recargar antes de operar.</dd>
       <dt>Confirmar</dt><dd>Acción irreversible para recepción o devolución: consolida cantidades y puede publicar un movimiento de Inventario.</dd>
-      <dt>Idempotencia</dt><dd>Protección técnica que evita duplicar una misma operación cuando el navegador o la red la reintentan.</dd>
+      <dt>Idempotencia</dt><dd>Protección técnica, gestionada por el sistema, que evita duplicar una misma operación cuando el navegador o la red la reintentan.</dd>
     </dl>
+    <h3>Cómo se organizan las cinco pantallas</h3>
+    <p>Las rutas y opciones de menú no cambiaron. Solicitudes es una bandeja de trabajo: al abrir una solicitud, la selección ocupa el área principal y muestra sus líneas, resumen y acciones válidas. Órdenes reúne cabecera, líneas, total y ciclo de vida en un editor de documento. Recepciones y Devoluciones conducen la captura en orden de contexto, datos, orientación, resumen y acciones. Seguimiento es una consulta de solo lectura. En teléfono, las tablas se presentan como tarjetas apiladas; versión, identidades internas e idempotencia permanecen ocultas.</p>
     <h3>Permisos</h3>
     <table><thead><tr><th>Permiso</th><th>Qué habilita</th></tr></thead><tbody>
       <tr><td><code>purchasing.view</code></td><td>Consultar las cinco pantallas y sus documentos.</td></tr>
@@ -174,18 +176,16 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
     <p><strong>Objetivo:</strong> registrar una necesidad, completar sus líneas y someterla a una decisión independiente.</p>
     <p><strong>Estados:</strong> Borrador permite editar; Pendiente espera decisión; Aprobada puede alimentar órdenes; Rechazada y Cancelada son finales.</p>
     <h3>Bosquejo orientativo de la pantalla</h3>
-    <div class="wireframe">┌ Compras · Solicitudes ───────────────────────────────────────────────┐
-│ Buscar [número/descripción] Estado [▼] [Buscar]                     │
-├ Solicitudes ─────────────────┬ Solicitud seleccionada ──────────────┤
-│ número · fecha · estado      │ líneas · estado · versión             │
-│ [Abrir]                      │ [Líneas] [Aprobación] [Clonar]         │
-├ Nueva solicitud ─────────────┴───────────────────────────────────────┤
-│ número · fecha · tipo · artículo · descripción · unidad · cantidad  │
-│ precio esperado · moneda                         [Preparar]          │
-├ Línea adicional / decisión / copia ─────────────────────────────────┤
-│ datos de línea [Agregar] · motivo [Enviar/Aprobar/Rechazar/Cancelar]│
-│ número y fecha de copia [Clonar]                                    │
-└──────────────────────────────────────────────────────────────────────┘</div>
+    <div class="wireframe">┌ Compras · Solicitudes · bandeja de trabajo ─────────────────────────┐
+│ Filtros: número/descripción · estado                    [Buscar]    │
+├ Trabajo pendiente / resultados ─────────────────────────────────────┤
+│ número · fecha · estado · líneas                         [Abrir]    │
+├ Solicitud seleccionada: cabecera · líneas · resumen ────────────────┤
+│ [Agregar línea] [Enviar] [Aprobar/Rechazar] [Cancelar] [Clonar]    │
+├ Nueva solicitud ────────────────────────────────────────────────────┤
+│ número · fecha · artículo/servicio · cantidad · precio  [Preparar] │
+└──────────────────────────────────────────────────────────────────────┘
+En compacto, cada fila se convierte en una tarjeta vertical.</div>
     <h3>Datos y acciones</h3>
     <table><thead><tr><th>Dato o acción</th><th>Significado</th><th>Regla y resultado</th></tr></thead><tbody>
       <tr><td>Texto de búsqueda</td><td>Número o descripción de línea.</td><td>Opcional; solo busca dentro de la empresa activa.</td></tr>
@@ -226,17 +226,15 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
     <p><strong>Objetivo:</strong> documentar el compromiso con un proveedor y relacionarlo, cuando corresponda, con una solicitud aprobada.</p>
     <p><strong>Estados:</strong> Borrador se prepara; Emitida admite recepciones; Cerrada no conserva pendiente; Cancelada conserva el motivo.</p>
     <h3>Bosquejo orientativo de la pantalla</h3>
-    <div class="wireframe">┌ Compras · Órdenes ──────────────────────────────────────────────────┐
-│ Buscar [número/proveedor] Estado [▼] [Buscar]                       │
-├ Órdenes ────────────────────┬ Orden seleccionada ───────────────────┤
-│ número · proveedor · moneda │ total · líneas · cumplimiento · estado│
-│ [Abrir]                     │ [Líneas] [Estado]                     │
-├ Nueva orden ────────────────┴───────────────────────────────────────┤
+    <div class="wireframe">┌ Compras · Órdenes · editor de documento ────────────────────────────┐
+│ Filtros y órdenes existentes                              [Abrir]  │
+├ Cabecera ───────────────────────────────────────────────────────────┤
 │ número · proveedor · moneda · justificación directa                │
-│ tipo · artículo · descripción · unidad · cantidad · precio          │
-│ solicitud · línea solicitada · cantidad asignada [Preparar]         │
-├ Línea adicional / ciclo ────────────────────────────────────────────┤
-│ datos de línea [Agregar] · motivo [Emitir/Cancelar/Cerrar faltante] │
+├ Líneas ─────────────────────────────────────────────────────────────┤
+│ tipo · artículo · cantidad · precio · asignación        [Agregar]  │
+│ líneas del documento                                                │
+├ Resumen ───────────────────────────── total · estado · cumplimiento ┤
+│ [Preparar] [Emitir] [Cancelar] [Cerrar con faltante]               │
 └──────────────────────────────────────────────────────────────────────┘</div>
     <h3>Datos y acciones</h3>
     <table><thead><tr><th>Dato o acción</th><th>Significado</th><th>Regla y resultado</th></tr></thead><tbody>
@@ -276,15 +274,12 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
     <div class="screen-title"><h2>3. Recepciones</h2><span class="route">/faces/purchasing/receipts</span></div>
     <p><strong>Objetivo:</strong> preparar y confirmar una entrega contra una orden emitida. La pantalla registra una línea por comprobante en este primer corte.</p>
     <h3>Bosquejo orientativo de la pantalla</h3>
-    <div class="wireframe">┌ Compras · Recepciones ──────────────────────────────────────────────┐
-│ Buscar [número/orden] Estado [▼] [Buscar]                           │
-├ Recepciones ────────────────┬ Recepción seleccionada ───────────────┤
-│ número · orden · estado     │ línea · cantidad · trazabilidad       │
-│ [Abrir]                     │ versión                 [Confirmar]    │
-├ Nueva recepción ────────────┴───────────────────────────────────────┤
-│ número · orden emitida · línea pendiente · cantidad                │
-│ depósito · ubicación · lote · serie · vencimiento · condición      │
-│                                                   [Preparar]        │
+    <div class="wireframe">┌ Compras · Recepciones · operación guiada ──────────────────────────┐
+│ 1. Buscar una recepción o iniciar una nueva                        │
+│ 2. Contexto: número · orden emitida · línea pendiente              │
+│ 3. Captura: cantidad y, si es Stock, depósito/ubicación/trazabilidad│
+│ 4. Orientación y resumen antes de afectar existencias              │
+│                                      [Preparar] [Confirmar]         │
 └──────────────────────────────────────────────────────────────────────┘</div>
     <h3>Datos y acciones</h3>
     <table><thead><tr><th>Dato o acción</th><th>Significado</th><th>Regla y resultado</th></tr></thead><tbody>
@@ -321,14 +316,12 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
     <div class="screen-title"><h2>4. Devoluciones a proveedores</h2><span class="route">/faces/purchasing/returns</span></div>
     <p><strong>Objetivo:</strong> devolver una cantidad comprobable desde una recepción confirmada y conservar su causa. La pantalla registra una línea por comprobante en este primer corte.</p>
     <h3>Bosquejo orientativo de la pantalla</h3>
-    <div class="wireframe">┌ Compras · Devoluciones ─────────────────────────────────────────────┐
-│ Buscar [número/orden/causa] Estado [▼] [Buscar]                     │
-├ Devoluciones ───────────────┬ Devolución seleccionada ──────────────┤
-│ número · orden · causa      │ recepción/línea · cantidad · estado   │
-│ estado · líneas [Abrir]     │ versión                 [Confirmar]    │
-├ Nueva devolución ───────────┴───────────────────────────────────────┤
-│ número · orden · recepción confirmada · línea recibida             │
-│ cantidad · causa                                  [Preparar]        │
+    <div class="wireframe">┌ Compras · Devoluciones · operación guiada ─────────────────────────┐
+│ 1. Buscar una devolución o iniciar una nueva                       │
+│ 2. Contexto: orden · recepción confirmada · línea recibida         │
+│ 3. Captura: cantidad a devolver · causa                            │
+│ 4. Orientación y resumen con la trazabilidad heredada              │
+│                                      [Preparar] [Confirmar]         │
 └──────────────────────────────────────────────────────────────────────┘</div>
     <h3>Datos y acciones</h3>
     <table><thead><tr><th>Dato o acción</th><th>Significado</th><th>Regla y resultado</th></tr></thead><tbody>
@@ -362,13 +355,14 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
     <div class="screen-title"><h2>5. Seguimiento de compras</h2><span class="route">/faces/purchasing/tracking</span></div>
     <p><strong>Objetivo:</strong> consultar, sin modificar, el cumplimiento neto de cada orden.</p>
     <h3>Bosquejo orientativo de la pantalla</h3>
-    <div class="wireframe">┌ Compras · Seguimiento ──────────────────────────────────────────────┐
-│ Buscar [número/proveedor] Estado [▼] [Buscar]                       │
-├ Órdenes ────────────────────┬ Cumplimiento seleccionado ────────────┤
-│ número · proveedor · estado │ proveedor · moneda · total · versión  │
-│ líneas [Ver seguimiento]    │ por línea: pedida · recibida          │
-│                             │ devuelta · pendiente                  │
-└──────────────────────────────────────────────────────────────────────┘</div>
+    <div class="wireframe">┌ Compras · Seguimiento · consulta ──────────────────────────────────┐
+│ Filtros: número/proveedor · estado                     [Buscar]    │
+├ Cumplimiento de órdenes ────────────────────────────────────────────┤
+│ número · proveedor · estado · total                    [Consultar] │
+├ Orden seleccionada ─────────────────────────────────────────────────┤
+│ por línea: pedida · recibida · devuelta · pendiente                │
+└──────────────────────────────────────────────────────────────────────┘
+En compacto, el cumplimiento se lee como tarjetas apiladas.</div>
     <h3>Datos</h3>
     <table><thead><tr><th>Dato</th><th>Cómo interpretarlo</th><th>Origen</th></tr></thead><tbody>
       <tr><td>Número / proveedor</td><td>Identifica el compromiso y el tercero histórico.</td><td>Cabecera de orden y snapshot de proveedor.</td></tr>
@@ -378,7 +372,6 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
       <tr><td>Recibida</td><td>Total de recepciones confirmadas acumuladas.</td><td><code>received_quantity</code>.</td></tr>
       <tr><td>Devuelta</td><td>Total confirmado que regresó al proveedor.</td><td><code>returned_quantity</code>.</td></tr>
       <tr><td>Pendiente</td><td>Lo que aún se espera después de recepciones netas y cierres.</td><td>Cálculo del dominio con cantidades recibidas, devueltas y cerradas.</td></tr>
-      <tr><td>Versión</td><td>Corte del documento mostrado.</td><td><code>entity_version</code>; solo lectura.</td></tr>
     </tbody></table>
     <ol><li>Filtre por número, proveedor o estado.</li><li>Abra la orden.</li><li>Compare pedida, recibida, devuelta y pendiente por línea.</li><li>Si una cifra no coincide con la operación real, abra Recepciones o Devoluciones; no intente corregir el resumen.</li></ol>
     <p class="warning"><strong>Límite:</strong> esta pantalla resume el estado vigente. No reemplaza el historial de auditoría ni constituye una factura, cuenta por pagar o conciliación contable.</p>
@@ -399,6 +392,7 @@ code { font-family: Consolas, monospace; font-size: .92em; background: #eef0f5; 
       <li>Los estados se muestran con texto y no dependen solo del color.</li>
       <li>En ancho compacto los formularios se apilan; no debe existir desplazamiento horizontal normal.</li>
       <li>Los selectores grandes buscan en servidor. Use teclado y etiquetas visibles; no escriba UUID manuales.</li>
+      <li>Después de actualizar contexto o ejecutar una acción, el foco vuelve al primer campo inválido, al mensaje visible o al título; con movimiento reducido se eliminan transiciones no esenciales.</li>
       <li>La ruta Administrar aparece solo con permiso del módulo propietario. Al volver, refresque opciones y confirme el borrador preservado.</li>
       <li>Ante un error, anote empresa, pantalla, número de documento, acción, hora y mensaje. No envíe contraseñas, tokens ni datos personales innecesarios.</li>
       <li>Un plugin desactivado o un permiso ausente oculta menús y bloquea operaciones también en el servidor.</li>

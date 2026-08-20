@@ -135,7 +135,21 @@ public final class ScreenInteraction {
             Optional<Detail> detail,
             List<Notice> notices,
             Optional<String> selectedResourceId,
-            Optional<Long> selectedResourceVersion) {
+            Optional<Long> selectedResourceVersion,
+            Map<ScreenElementId, ElementState> elementStates) {
+
+        /** Compatibility constructor for v1 handlers without dynamic states. */
+        public Result(
+                Map<ScreenElementId, String> inputs,
+                Map<ScreenElementId, List<Option>> options,
+                Optional<Table> table,
+                Optional<Detail> detail,
+                List<Notice> notices,
+                Optional<String> selectedResourceId,
+                Optional<Long> selectedResourceVersion) {
+            this(inputs, options, table, detail, notices, selectedResourceId,
+                    selectedResourceVersion, Map.of());
+        }
 
         public Result {
             inputs = Map.copyOf(Objects.requireNonNull(inputs, "inputs"));
@@ -149,6 +163,7 @@ public final class ScreenInteraction {
             selectedResourceId = text(selectedResourceId, "selectedResourceId", 160);
             selectedResourceVersion = Objects.requireNonNull(
                     selectedResourceVersion, "selectedResourceVersion");
+            elementStates = Map.copyOf(Objects.requireNonNull(elementStates, "elementStates"));
             if (selectedResourceId.isPresent() != selectedResourceVersion.isPresent()) {
                 throw new IllegalArgumentException(
                         "Selected resource identity and version must appear together");
@@ -157,6 +172,49 @@ public final class ScreenInteraction {
                     && !detail.orElseThrow().resourceId().equals(selectedResourceId.orElse(""))) {
                 throw new IllegalArgumentException("Detail must describe the selected resource");
             }
+        }
+    }
+
+    /**
+     * Runtime state of a declared element. Missing entries retain the static
+     * definition, which keeps v1 handlers compatible.
+     */
+    public record ElementState(
+            boolean visible,
+            boolean enabled,
+            boolean required,
+            Optional<String> unavailableReason) {
+
+        public ElementState {
+            unavailableReason = text(
+                    Objects.requireNonNull(unavailableReason, "unavailableReason"),
+                    "unavailableReason",
+                    320);
+            if (!visible && (enabled || required || unavailableReason.isPresent())) {
+                throw new IllegalArgumentException("A hidden element cannot be interactive");
+            }
+            if (required && !enabled) {
+                throw new IllegalArgumentException("A disabled element cannot be required");
+            }
+            if (enabled && unavailableReason.isPresent()) {
+                throw new IllegalArgumentException("An enabled element cannot have a blocking reason");
+            }
+        }
+
+        public static ElementState shown() {
+            return new ElementState(true, true, false, Optional.empty());
+        }
+
+        public static ElementState requiredInput() {
+            return new ElementState(true, true, true, Optional.empty());
+        }
+
+        public static ElementState blocked(String reason) {
+            return new ElementState(true, false, false, Optional.of(reason));
+        }
+
+        public static ElementState hidden() {
+            return new ElementState(false, false, false, Optional.empty());
         }
     }
 

@@ -304,6 +304,10 @@ public class ShellTextCatalog {
         inventoryElement(texts, "stock", "stock_search", "Buscar", "Actualiza el resumen de existencias.");
         inventoryElement(texts, "stock", "stock_results", "Existencias", "Cantidades agregadas en la unidad base del producto.");
         inventoryElement(texts, "stock", "select_stock_item", "Abrir", "Muestra disponibilidad, movimientos y reservas.");
+        inventoryElement(texts, "stock", "stock_task", "Tarea", "Elige movimiento, disponibilidad, reserva o administración del artículo.");
+        inventoryElement(texts, "stock", "apply_stock_task", "Continuar", "Actualiza los campos aplicables a la tarea seleccionada.");
+        inventoryElement(texts, "stock", "stock_guidance", "Datos aplicables", "La pantalla muestra solamente la captura necesaria para la tarea elegida.");
+        inventoryElement(texts, "stock", "stock_summary", "Resumen", "Revisa el artículo y el efecto previsto antes de confirmar.");
         inventoryElement(texts, "stock", "stock_new_catalog_item", "Producto de catálogo", "Solo aparecen productos activos de la empresa.");
         inventoryElement(texts, "stock", "stock_new_tracking", "Seguimiento", "Define si requiere lote, serie o ninguna dimensión.");
         inventoryElement(texts, "stock", "stock_new_expiry", "Vencimiento", "Define si la fecha está prohibida, es opcional u obligatoria.");
@@ -330,6 +334,23 @@ public class ShellTextCatalog {
         inventoryElement(texts, "stock", "movement_source_id", "Identidad de origen", "Referencia externa neutral, sin importar DTO de otro plugin.");
         inventoryElement(texts, "stock", "movement_idempotency", "Clave de idempotencia", "Reutilizarla con otros datos produce un conflicto seguro.");
         inventoryElement(texts, "stock", "post_movement", "Registrar movimiento", "Confirma el asiento inmutable de existencias.");
+
+        inventoryElement(texts, "movements", "movement_item", "Artículo", "Selecciona un producto activo incorporado al inventario.");
+        inventoryElement(texts, "movements", "movement_type", "Tipo de movimiento", "Entrada, salida o transferencia manual controlada.");
+        inventoryElement(texts, "movements", "movement_warehouse", "Depósito de origen", "En una entrada representa el depósito receptor.");
+        inventoryElement(texts, "movements", "movement_location", "Ubicación de origen", "En una entrada representa la ubicación receptora.");
+        inventoryElement(texts, "movements", "movement_target_warehouse", "Depósito destino", "Aparece únicamente para transferencias.");
+        inventoryElement(texts, "movements", "movement_target_location", "Ubicación destino", "Debe ser distinta del origen.");
+        inventoryElement(texts, "movements", "movement_condition", "Condición", "Disponible, en cuarentena o dañado.");
+        inventoryElement(texts, "movements", "movement_lot", "Lote", "Aparece cuando el artículo usa seguimiento por lote.");
+        inventoryElement(texts, "movements", "movement_serial", "Número de serie", "Aparece cuando el artículo usa seguimiento serial.");
+        inventoryElement(texts, "movements", "movement_expiry", "Fecha de vencimiento", "Aparece cuando la política admite vencimiento.");
+        inventoryElement(texts, "movements", "movement_quantity", "Cantidad", "Cantidad positiva en la unidad base del artículo.");
+        inventoryElement(texts, "movements", "movement_reason", "Motivo", "Código breve y estable que explica la operación.");
+        inventoryElement(texts, "movements", "movement_idempotency", "Referencia técnica", "Token interno generado por el servidor y no editable.");
+        inventoryElement(texts, "movements", "movement_guidance", "Datos aplicables", "El formulario adapta destino, lote, serie y vencimiento al tipo y al artículo.");
+        inventoryElement(texts, "movements", "movement_summary", "Resumen de la operación", "Revisa dirección, cantidad y unidad antes de confirmar.");
+        inventoryElement(texts, "movements", "post_movement", "Registrar movimiento", "Confirma un asiento inmutable y auditado.");
         inventoryElement(texts, "stock", "reservation_warehouse", "Depósito", "Depósito de la posición a reservar.");
         inventoryElement(texts, "stock", "reservation_location", "Ubicación", "Ubicación exacta de la reserva.");
         inventoryElement(texts, "stock", "reservation_condition", "Condición", "La reserva se aplica a una sola condición.");
@@ -384,6 +405,8 @@ public class ShellTextCatalog {
         purchasingElement(texts, "requests", "request_search_state", "Estado", "Filtra borradores, pendientes, aprobadas, rechazadas o canceladas.");
         purchasingElement(texts, "requests", "request_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
         purchasingElement(texts, "requests", "request_results", "Solicitudes", "Muestra fecha, estado y cantidad de líneas.");
+        purchasingElement(texts, "requests", "request_lines", "Líneas de la solicitud", "Mantiene el documento visible mientras agregas conceptos en el mismo espacio de trabajo.");
+        purchasingElement(texts, "requests", "request_summary", "Resumen de la solicitud", "Revisa estado, solicitante y cantidad de líneas antes de decidir.");
         purchasingElement(texts, "requests", "select_request", "Abrir", "Muestra las líneas y las acciones autorizadas.");
         purchasingElement(texts, "requests", "request_number", "Número", "Código único de la solicitud dentro de la empresa.");
         purchasingElement(texts, "requests", "request_date", "Fecha solicitada", "Fecha en formato AAAA-MM-DD.");
@@ -416,6 +439,8 @@ public class ShellTextCatalog {
         purchasingElement(texts, "orders", "order_search_state", "Estado", "Filtra borradores, emitidas, cerradas o canceladas.");
         purchasingElement(texts, "orders", "order_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
         purchasingElement(texts, "orders", "order_results", "Órdenes", "Muestra proveedor, moneda, estado y cantidad de líneas.");
+        purchasingElement(texts, "orders", "order_lines", "Líneas de la orden", "Muestra cantidades, precios, asignaciones y cumplimiento sin abandonar el editor.");
+        purchasingElement(texts, "orders", "order_summary", "Resumen de la orden", "Revisa proveedor, estado, total y saldo pendiente antes de emitir o cerrar.");
         purchasingElement(texts, "orders", "select_order", "Abrir", "Muestra importes, cumplimiento y acciones autorizadas.");
         purchasingElement(texts, "orders", "order_number", "Número", "Código único de la orden dentro de la empresa.");
         purchasingElement(texts, "orders", "order_supplier", "Proveedor", "Socio comercial activo con rol proveedor.");
@@ -447,6 +472,8 @@ public class ShellTextCatalog {
         purchasingElement(texts, "receipts", "receipt_search_state", "Estado", "Filtra borradores o confirmadas.");
         purchasingElement(texts, "receipts", "receipt_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
         purchasingElement(texts, "receipts", "receipt_results", "Recepciones", "Muestra orden, estado y cantidad de líneas.");
+        purchasingElement(texts, "receipts", "receipt_guidance", "Datos aplicables", "El destino y la trazabilidad aparecen sólo cuando la línea mueve existencias.");
+        purchasingElement(texts, "receipts", "receipt_summary", "Impacto de la recepción", "Revisa orden, línea, cantidad y destino antes de confirmar.");
         purchasingElement(texts, "receipts", "select_receipt", "Abrir", "Muestra trazabilidad y confirmación disponible.");
         purchasingElement(texts, "receipts", "receipt_number", "Número", "Código único de la recepción dentro de la empresa.");
         purchasingElement(texts, "receipts", "receipt_order", "Orden emitida", "Orden que entrega el proveedor.");
@@ -465,6 +492,8 @@ public class ShellTextCatalog {
         purchasingElement(texts, "returns", "return_search_state", "Estado", "Filtra borradores o confirmadas.");
         purchasingElement(texts, "returns", "return_search", "Buscar", "Actualiza el directorio con los filtros actuales.");
         purchasingElement(texts, "returns", "return_results", "Devoluciones", "Muestra orden, causa, estado y cantidad de líneas.");
+        purchasingElement(texts, "returns", "return_guidance", "Datos aplicables", "La devolución parte de una recepción confirmada y conserva su trazabilidad.");
+        purchasingElement(texts, "returns", "return_summary", "Impacto de la devolución", "Revisa recepción, línea, cantidad y causa antes de confirmar.");
         purchasingElement(texts, "returns", "select_return", "Abrir", "Muestra el origen y la confirmación disponible.");
         purchasingElement(texts, "returns", "return_number", "Número", "Código único de la devolución dentro de la empresa.");
         purchasingElement(texts, "returns", "return_order", "Orden", "Orden emitida o cerrada a la que pertenece la devolución.");
@@ -479,6 +508,7 @@ public class ShellTextCatalog {
         purchasingElement(texts, "tracking", "tracking_search_state", "Estado", "Filtra órdenes por su etapa vigente.");
         purchasingElement(texts, "tracking", "tracking_search", "Buscar", "Actualiza el seguimiento con los filtros actuales.");
         purchasingElement(texts, "tracking", "tracking_results", "Cumplimiento de órdenes", "Resume las órdenes disponibles para seguimiento.");
+        purchasingElement(texts, "tracking", "tracking_summary", "Detalle de cumplimiento", "Muestra cantidades ordenadas, recibidas, devueltas, cerradas y pendientes.");
         purchasingElement(texts, "tracking", "select_tracking_order", "Ver seguimiento", "Muestra cantidades pedidas, recibidas, devueltas y pendientes.");
         return Map.copyOf(texts);
     }

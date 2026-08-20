@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import py.com.logixone.plugin.api.ScreenElementId;
 
 /** Request-only view model produced from one authorized ComposedScreen. */
 public final class ShellScreenView {
@@ -26,6 +27,8 @@ public final class ShellScreenView {
     private final ShellScreenElementView tableElement;
     private final ShellScreenElementView rowAction;
     private final ShellEntityPresentation entityPresentation;
+    private final ShellFloorplan floorplan;
+    private final List<ShellScreenRegionView> floorplanRegions;
 
     ShellScreenView(
             String id,
@@ -57,7 +60,9 @@ public final class ShellScreenView {
                 List.of(),
                 null,
                 null,
-                null);
+                null,
+                null,
+                List.of());
     }
 
     ShellScreenView(
@@ -79,6 +84,84 @@ public final class ShellScreenView {
             ShellScreenElementView tableElement,
             ShellScreenElementView rowAction,
             ShellEntityPresentation entityPresentation) {
+        this(
+                id,
+                contractVersion,
+                eyebrow,
+                title,
+                description,
+                variantLabel,
+                variantClass,
+                mainElements,
+                actions,
+                fragments,
+                hiddenElementCount,
+                interactive,
+                directorySections,
+                detailSections,
+                detailTabs,
+                tableElement,
+                rowAction,
+                entityPresentation,
+                null,
+                List.of());
+    }
+
+    ShellScreenView(
+            String id,
+            String contractVersion,
+            String eyebrow,
+            String title,
+            String description,
+            String variantLabel,
+            String variantClass,
+            int hiddenElementCount,
+            ShellFloorplan floorplan,
+            List<ShellScreenRegionView> floorplanRegions) {
+        this(
+                id,
+                contractVersion,
+                eyebrow,
+                title,
+                description,
+                variantLabel,
+                variantClass,
+                List.of(),
+                List.of(),
+                List.of(),
+                hiddenElementCount,
+                true,
+                List.of(),
+                List.of(),
+                List.of(),
+                null,
+                null,
+                null,
+                Objects.requireNonNull(floorplan, "floorplan"),
+                floorplanRegions);
+    }
+
+    private ShellScreenView(
+            String id,
+            String contractVersion,
+            String eyebrow,
+            String title,
+            String description,
+            String variantLabel,
+            String variantClass,
+            List<ShellScreenElementView> mainElements,
+            List<ShellScreenElementView> actions,
+            List<ShellScreenFragmentView> fragments,
+            int hiddenElementCount,
+            boolean interactive,
+            List<ShellScreenSectionView> directorySections,
+            List<ShellScreenSectionView> detailSections,
+            List<ShellDetailTabView> detailTabs,
+            ShellScreenElementView tableElement,
+            ShellScreenElementView rowAction,
+            ShellEntityPresentation entityPresentation,
+            ShellFloorplan floorplan,
+            List<ShellScreenRegionView> floorplanRegions) {
         this.id = Objects.requireNonNull(id, "id");
         this.contractVersion = Objects.requireNonNull(contractVersion, "contractVersion");
         this.eyebrow = Objects.requireNonNull(eyebrow, "eyebrow");
@@ -97,6 +180,8 @@ public final class ShellScreenView {
         this.tableElement = tableElement;
         this.rowAction = rowAction;
         this.entityPresentation = entityPresentation;
+        this.floorplan = floorplan;
+        this.floorplanRegions = List.copyOf(floorplanRegions);
     }
 
     public String getId() {
@@ -149,6 +234,22 @@ public final class ShellScreenView {
 
     public boolean isInteractive() {
         return interactive;
+    }
+
+    public boolean isFloorplanV2() {
+        return floorplan != null;
+    }
+
+    public String getFloorplanClass() {
+        return floorplan == null ? "" : "floorplan floorplan-" + floorplan.code();
+    }
+
+    public String getFloorplanLabel() {
+        return floorplan == null ? "" : floorplan.label();
+    }
+
+    public List<ShellScreenRegionView> getFloorplanRegions() {
+        return floorplanRegions;
     }
 
     public List<ShellScreenSectionView> getDirectorySections() {
@@ -207,28 +308,55 @@ public final class ShellScreenView {
         return rowAction != null;
     }
 
+    public ShellScreenElementView getFloorplanRowAction() {
+        boolean hasFloorplanTable = floorplanRegions.stream()
+                .anyMatch(region -> !region.getTables().isEmpty());
+        if (!hasFloorplanTable) {
+            return null;
+        }
+        return floorplanRegions.stream()
+                .flatMap(region -> region.getActions().stream())
+                .filter(ShellScreenElementView::isNavigateIntent)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public boolean isHasFloorplanRowAction() {
+        return getFloorplanRowAction() != null;
+    }
+
     boolean acceptsAction(String actionId) {
         if (rowAction != null && rowAction.getId().equals(actionId) && rowAction.isEnabled()) {
             return true;
         }
-        return java.util.stream.Stream.concat(
+        boolean legacyAction = java.util.stream.Stream.concat(
                         directorySections.stream(), detailSections.stream())
                 .flatMap(section -> section.getActions().stream())
+                .anyMatch(action -> action.getId().equals(actionId) && action.isEnabled());
+        return legacyAction || floorplanRegions.stream()
+                .flatMap(region -> region.getActions().stream())
                 .anyMatch(action -> action.getId().equals(actionId) && action.isEnabled());
     }
 
     boolean acceptsSelector(String elementId) {
-        return java.util.stream.Stream.concat(
+        boolean legacySelector = java.util.stream.Stream.concat(
                         directorySections.stream(), detailSections.stream())
                 .flatMap(section -> section.getFields().stream())
+                .anyMatch(field -> field.getId().equals(elementId) && field.isSelect());
+        return legacySelector || floorplanRegions.stream()
+                .flatMap(region -> region.getFields().stream())
                 .anyMatch(field -> field.getId().equals(elementId) && field.isSelect());
     }
 
     Set<String> safeDraftInputIds() {
-        return java.util.stream.Stream.concat(
+        java.util.stream.Stream<ShellScreenElementView> legacyFields = java.util.stream.Stream.concat(
                         directorySections.stream(), detailSections.stream())
-                .flatMap(section -> section.getFields().stream())
+                .flatMap(section -> section.getFields().stream());
+        return java.util.stream.Stream.concat(
+                        legacyFields,
+                        floorplanRegions.stream().flatMap(region -> region.getFields().stream()))
                 .filter(ShellScreenElementView::isEnabled)
+                .filter(field -> !field.isTechnicalToken())
                 .filter(field -> field.isTextInput() || field.isSelect())
                 .map(ShellScreenElementView::getId)
                 .collect(Collectors.toUnmodifiableSet());
@@ -240,16 +368,45 @@ public final class ShellScreenView {
     }
 
     boolean isCreateAction(String actionId) {
-        return directorySections.stream()
+        boolean legacyCreate = directorySections.stream()
                 .filter(section -> section.getId().equals("create"))
                 .flatMap(section -> section.getActions().stream())
                 .anyMatch(action -> action.getId().equals(actionId) && action.isEnabled());
+        return legacyCreate || floorplanRegions.stream()
+                .flatMap(region -> region.getActions().stream())
+                .anyMatch(action -> action.getId().equals(actionId)
+                        && action.isEnabled()
+                        && action.isCreateIntent());
     }
 
     boolean isSearchAction(String actionId) {
-        return directorySections.stream()
+        boolean legacySearch = directorySections.stream()
                 .filter(section -> section.getId().equals("search"))
                 .flatMap(section -> section.getActions().stream())
                 .anyMatch(action -> action.getId().equals(actionId) && action.isEnabled());
+        return legacySearch || floorplanRegions.stream()
+                .flatMap(region -> region.getActions().stream())
+                .anyMatch(action -> action.getId().equals(actionId)
+                        && action.isEnabled()
+                        && action.isSearchIntent());
+    }
+
+    boolean acceptsDynamicStateIds(Set<ScreenElementId> elementIds) {
+        Set<String> declaredIds = java.util.stream.Stream.of(
+                        mainElements.stream(),
+                        actions.stream(),
+                        directorySections.stream().flatMap(section -> java.util.stream.Stream.concat(
+                                section.getFields().stream(), section.getActions().stream())),
+                        detailSections.stream().flatMap(section -> java.util.stream.Stream.concat(
+                                section.getFields().stream(), section.getActions().stream())),
+                        floorplanRegions.stream().flatMap(region -> java.util.stream.Stream.of(
+                                        region.getFields().stream(),
+                                        region.getTables().stream(),
+                                        region.getActions().stream())
+                                .flatMap(java.util.function.Function.identity())))
+                .flatMap(java.util.function.Function.identity())
+                .map(ShellScreenElementView::getId)
+                .collect(Collectors.toUnmodifiableSet());
+        return elementIds.stream().map(ScreenElementId::value).allMatch(declaredIds::contains);
     }
 }

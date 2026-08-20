@@ -43,6 +43,7 @@ public class ShellViewBean {
     private static final String SELECTOR_SEARCH_PARAMETER_PREFIX = "selectorSearch:";
     private static final String SELECTOR_QUERY_PARAMETER_PREFIX = "selectorQuery:";
     private static final String SELECTOR_VALUE_PARAMETER_PREFIX = "selectorValue:";
+    private static final String FLOORPLAN_INPUT_PARAMETER_PREFIX = "floorplanInput.";
     private static final Set<String> SCREEN_MODES = Set.of("directory", "create", "detail");
 
     @Inject
@@ -317,6 +318,10 @@ public class ShellViewBean {
     }
 
     private void applyInteraction(ScreenInteraction.Result result) {
+        if (!activeScreen.acceptsDynamicStateIds(result.elementStates().keySet())) {
+            throw new IllegalArgumentException(
+                    "Dynamic state references an element outside the active screen");
+        }
         inputValues = new HashMap<>();
         result.inputs().forEach((key, value) -> inputValues.put(key.value(), value));
         selectedResourceId = result.selectedResourceId().orElse(null);
@@ -333,7 +338,8 @@ public class ShellViewBean {
     }
 
     public String changeTablePage() {
-        Map<String, String> submittedInputs = new HashMap<>(inputValues);
+        Map<String, String> submittedInputs = mergeFloorplanSubmittedInputs(
+                inputValues, request.getParameterMap());
         String submittedResourceId = selectedResourceId;
         Long submittedResourceVersion = selectedResourceVersion;
         int submittedOffset = tableOffset;
@@ -403,7 +409,8 @@ public class ShellViewBean {
             state = ShellState.DENIED;
             return;
         }
-        Map<String, String> submittedInputs = new HashMap<>(inputValues);
+        Map<String, String> submittedInputs = mergeFloorplanSubmittedInputs(
+                inputValues, request.getParameterMap());
         Map<String, String> submittedSearches = new HashMap<>(selectorSearchValues);
         Map<String, Integer> submittedOffsets = new HashMap<>(selectorSearchOffsets);
         String submittedQuery = request.getParameter(SELECTOR_QUERY_PARAMETER_PREFIX + fieldId);
@@ -481,7 +488,8 @@ public class ShellViewBean {
         if (selections.isEmpty()) {
             return;
         }
-        Map<String, String> submittedInputs = new HashMap<>(inputValues);
+        Map<String, String> submittedInputs = mergeFloorplanSubmittedInputs(
+                inputValues, request.getParameterMap());
         Map<String, String> submittedSearches = new HashMap<>(selectorSearchValues);
         Map<String, Integer> submittedOffsets = new HashMap<>(selectorSearchOffsets);
         try {
@@ -819,7 +827,12 @@ public class ShellViewBean {
     }
 
     public String executeScreenAction() {
-        Map<String, String> submittedInputs = new HashMap<>(inputValues);
+        String floorplanAction = request.getParameter("floorplanRequestedAction");
+        if (floorplanAction != null) {
+            requestedActionId = normalizedAction(floorplanAction);
+        }
+        Map<String, String> submittedInputs = mergeFloorplanSubmittedInputs(
+                inputValues, request.getParameterMap());
         String submittedResourceId = selectedResourceId;
         Long submittedResourceVersion = selectedResourceVersion;
         try {
@@ -833,18 +846,30 @@ public class ShellViewBean {
                     || activeScreen == null
                     || !activeScreen.isInteractive()
                     || requestedActionId == null
-                    || !activeScreen.acceptsAction(requestedActionId)) {
+                    || !activeScreen.acceptsAction(requestedActionId)
+                    || activeInteractionHandler == null) {
                 state = ShellState.DENIED;
                 return null;
             }
+
+            ScreenInteraction.Result refreshed = activeInteractionHandler.interact(
+                    new ScreenInteraction.Request(
+                            Optional.empty(),
+                            typedInputs(),
+                            Optional.ofNullable(selectedResourceId),
+                            Optional.ofNullable(selectedResourceVersion)));
+            applyInteraction(refreshed);
+            if (!activeInteraction.acceptsAction(requestedActionId)) {
+                state = ShellState.DENIED;
+                return null;
+            }
+
+            Map<String, String> actionInputs = mergeFloorplanActionInputs(
+                    inputValues, submittedInputs);
             ScreenElementId actionId = new ScreenElementId(requestedActionId);
-            if (activeInteractionHandler == null) {
-                state = ShellState.DENIED;
-                return null;
-            }
             ScreenInteraction.Result result = activeInteractionHandler.interact(new ScreenInteraction.Request(
                     Optional.of(actionId),
-                    typedInputs(),
+                    typedInputs(actionInputs),
                     Optional.ofNullable(selectedResourceId),
                     Optional.ofNullable(selectedResourceVersion)));
             applyInteraction(result);
@@ -868,6 +893,75 @@ public class ShellViewBean {
             state = ShellState.ERROR;
             return null;
         }
+    }
+
+    public String refreshFloorplanContext() {
+        Map<String, String> submittedInputs = mergeFloorplanSubmittedInputs(
+                inputValues, request.getParameterMap());
+        String submittedResourceId = selectedResourceId;
+        Long submittedResourceVersion = selectedResourceVersion;
+        try {
+            prepared = false;
+            prepare();
+            mergeSubmittedSelectorValues(submittedInputs);
+            inputValues.putAll(submittedInputs);
+            selectedResourceId = submittedResourceId;
+            selectedResourceVersion = submittedResourceVersion;
+            if (state != ShellState.READY
+                    || activeScreen == null
+                    || !activeScreen.isInteractive()
+                    || activeInteractionHandler == null) {
+                state = ShellState.DENIED;
+                return null;
+            }
+            ScreenInteraction.Result refreshed = activeInteractionHandler.interact(
+                    new ScreenInteraction.Request(
+                            Optional.empty(),
+                            typedInputs(),
+                            Optional.ofNullable(selectedResourceId),
+                            Optional.ofNullable(selectedResourceVersion)));
+            applyInteraction(refreshed);
+            return null;
+        } catch (TrustedWebAccessException | IllegalArgumentException denied) {
+            state = ShellState.DENIED;
+            return null;
+        } catch (RuntimeException unexpected) {
+            LOGGER.log(Level.ERROR,
+                    "event=shell_floorplan_context_refresh_failed type={0}",
+                    unexpected.getClass().getName());
+            state = ShellState.ERROR;
+            return null;
+        }
+    }
+
+    public boolean isFloorplanActionRequest() {
+        return "true".equals(request.getParameter("floorplanActionRequest"));
+    }
+
+    static Map<String, String> mergeFloorplanSubmittedInputs(
+            Map<String, String> currentInputs,
+            Map<String, String[]> requestParameters) {
+        Map<String, String> submittedInputs = new HashMap<>(currentInputs);
+        requestParameters.forEach((parameterName, values) -> {
+            if (!parameterName.startsWith(FLOORPLAN_INPUT_PARAMETER_PREFIX)) {
+                return;
+            }
+            if (values == null || values.length != 1 || values[0] == null) {
+                throw new IllegalArgumentException("invalid floorplan input transport");
+            }
+            String rawElementId = parameterName.substring(FLOORPLAN_INPUT_PARAMETER_PREFIX.length());
+            ScreenElementId elementId = new ScreenElementId(rawElementId);
+            submittedInputs.put(elementId.value(), values[0]);
+        });
+        return submittedInputs;
+    }
+
+    static Map<String, String> mergeFloorplanActionInputs(
+            Map<String, String> refreshedInputs,
+            Map<String, String> submittedInputs) {
+        Map<String, String> actionInputs = new HashMap<>(refreshedInputs);
+        actionInputs.putAll(submittedInputs);
+        return actionInputs;
     }
 
     public String selectCompany() {
@@ -1070,6 +1164,10 @@ public class ShellViewBean {
         return inputValues;
     }
 
+    public String selectedOptionLabel(String fieldId) {
+        return activeInteraction.selectedOptionLabel(fieldId, inputValues.get(fieldId));
+    }
+
     public Map<String, String> getSelectorSearchValues() {
         return selectorSearchValues;
     }
@@ -1143,6 +1241,17 @@ public class ShellViewBean {
             return java.util.UUID.fromString(candidate).toString().equals(candidate)
                     ? candidate
                     : null;
+        } catch (IllegalArgumentException invalid) {
+            return null;
+        }
+    }
+
+    private static String normalizedAction(String value) {
+        if (value == null || value.isBlank() || value.length() > 80) {
+            return null;
+        }
+        try {
+            return new ScreenElementId(value.strip()).value();
         } catch (IllegalArgumentException invalid) {
             return null;
         }

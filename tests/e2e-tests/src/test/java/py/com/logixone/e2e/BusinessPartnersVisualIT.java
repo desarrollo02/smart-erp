@@ -792,6 +792,9 @@ class BusinessPartnersVisualIT {
             requireOne(page.getByRole(
                     AriaRole.HEADING, new Page.GetByRoleOptions().setName("Plugins por empresa")),
                     "plugins administration heading").waitFor();
+            enablePlugin(page, pluginsUrl, "commercial_catalog");
+            enablePlugin(page, pluginsUrl, "inventory");
+            enablePlugin(page, pluginsUrl, "purchasing");
             Locator card = requireOne(page.locator("article.plugin-record-card").filter(
                     new Locator.FilterOptions().setHasText("business_partners")),
                     "business partners plugin card");

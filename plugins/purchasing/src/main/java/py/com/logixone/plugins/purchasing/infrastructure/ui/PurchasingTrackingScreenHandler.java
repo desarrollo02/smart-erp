@@ -78,6 +78,7 @@ public class PurchasingTrackingScreenHandler implements ScreenInteraction.Handle
                 PurchaseOrder order = result.value().orElseThrow();
                 detail = Optional.of(detail(order));
                 version = Optional.of(order.version());
+                inputs.put(PurchasingScreenContract.TRACKING_SUMMARY, summary(order));
             } else {
                 selected = Optional.empty();
                 notices.add(PurchasingScreenSupport.error(
@@ -85,7 +86,8 @@ public class PurchasingTrackingScreenHandler implements ScreenInteraction.Handle
             }
         }
         return new ScreenInteraction.Result(
-                inputs, options(), Optional.of(table(page)), detail, notices, selected, version);
+                inputs, options(), Optional.of(table(page)), detail, notices, selected, version,
+                PurchasingFloorplanStates.tracking(selected.isPresent()));
     }
 
     private static Map<ScreenElementId, List<ScreenInteraction.Option>> options() {
@@ -115,14 +117,7 @@ public class PurchasingTrackingScreenHandler implements ScreenInteraction.Handle
     }
 
     private static ScreenInteraction.Detail detail(PurchaseOrder order) {
-        String fulfillment = order.lines().stream()
-                .map(line -> line.item().description()
-                        + " · pedida " + line.orderedQuantity().toPlainString()
-                        + " · recibida " + line.receivedQuantity().toPlainString()
-                        + " · devuelta " + line.returnedQuantity().toPlainString()
-                        + " · pendiente " + line.pendingQuantity().toPlainString())
-                .reduce((left, right) -> left + " | " + right)
-                .orElse("Sin líneas");
+        String fulfillment = fulfillment(order);
         return new ScreenInteraction.Detail(order.id().toString(),
                 "Seguimiento de " + order.snapshot().number(), List.of(
                         new ScreenInteraction.DetailItem(
@@ -135,6 +130,22 @@ public class PurchasingTrackingScreenHandler implements ScreenInteraction.Handle
                         new ScreenInteraction.DetailItem("Cumplimiento", fulfillment),
                         new ScreenInteraction.DetailItem(
                                 "Versión", Long.toString(order.version()))));
+    }
+
+    private static String summary(PurchaseOrder order) {
+        return order.snapshot().number() + " · " + order.snapshot().supplier().displayName()
+                + " · " + label(order.state()) + " · " + fulfillment(order);
+    }
+
+    private static String fulfillment(PurchaseOrder order) {
+        return order.lines().stream()
+                .map(line -> line.item().description()
+                        + " · pedida " + line.orderedQuantity().toPlainString()
+                        + " · recibida " + line.receivedQuantity().toPlainString()
+                        + " · devuelta " + line.returnedQuantity().toPlainString()
+                        + " · pendiente " + line.pendingQuantity().toPlainString())
+                .reduce((left, right) -> left + " | " + right)
+                .orElse("Sin líneas");
     }
 
     private static Map<ScreenElementId, String> defaults(

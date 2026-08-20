@@ -105,4 +105,48 @@ class ShellScreenInteractionViewTest {
         assertEquals(51, view.getTable().getLastVisible());
         assertEquals(50, view.getTable().getPageSize());
     }
+
+    @Test
+    void exposesDynamicStateAndBlocksUnavailableActions() {
+        var action = new ScreenElementId("approve");
+        var result = new ScreenInteraction.Result(
+                Map.of(),
+                Map.of(),
+                Optional.empty(),
+                Optional.empty(),
+                List.of(),
+                Optional.empty(),
+                Optional.empty(),
+                Map.of(action, ScreenInteraction.ElementState.blocked(
+                        "La solicitud ya no está pendiente")));
+
+        ShellScreenInteractionView view = ShellScreenInteractionView.from(result);
+
+        assertFalse(view.acceptsAction("approve"));
+        assertTrue(view.acceptsAction("not_overridden"));
+        assertEquals("La solicitud ya no está pendiente",
+                view.getElementStates().get("approve").getUnavailableReason());
+    }
+
+    @Test
+    void resolvesHumanReadableSelectorLabelsWithoutFallingBackToTechnicalValues() {
+        var result = new ScreenInteraction.Result(
+                Map.of(),
+                Map.of(TAX_PROFILE, List.of(
+                        new ScreenInteraction.Option("3a61df60-cc1e-4c7e-a19a-8cb495d5d496",
+                                "IVA general"))),
+                Optional.empty(),
+                Optional.empty(),
+                List.of(),
+                Optional.empty(),
+                Optional.empty());
+
+        ShellScreenInteractionView view = ShellScreenInteractionView.from(result);
+
+        assertEquals("Ninguna", view.selectedOptionLabel("tax_profile", ""));
+        assertEquals("IVA general", view.selectedOptionLabel(
+                "tax_profile", "3a61df60-cc1e-4c7e-a19a-8cb495d5d496"));
+        assertEquals("Selección no disponible",
+                view.selectedOptionLabel("tax_profile", "technical-id-not-listed"));
+    }
 }
