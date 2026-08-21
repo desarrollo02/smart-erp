@@ -1,14 +1,15 @@
 # Manual de usuario de Smart ERP
 
-- Edición: 0.1-rc36
-- Fecha: 2026-08-14
+- Edición: 0.1-rc37
+- Fecha: 2026-08-15
 - Baseline: J11-S8-C07 implementa publicaciones completas, búsqueda paginada y unidad menor opcional para datos de referencia; J11-S8-C06 mantiene la habilitación empresarial versionada; J11-S8-C02 mantiene familias de variantes y definiciones de socios,
   ciclo activo/inactivo de definiciones simples/perfiles/tipos de canal/familias y revisión explícita
   e historial visible tributarios, revisión/historial visible y reemplazo seguro de definiciones simples,
   revisión de nombre e historial visible de definiciones de socios, revisión estructural/historial visible de familias y asignación versionada de familias a artículos, gobierno de 91/91 selectores y retorno seguro de selectores de plugins y de los 11 usos nativos administrables implementados; C06/C07 quedó ejecutada y revisada en 375, 720 y 1280 px; la demo final
   J11-S9-07 congeló Compras y J11-S9-08 generó el instalador interno
-  `0.9.0-internal.1`; el PDF del corte se regenera y la matriz Windows externa
-  permanece pendiente
+  `0.9.0-internal.1`; ADR-0048 planifica `real_estate` con fuente legado
+  `miaterra_master`, sin pantallas ejecutables; el PDF del corte se regenera y la
+  matriz Windows externa permanece pendiente
 - Idioma: español
 - Estado: manual inicial; producto no autorizado aún para producción
 - Audiencia: operadores, responsables de maestros comerciales y administradores
@@ -22,6 +23,17 @@
 
 ## Manuales independientes por módulo
 
+Para preparar una computadora Windows y dejar una empresa de prueba con todos
+los plugins físicos del baseline, consulte el
+[manual integrado del instalador y puesta en marcha](operations/instalador-windows-puesta-en-marcha.md),
+su [ayuda web](operations/web/instalador-windows-puesta-en-marcha.html) o el
+[volumen PDF completo](../output/pdf/02-manual-instalador-windows-y-puesta-en-marcha.pdf).
+El volumen explica la carpeta de ocho archivos, los hashes, el diagnóstico, las
+siete fases, la operación segura, la configuración empresarial, Keycloak,
+usuarios, membresías, roles y permisos, y anexa los siete manuales funcionales.
+La edición documentada es interna, no firmada y no está aprobada para producción
+ni distribución externa.
+
 La edición ampliada y diagramada de cada módulo se encuentra en
 [`docs/user-guide/modules/README.md`](modules/README.md). Allí se entregan siete
 manuales separados en fuente mantenible, ayuda web y PDF: Administración segura,
@@ -30,10 +42,11 @@ Socios comerciales, y Compras.
 
 Como documento introductorio previo a esos manuales, la
 [Guía 00 - Plugins y orden de construcción](../output/pdf/00-roadmap-plugins-y-orden-construccion.pdf)
-resume los 33 plugins reutilizables, la secuencia ERP R0/1-19, las familias
-cooperativa C1-C6 y Flota F1-F2, las operaciones del proveedor, Migración, BPM y
-la personalización final de cada empresa. F1 `fleet_maintenance` y F2
-`automotive_workshop` están planificados; todavía no son pantallas utilizables.
+resume los 34 plugins reutilizables, la secuencia ERP R0/1-19, las familias
+cooperativa C1-C6 y Flota F1-F2, las operaciones del proveedor, Migración, BPM,
+Inmobiliaria y la personalización final de cada empresa. F1 `fleet_maintenance`,
+F2 `automotive_workshop` y `real_estate` están planificados; todavía no son
+pantallas utilizables.
 
 Para instalar y operar la candidata en Ubuntu, consulte el
 [manual de puesta en marcha en Ubuntu](../runbooks/levantar-logixone-ubuntu.md)

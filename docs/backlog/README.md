@@ -16,6 +16,7 @@ Una historia debe estar suficientemente definida y ser comprobable antes de entr
 - [Telemetría vehicular y seguimiento GPS](epica-telemetria-vehicular.md)
 - [Roadmap inicial de plugins productivos](epica-roadmap-plugins-productivos.md)
 - [Compras: solicitudes, órdenes, recepciones y devoluciones](epica-compras.md)
+- [Ventas: presupuestos, pedidos y compromisos](epica-ventas.md)
 - [Terminal de punto de venta](epica-terminal-punto-venta.md)
 - [Estaciones de servicio de combustible](epica-estaciones-servicio-combustible.md)
 - [Recursos humanos, nómina y cumplimiento paraguayo](epica-recursos-humanos-nomina-paraguay.md)
@@ -30,9 +31,15 @@ Una historia debe estar suficientemente definida y ser comprobable antes de entr
 - [Gestión de procesos de negocio BPM](epica-gestion-procesos-negocio-bpm.md)
 - [Mantenimiento de flota](epica-mantenimiento-flota.md)
 - [Taller automotriz comercial](epica-taller-automotriz-comercial.md)
+- [Gestión inmobiliaria](epica-gestion-inmobiliaria.md)
 - [Floorplans operativos y transaccionales](epica-floorplans-operativos-transaccionales.md)
+- [Revisión visual guiada post-Ventas](epica-revision-visual-guiada-post-ventas.md)
 
 ## Historias futuras refinadas
+
+| ID | Título | Tipo | Módulo | Estado | Prioridad |
+|---|---|---|---|---|---|
+| [PBI-2026-08-20-001](sales/PBI-2026-08-20-001-presupuestos-pedidos-compromisos.md) | Presupuestos, pedidos y compromisos | Historia | `sales` | Listo | Pendiente de Product Owner |
 
 - [COOP-00 — Gobierno, alcance y matriz normativa](COOP-00-gobierno-alcance-matriz-normativa.md): lista para recibir datos y decisiones de una cooperativa concreta; no autoriza código.
 - [WIN-I09 — Selección de plugins con dependencias resueltas](WIN-I09-seleccion-plugins-dependencias.md): selector físico del instalador con cierre transitivo, bloqueo de composiciones inválidas y par WAR/migrador idéntico; no está implementado en la edición interna actual.
@@ -63,11 +70,29 @@ no se promueve a producción.
 El responsable de producto decidió el 2026-08-13 insertar
 [Sprint 10](../sprints/sprint-10/README.md) como incremento transversal después de
 J11-S9-07/J11-S9-08 y antes de `sales`. J11-S9-07 congeló el baseline técnico y
-J11-S9-08 creó la edición interna solicitada. Sprint 10 evolucionará los contratos
-neutrales y el shell con `WORKLIST`, `TRANSACTION_EDITOR` y `GUIDED_OPERATION`, y
-los validará sobre Inventario y Compras reales. La decisión no altera ADR-0011:
-`purchasing` conserva el orden ERP 4 y `sales` el orden ERP 5. J11-S10-00
-permanece planificada y no se inició código en esta historia.
+J11-S9-08 creó la edición interna solicitada. Sprint 10 evolucionó los contratos
+neutrales y el shell con `WORKLIST`, `TRANSACTION_EDITOR` y `GUIDED_OPERATION`,
+los validó sobre Inventario y Compras reales y registró `NO` para un instalador
+nuevo. La decisión no altera ADR-0011: `purchasing` conserva el orden ERP 4 y
+`sales` el orden ERP 5. Sólo su validación independiente continúa pendiente.
+
+El 2026-08-20 producto habilitó
+[Sprint 11](../sprints/sprint-11/README.md) y aceptó SA-D01 a SA-D10 sin cambios.
+[J11-S11-01](../sprints/sprint-11/J11-S11-01-caracterizacion-sales.md)
+separó presupuesto, pedido y reserva de factura, finanzas y logística usando el
+legado y su base local en sólo lectura. J11-S11-02 queda listo para una solicitud
+explícita de implementación; no existen aún módulos, migraciones o rutas runtime
+de `sales`.
+
+Por decisión de producto del 2026-08-15, inmediatamente después de completar
+`sales` se ejecutará un Sprint exclusivo de
+[revisión visual guiada post-Ventas](epica-revision-visual-guiada-post-ventas.md).
+La revisión recorrerá, una por una y sobre la aplicación real, todas las
+pantallas del perfil físico vigente: se presentará una captura real, se explicará
+el funcionamiento, se resolverán las consultas del responsable de producto y se
+implementarán los ajustes que éste indique antes de aceptar la pantalla y pasar a
+la siguiente. Este gate no renumera plugins, pero precede al inicio de
+`logistics`.
 
 La candidata visual de [Sprint 3](../sprints/sprint-03/README.md) está disponible y
 sus gates técnicos G2-G6 quedaron verdes; G7 independiente continúa pendiente. El
@@ -157,6 +182,14 @@ incremento. F1 requiere una identidad pública estable de vehículo en Logístic
 F2 se construye después de F1, Ventas y Documentos Comerciales. Consulte las
 épicas de [mantenimiento de flota](epica-mantenimiento-flota.md) y
 [taller automotriz comercial](epica-taller-automotriz-comercial.md).
+
+[ADR-0048](../adr/0048-plugin-gestion-inmobiliaria.md) agrega `real_estate` como
+plugin funcional vertical, reutilizable y opcional. La fuente legado preferente
+es la rama `miaterra_master` del repositorio Miaterra actualizado, que se consulta
+en modo de solo lectura y debe fijarse por commit en RE-00. El catálogo global
+planificado pasa a treinta y cuatro reutilizables sin renumerar ERP 1–19 ni
+alterar Sprint 10. RE-D01 a RE-D12 y la frontera final permanecen pendientes en
+la [épica inmobiliaria](epica-gestion-inmobiliaria.md); no se autoriza código.
 
 [COOP-00](COOP-00-gobierno-alcance-matriz-normativa.md) quedó refinada con
 COOP-D01–D15, registro de fuentes, mapa de dependencias y gates G0–G5. Continúa

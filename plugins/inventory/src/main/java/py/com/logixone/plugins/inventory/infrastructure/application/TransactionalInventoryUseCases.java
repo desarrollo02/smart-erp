@@ -20,6 +20,7 @@ import py.com.logixone.plugins.inventory.api.StockMovementRequest;
 import py.com.logixone.plugins.inventory.api.StockReservationId;
 import py.com.logixone.plugins.inventory.api.StockReservationReference;
 import py.com.logixone.plugins.inventory.api.StockReservationRequest;
+import py.com.logixone.plugins.inventory.api.CatalogStockReservationRequest;
 import py.com.logixone.plugins.inventory.api.WarehouseId;
 import py.com.logixone.plugins.inventory.application.InventoryCountService;
 import py.com.logixone.plugins.inventory.application.InventoryMovementService;
@@ -111,6 +112,10 @@ public class TransactionalInventoryUseCases implements InventoryUseCases {
     @Override public InventoryOperationResult<StockReservationReference> reserve(
             InventoryOperationContext context, StockReservationRequest request) {
         return mutation(reservationService().reserve(context, request));
+    }
+    @Override public InventoryOperationResult<StockReservationReference> reserveCatalogItem(
+            InventoryOperationContext context, CatalogStockReservationRequest request) {
+        return mutation(reservationService().reserveCatalogItem(context, request));
     }
     @Override public InventoryOperationResult<StockReservationReference> consume(
             InventoryOperationContext context, InventoryCommands.ConsumeReservation command) {

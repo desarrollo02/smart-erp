@@ -1,6 +1,6 @@
 # Manual técnico para desarrolladores de Smart ERP
 
-- Edición: 0.1-rc60
+- Edición: 0.1-rc61
 - Fecha: 2026-08-20
 - Baseline: Java 21, Jakarta EE 11, WildFly 41; J11-S8-C07 implementa publicaciones
   completas, unidad menor opcional y búsqueda paginada de `reference_data`;
@@ -11,7 +11,8 @@
   Maven, ArchUnit, PostgreSQL, Docker/Compose, migraciones, health, OIDC y
   Playwright; ADR-0040 planifica
   `legacy_migration`, ADR-0045 `business_process_management`, ADR-0046 la familia
-  Flota F1/F2 y ADR-0047 el gate de floorplans operativos previo a `sales`;
+  Flota F1/F2, ADR-0047 el gate de floorplans operativos previo a `sales` y
+  ADR-0048 el plugin vertical planificado `real_estate`;
   J11-S9-08 creó el instalador interno `0.9.0-internal.1`; G7, Authenticode y
   matriz Windows independiente permanecen pendientes; J11-S10-03/J11-S10-04
   migraron Inventario y Compras a floorplans v2 y J11-S10-05/J11-S10-06
@@ -1055,6 +1056,27 @@ móvil/externo exige concesión autenticada, expirable y revocable. Consulte las
 además de la
 [caracterización](../knowledge-base/vehicle-maintenance/legacy-characterization.md).
 
+[ADR-0048](../adr/0048-plugin-gestion-inmobiliaria.md) agrega después
+`real_estate` y eleva el catálogo global futuro a treinta y cuatro reutilizables.
+Es un plugin funcional vertical, opcional por empresa, sin número ERP y todavía
+fuera del reactor. Su fuente legado preferente es el repositorio
+`C:\cosme\mega\miaterra`, rama `miaterra_master`, raíz `fuente/tag`, consultado
+exclusivamente en modo de solo lectura.
+
+Antes de diseñar `real-estate-api`, persistencia o pantallas, RE-00 debe fijar el
+commit completo analizado y resolver RE-D01 a RE-D12. En particular debe decidir
+si proyectos, inmuebles, lotes, edificios, catastro, mejoras, alquileres y
+administración forman un dominio o una familia. El nombre de una entidad o vista
+legado no asigna propiedad en Smart ERP.
+
+La frontera técnica mínima evita que una unidad inmobiliaria sea stock. Socios
+posee personas, Inventario bienes físicos, Ventas presupuestos/pedidos, Documentos
+facturas, Tesorería dinero, Cuentas por Cobrar deuda y Contabilidad asientos.
+`real_estate` sólo podrá publicar IDs, snapshots y eventos de los ciclos
+inmobiliarios aprobados, sin JPA, SQL o clases internas cruzadas. Consulte la
+[épica inmobiliaria](../backlog/epica-gestion-inmobiliaria.md) y la
+[evidencia de incorporación](../evidence/ADR-0048-plan-gestion-inmobiliaria.md).
+
 El perfil cooperativo reutilizará `business-partners-api`, `treasury-api` y
 `accounting-api` cuando sus contratos estén estables. La frontera esencial para
 quien desarrolle la familia es:
@@ -1308,8 +1330,10 @@ independiente continúan pendientes.
 - [Épica — Gestión de procesos de negocio BPM](../backlog/epica-gestion-procesos-negocio-bpm.md)
 - [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
 - [ADR-0047 — Floorplans operativos y transaccionales](../adr/0047-floorplans-operativos-transaccionales.md)
+- [ADR-0048 — Plugin de gestión inmobiliaria](../adr/0048-plugin-gestion-inmobiliaria.md)
 - [Épica — Mantenimiento de flota](../backlog/epica-mantenimiento-flota.md)
 - [Épica — Taller automotriz comercial](../backlog/epica-taller-automotriz-comercial.md)
+- [Épica — Gestión inmobiliaria](../backlog/epica-gestion-inmobiliaria.md)
 - [ADR-0041 — Modelo de `purchasing`](../adr/0041-modelo-purchasing-y-contratos-publicos.md)
 - [J11-S9-02 — Dominio y contratos de `purchasing`](../sprints/sprint-09/J11-S9-02-dominio-contratos-purchasing.md)
 - [ADR-0042 — Persistencia privada de `purchasing`](../adr/0042-persistencia-privada-purchasing.md)
@@ -1333,3 +1357,4 @@ independiente continúan pendientes.
 - [ADR-0036 — Operaciones del proveedor, soporte y conector seguro](../adr/0036-operaciones-proveedor-soporte-lanzamientos-conector.md)
 - [ADR-0037 — Familia para cooperativas de ahorro y crédito](../adr/0037-familia-cooperativa-ahorro-credito-paraguay.md)
 - [COOP-00 — Gobierno, alcance y matriz normativa](../backlog/COOP-00-gobierno-alcance-matriz-normativa.md)
+- [Persistencia privada de Ventas](sales-persistence.md)

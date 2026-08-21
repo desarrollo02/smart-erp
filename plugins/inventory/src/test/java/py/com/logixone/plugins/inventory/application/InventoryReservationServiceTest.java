@@ -28,6 +28,7 @@ import py.com.logixone.plugins.commercialcatalog.api.CatalogItemScope;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogItemState;
 import py.com.logixone.plugins.commercialcatalog.api.CatalogItemType;
 import py.com.logixone.plugins.inventory.api.ExpiryPolicy;
+import py.com.logixone.plugins.inventory.api.CatalogStockReservationRequest;
 import py.com.logixone.plugins.inventory.api.InventoryItemId;
 import py.com.logixone.plugins.inventory.api.StockCondition;
 import py.com.logixone.plugins.inventory.api.StockCountId;
@@ -142,6 +143,22 @@ class InventoryReservationServiceTest {
         assertEquals(InventoryResultCode.ACCESS_DENIED, result.code());
         assertEquals(0, reservations.lookups);
         assertEquals(0, ids.reservationCalls);
+    }
+
+    @Test
+    void resolvesCatalogIdentityInsideInventoryBeforeReserving() {
+        var request = new CatalogStockReservationRequest(
+                CATALOG_ITEM.value(), WAREHOUSE, LOCATION, Optional.empty(), Optional.empty(),
+                Optional.empty(), StockCondition.AVAILABLE, new BigDecimal("2"),
+                new StockSourceReference("SALES_ORDER", "order-1"),
+                Instant.parse("2026-08-01T15:00:00Z"), "sales-order-1-line-1");
+
+        var result = service.reserveCatalogItem(
+                context(InventoryPermissions.RESERVATIONS_MANAGE), request);
+
+        assertTrue(result.successful());
+        assertEquals(ITEM, result.value().orElseThrow().key().inventoryItemId());
+        assertEquals(0, new BigDecimal("2").compareTo(balances.value.reservedQuantity()));
     }
 
     private static StockReservationRequest request(String key, String quantity) {

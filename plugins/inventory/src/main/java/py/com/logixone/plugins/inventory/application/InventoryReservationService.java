@@ -9,6 +9,8 @@ import java.util.Optional;
 import py.com.logixone.kernel.api.audit.TechnicalAudit;
 import py.com.logixone.kernel.api.company.CompanyId;
 import py.com.logixone.plugins.inventory.api.MovementQuantity;
+import py.com.logixone.plugins.inventory.api.CatalogStockReservationRequest;
+import py.com.logixone.plugins.commercialcatalog.api.CatalogItemId;
 import py.com.logixone.plugins.inventory.api.StockKey;
 import py.com.logixone.plugins.inventory.api.StockMovementDirection;
 import py.com.logixone.plugins.inventory.api.StockMovementLine;
@@ -121,6 +123,23 @@ public final class InventoryReservationService {
             return rejected(context, "RESERVE_STOCK", Optional.empty(), Optional.empty(),
                     InventoryResultCode.INVALID_OPERATION);
         }
+    }
+
+    public InventoryOperationResult<StockReservationReference> reserveCatalogItem(
+            InventoryOperationContext context, CatalogStockReservationRequest request) {
+        Objects.requireNonNull(request, "request");
+        if (!authorized(context)) {
+            return denied(context, "RESERVE_CATALOG_STOCK", Optional.empty(), Optional.empty());
+        }
+        CompanyId companyId = company(context);
+        InventoryItem item = items.findByCatalogItemId(
+                        companyId, new CatalogItemId(request.catalogItemId()))
+                .orElse(null);
+        if (item == null || !item.active()) {
+            return rejected(context, "RESERVE_CATALOG_STOCK", Optional.empty(),
+                    Optional.empty(), InventoryResultCode.REFERENCE_CONFLICT);
+        }
+        return reserve(context, request.resolve(item.id()));
     }
 
     public InventoryOperationResult<StockReservationReference> consume(

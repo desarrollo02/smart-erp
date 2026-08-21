@@ -31,6 +31,7 @@ import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 @EnabledIfSystemProperty(named = "logixone.purchasing.e2e", matches = "true")
 class PurchasingVisualIT {
 
+    private static final String SYSTEM_ADMIN_USER = "demo.sin.empresa";
     private static final String MULTIPLE_COMPANIES_USER = "demo.empresas.ab";
     private static final String SINGLE_COMPANY_USER = "demo.empresa.a";
     private static final String DEMO_ROLE_CODE = "demo_operator";
@@ -108,10 +109,9 @@ class PurchasingVisualIT {
             approvalCompanyId = enterWorkspace(approvalPage);
         }
 
-        String companyId;
+        String companyId = approvalCompanyId;
         try (BrowserContext setupContext = newContext()) {
-            Page setupPage = authenticate(setupContext, MULTIPLE_COMPANIES_USER);
-            companyId = enterWorkspace(setupPage, approvalCompanyId);
+            Page setupPage = authenticate(setupContext, SYSTEM_ADMIN_USER);
             enableRequiredPlugins(setupPage, companyId);
             grantRequiredPermissions(setupPage, companyId);
         }
@@ -327,10 +327,16 @@ class PurchasingVisualIT {
         page.navigate(routeUrl("%2Fpurchasing%2Frequests", "directory"));
         assertFloorplan(page, "worklist");
         requireMainHeading(page, "Solicitudes de compra");
+        assertDirectoryModeLayout(page, "Preparar solicitud");
         assertResponsive(page, 1280, 900, "purchasing-requests-directory-expanded-1280.png");
         assertResponsive(page, 720, 900, "purchasing-requests-directory-medium-720.png");
         assertResponsive(page, 375, 900, "purchasing-requests-directory-compact-375.png");
 
+        page.setViewportSize(1280, 900);
+        openCreateMode(page, "Preparar solicitud");
+        assertResponsive(page, 1280, 900, "purchasing-request-create-expanded-1280.png");
+        assertResponsive(page, 720, 900, "purchasing-request-create-medium-720.png");
+        assertResponsive(page, 375, 900, "purchasing-request-create-compact-375.png");
         page.setViewportSize(1280, 900);
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "request number").fill(requestNumber);
@@ -401,6 +407,12 @@ class PurchasingVisualIT {
         page.navigate(routeUrl("%2Fpurchasing%2Forders", "directory"));
         assertFloorplan(page, "transaction-editor");
         requireMainHeading(page, "Órdenes de compra");
+        assertDirectoryModeLayout(page, "Preparar orden");
+        openCreateMode(page, "Preparar orden");
+        assertResponsive(page, 1280, 900, "purchasing-order-create-expanded-1280.png");
+        assertResponsive(page, 720, 900, "purchasing-order-create-medium-720.png");
+        assertResponsive(page, 375, 900, "purchasing-order-create-compact-375.png");
+        page.setViewportSize(1280, 900);
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "order number").fill(orderNumber);
         selectSearchOption(page, "Proveedor", supplierName, supplierName);
@@ -443,6 +455,10 @@ class PurchasingVisualIT {
         page.navigate(routeUrl("%2Fpurchasing%2Freceipts", "directory"));
         assertFloorplan(page, "guided-operation");
         requireMainHeading(page, "Recepciones de compra");
+        assertDirectoryModeLayout(page, "Preparar recepción");
+        openCreateMode(page, "Preparar recepción");
+        assertResponsive(page, 375, 900, "purchasing-receipt-create-compact-375.png");
+        page.setViewportSize(1280, 900);
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "receipt number").fill(receiptNumber);
         selectSearchOption(page, "Orden emitida", orderNumber, orderNumber);
@@ -476,6 +492,10 @@ class PurchasingVisualIT {
         page.navigate(routeUrl("%2Fpurchasing%2Freturns", "directory"));
         assertFloorplan(page, "guided-operation");
         requireMainHeading(page, "Devoluciones a proveedores");
+        assertDirectoryModeLayout(page, "Preparar devolución");
+        openCreateMode(page, "Preparar devolución");
+        assertResponsive(page, 720, 900, "purchasing-return-create-medium-720.png");
+        page.setViewportSize(1280, 900);
         requireOne(page.getByLabel("Número", new Page.GetByLabelOptions().setExact(true)),
                 "return number").fill(returnNumber);
         selectSearchOption(page, "Orden", orderNumber, orderNumber);
@@ -646,16 +666,17 @@ class PurchasingVisualIT {
         String pluginsUrl = pluginsUrl(companyId);
         String purchasingUrl = routeUrl("%2Fpurchasing%2Frequests", "directory");
         boolean disabled = false;
-        try {
-            page.setViewportSize(1280, 900);
-            page.navigate(pluginsUrl);
-            Locator card = pluginCard(page, "purchasing");
-            page.onceDialog(dialog -> dialog.accept());
+        try (BrowserContext administrationContext = newContext()) {
+            Page administrationPage = authenticate(administrationContext, SYSTEM_ADMIN_USER);
+            administrationPage.setViewportSize(1280, 900);
+            administrationPage.navigate(pluginsUrl);
+            Locator card = pluginCard(administrationPage, "purchasing");
+            administrationPage.onceDialog(dialog -> dialog.accept());
             requireOne(card.getByRole(
                     AriaRole.BUTTON,
                     new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true)),
                     "disable purchasing").click();
-            requireOne(pluginCard(page, "purchasing").getByRole(
+            requireOne(pluginCard(administrationPage, "purchasing").getByRole(
                     AriaRole.BUTTON,
                     new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
                     "disabled purchasing state").waitFor();
@@ -667,30 +688,33 @@ class PurchasingVisualIT {
                     "disabled purchasing denial").waitFor();
             assertResponsive(page, 375, 900, "purchasing-disabled-denial-compact-375.png");
 
-            page.navigate(pluginsUrl);
-            card = pluginCard(page, "purchasing");
+            administrationPage.navigate(pluginsUrl);
+            card = pluginCard(administrationPage, "purchasing");
             requireOne(card.getByRole(
                     AriaRole.BUTTON,
                     new Locator.GetByRoleOptions().setName("Habilitar").setExact(true)),
                     "restore purchasing").click();
-            requireOne(pluginCard(page, "purchasing").getByRole(
+            requireOne(pluginCard(administrationPage, "purchasing").getByRole(
                     AriaRole.BUTTON,
                     new Locator.GetByRoleOptions().setName("Deshabilitar").setExact(true)),
                     "restored purchasing state").waitFor();
             disabled = false;
         } finally {
             if (disabled) {
-                page.navigate(pluginsUrl);
-                Locator enable = pluginCard(page, "purchasing").getByRole(
+                try (BrowserContext recoveryContext = newContext()) {
+                    Page recoveryPage = authenticate(recoveryContext, SYSTEM_ADMIN_USER);
+                    recoveryPage.navigate(pluginsUrl);
+                    Locator enable = pluginCard(recoveryPage, "purchasing").getByRole(
                         AriaRole.BUTTON,
                         new Locator.GetByRoleOptions().setName("Habilitar").setExact(true));
-                if (enable.count() == 1) {
-                    enable.click();
-                    requireOne(pluginCard(page, "purchasing").getByRole(
-                            AriaRole.BUTTON,
-                            new Locator.GetByRoleOptions()
-                                    .setName("Deshabilitar").setExact(true)),
-                            "restored purchasing state after recovery").waitFor();
+                    if (enable.count() == 1) {
+                        enable.click();
+                        requireOne(pluginCard(recoveryPage, "purchasing").getByRole(
+                                AriaRole.BUTTON,
+                                new Locator.GetByRoleOptions()
+                                        .setName("Deshabilitar").setExact(true)),
+                                "restored purchasing state after recovery").waitFor();
+                    }
                 }
             }
         }
@@ -817,6 +841,49 @@ class PurchasingVisualIT {
                 description + " has horizontal overflow: document="
                         + documentWidth + " px, viewport=" + width + " px; sources="
                         + overflowSources);
+        boolean searchableFieldsAreUsable = (Boolean) page.evaluate("""
+                width => Array.from(document.querySelectorAll('.floorplan-field-searchable'))
+                  .filter(element => {
+                    const style = window.getComputedStyle(element);
+                    return style.display !== 'none' && style.visibility !== 'hidden';
+                  })
+                  .every(element => element.getBoundingClientRect().width
+                    >= (width >= 600 ? 280 : 240))
+                """, width);
+        assertTrue(searchableFieldsAreUsable,
+                description + " must not collapse searchable references into narrow columns");
+    }
+
+    private void assertDirectoryModeLayout(Page page, String createAction) {
+        assertEquals(1, page.locator(".floorplan-region-filters").count(),
+                "directory mode must keep its filters");
+        assertEquals(1, page.locator(".floorplan-table").count(),
+                "directory mode must keep exactly one result list");
+        assertEquals(0, page.locator(
+                "section.floorplan-region-header, section.floorplan-region-lines, "
+                        + "section.floorplan-region-summary, section.floorplan-region-actions").count(),
+                "directory mode must not render editor regions");
+        requireOne(page.getByRole(
+                AriaRole.LINK,
+                new Page.GetByRoleOptions().setName(createAction).setExact(true)),
+                createAction + " directory action");
+    }
+
+    private void openCreateMode(Page page, String createAction) {
+        requireOne(page.getByRole(
+                AriaRole.LINK,
+                new Page.GetByRoleOptions().setName(createAction).setExact(true)),
+                createAction + " directory action").click();
+        assertTrue(page.url().contains("mode=create"),
+                "create action must navigate to a dedicated create mode");
+        assertEquals(0, page.locator(".floorplan-region-filters").count(),
+                "create mode must not render directory filters");
+        assertEquals(0, page.locator(".floorplan-table").count(),
+                "create mode must not render the directory result list");
+        requireOne(page.getByRole(
+                AriaRole.LINK,
+                new Page.GetByRoleOptions().setName("Volver a la lista").setExact(true)),
+                "back to purchasing directory");
     }
 
     private static void assertAccessibleStructure(Page page) {

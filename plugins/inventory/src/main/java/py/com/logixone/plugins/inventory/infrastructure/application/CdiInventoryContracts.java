@@ -11,6 +11,7 @@ import py.com.logixone.kernel.api.company.CompanyId;
 import py.com.logixone.kernel.api.security.CurrentCompanyAuthorization;
 import py.com.logixone.plugin.api.ContributionId;
 import py.com.logixone.plugins.inventory.api.CatalogStockMovementRequest;
+import py.com.logixone.plugins.inventory.api.CatalogStockReservationRequest;
 import py.com.logixone.plugins.inventory.api.InventoryAvailability;
 import py.com.logixone.plugins.inventory.api.InventoryPurchaseMovements;
 import py.com.logixone.plugins.inventory.api.InventoryMovements;
@@ -104,9 +105,28 @@ public class CdiInventoryContracts implements InventoryAvailability, InventoryMo
     }
 
     @Override
+    @Transactional(TxType.SUPPORTS)
+    public Optional<StockReservationReference> find(
+            CompanyId companyId, StockReservationId reservationId) {
+        var result = useCases.reservation(
+                context(companyId, InventoryPermissions.VIEW), reservationId);
+        if (result.code() == InventoryResultCode.NOT_FOUND) {
+            return Optional.empty();
+        }
+        return Optional.of(required(result));
+    }
+
+    @Override
     public StockReservationReference reserve(
             CompanyId companyId, StockReservationRequest request) {
         return required(useCases.reserve(
+                context(companyId, InventoryPermissions.RESERVATIONS_MANAGE), request));
+    }
+
+    @Override
+    public StockReservationReference reserveCatalogItem(
+            CompanyId companyId, CatalogStockReservationRequest request) {
+        return required(useCases.reserveCatalogItem(
                 context(companyId, InventoryPermissions.RESERVATIONS_MANAGE), request));
     }
 

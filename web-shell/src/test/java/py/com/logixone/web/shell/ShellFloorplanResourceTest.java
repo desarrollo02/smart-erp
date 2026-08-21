@@ -1,5 +1,6 @@
 package py.com.logixone.web.shell;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,17 +21,21 @@ class ShellFloorplanResourceTest {
         assertTrue(view.contains("styleClass=\"floorplan-form\""));
         assertTrue(view.contains("onsubmit=\"return LogixoneFloorplan.transport(this);\""));
         assertTrue(view.contains("name=\"mode\" value=\"#{shellView.requestedMode}\""));
+        assertTrue(view.contains("value=\"#{shellView.activeScreen.floorplanCreateActions}\""));
+        assertTrue(view.contains("<f:param name=\"mode\" value=\"create\"/>"));
+        assertTrue(view.contains("Volver a la lista"));
+        assertTrue(view.contains("shellView.isFloorplanRegionVisible(region)"));
+        assertTrue(view.contains("shellView.isFloorplanFieldVisible(region, element)"));
+        assertTrue(view.contains("shellView.isFloorplanTableVisible(region, element)"));
+        assertTrue(view.contains("shellView.isFloorplanActionVisible(region, element)"));
         assertTrue(view.contains("name=\"tab\" value=\"#{shellView.requestedTab}\""));
         assertTrue(view.contains(
                 "name=\"resource\" value=\"#{shellView.selectedResourceId}\""));
         assertTrue(view.contains(
                 "name=\"version\" value=\"#{shellView.selectedResourceVersion}\""));
         assertTrue(view.contains("value=\"#{shellView.activeScreen.floorplanRegions}\""));
-        assertTrue(view.contains("shellView.activeInteraction.elementStates[element.id].visible"));
         assertTrue(view.contains("shellView.activeInteraction.elementStates[element.id].enabled"));
         assertTrue(view.contains("styleClass=\"#{element.actionClass}\""));
-        assertTrue(view.contains(
-                "not (shellView.activeScreen.hasFloorplanRowAction and element.navigateIntent)"));
         assertTrue(view.contains(
                 "name=\"floorplanActionRequest\" value=\"false\""));
         assertTrue(view.contains(
@@ -67,6 +72,7 @@ class ShellFloorplanResourceTest {
         assertTrue(view.contains("type=\"button\""));
         assertTrue(view.contains(
                 "rendered=\"#{element.select and shellView.activeInteraction.selectorSources[element.id].searchOnDemand}\""));
+        assertTrue(view.contains("floorplan-field-searchable"));
         assertTrue(view.contains("name=\"selectorValue:#{element.id}\""));
         assertTrue(view.contains("name=\"selectorSearch:#{element.id}\""));
         assertTrue(view.contains("name=\"selectorOption:#{element.id}\""));
@@ -74,7 +80,8 @@ class ShellFloorplanResourceTest {
         assertTrue(view.contains("LogixoneSelectorReturn.capture(this);"));
         assertTrue(view.contains("not shellView.selectorInteractionRequested"));
         assertTrue(view.contains("<f:param name=\"mode\" value=\"detail\"/>"));
-        assertTrue(view.contains("rendered=\"#{element.technicalToken}\""));
+        assertTrue(view.contains(
+                "rendered=\"#{element.technicalToken and shellView.isFloorplanFieldVisible(region, element)}\""));
         assertTrue(view.contains("id=\"floorplan-token\""));
         assertTrue(view.contains(
                 "shellView.activeScreen.interactive and not shellView.activeScreen.floorplanV2"));
@@ -107,6 +114,10 @@ class ShellFloorplanResourceTest {
         assertTrue(css.contains(".floorplan-transaction-editor"));
         assertTrue(css.contains(".floorplan-guided-operation"));
         assertTrue(css.contains(".floorplan-inquiry"));
+        assertTrue(css.contains(".floorplan-page-actions"));
+        assertTrue(css.contains(".floorplan-field-searchable { grid-column: span 2; }"));
+        assertTrue(css.contains(".floorplan-region-actions"));
+        assertFalse(css.contains("position: sticky"));
         assertTrue(css.contains(".floorplan-region-content"));
         assertTrue(css.contains(".business-mobile-item-static"));
         assertTrue(css.contains("@media (min-width: 600px) and (max-width: 839px)"));

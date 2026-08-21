@@ -27,6 +27,7 @@ Cada análisis debe indicar la fuente revisada, el comportamiento observado, reg
 - [`commercial_catalog`: caracterización de ítems, unidades, clasificaciones, impuestos y precios](commercial-catalog/legacy-characterization.md)
 - [`inventory`: caracterización de depósitos, ubicaciones, existencias, movimientos, reservas y conteos](inventory/legacy-characterization.md)
 - [`purchasing`: caracterización de solicitudes, órdenes, recepciones y devoluciones](purchasing/legacy-characterization.md)
+- [`sales`: caracterización de presupuestos, pedidos, condiciones y compromisos](sales/legacy-characterization.md)
 - [Perfil de origen para migrar Oracle Forms & Reports](legacy-migration/oracle-forms-reports-source-profile.md)
 - [Recursos humanos y nómina: caracterización y factibilidad desde Ingenio La Felsina](human-resources/legacy-characterization.md)
 - [Estaciones de servicio: consumo legado, regulación y frontera del plugin](fuel-station/legacy-characterization.md)

@@ -94,6 +94,12 @@ public final class ShellScreenElementView {
         return type == ScreenElementType.ACTION;
     }
 
+    public boolean isEditableLines() {
+        return isDataTable() && semantic
+                .filter(value -> value == ScreenSemanticType.EDITABLE_LINES)
+                .isPresent();
+    }
+
     public String getStateClass() {
         StringBuilder classes = new StringBuilder("composed-element");
         if (!enabled) {

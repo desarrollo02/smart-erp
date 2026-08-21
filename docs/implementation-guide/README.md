@@ -1,10 +1,10 @@
 # Guía de implementación del ERP por empresa
 
-- Estado: Edición candidata; J11-S10-06 valida automáticamente los floorplans de Inventario y Compras, composición, demo, fotografía y PDF; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management` y ADR-0046 la familia vertical Flota F1/F2; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
+- Estado: Edición candidata; J11-S9-07 congela `purchasing` con G0–G6 verdes, demo oficial, fotografía y PDF; ADR-0040 planifica el plugin técnico opcional `legacy_migration`, ADR-0045 el funcional transversal opcional `business_process_management`, ADR-0046 la familia vertical Flota F1/F2 y ADR-0048 el vertical `real_estate`; J11-S8-C07 implementa publicaciones completas, unidad menor opcional y búsqueda/paginación en servidor de `reference_data`; J11-S8-C06 mantiene políticas empresariales versionadas, V2 append-only y administración neutral; J11-S8-C02 mantiene retorno contextual seguro para plugins y los 11 usos nativos administrables, definiciones, familias de variantes y definiciones de socios,
   ciclo activo/inactivo, revisión/historial append-only y reemplazo seguro de definiciones simples, ciclo de perfiles tributarios y familias, revisión explícita e historial visible tributario, las cuatro clases empresariales de socios y asignación versionada de familias a artículos validadas; instalador interno J11-S9-08 creado; G7, Authenticode y matriz Windows independiente pendientes
-- Edición: 1.0-rc109
+- Edición: 1.0-rc110
 - Fecha: 2026-08-20
-- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.5`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.2.0` y `purchasing-api = 1.2.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 y fixture `plg_reference_plugin` V1; unidades JPA en `validate`; perfil físico `with-purchasing-demo` para WAR y migrador; candidata técnica `logixone/app:j11-s10-06-closing` y `logixone/migrator:j11-s10-06-closing`; Keycloak 26.7.0, WildFly 41 OIDC y Jakarta Faces 4.1; floorplans v2 de Inventario/Compras, Maven, ArchUnit, PostgreSQL, migraciones, health, OIDC y Playwright acumulado validados automáticamente en Sprint 10; instalador Windows `0.9.0-internal.1` pertenece a Sprint 9 y no representa este baseline; validación independiente, decisión J11-S10-07, Authenticode y matriz Windows externa pendientes
+- Compatibilidad: `PluginApiVersion.CURRENT = 0.4.5`; contratos `reference-data-api = 1.1.0`, `business-partners-api = 1.1.0`, `commercial-catalog-api = 1.1.0`, `inventory-api = 1.3.0`, `purchasing-api = 1.2.0` y `sales-api = 1.0.0`; Flyway `core` V1–V6, `plg_reference_data` V1–V4, `plg_business_partners` V1–V4, `plg_commercial_catalog` V1–V4, `plg_inventory` V1–V2, `plg_purchasing` V1–V2 y `plg_sales` V1; unidades JPA en `validate`; validación independiente acumulada pendiente
 - Audiencia: implementadores funcionales, desarrolladores de plugins, responsables de infraestructura y soporte de puesta en marcha
 - Fuente canónica: este documento versionado junto al código
 
@@ -1329,6 +1329,38 @@ la [caracterización](../knowledge-base/vehicle-maintenance/legacy-characterizat
 la [épica F1](../backlog/epica-mantenimiento-flota.md) y la
 [épica F2](../backlog/epica-taller-automotriz-comercial.md).
 
+### Cómo planificar una implementación inmobiliaria
+
+> **Pendiente:** `real_estate` está incorporado al plan, pero no existe en el
+> reactor ni tiene API, descriptor, esquema, permisos, pantallas o perfil físico.
+
+ADR-0048 eleva el catálogo global futuro de treinta y tres a treinta y cuatro
+plugins reutilizables sin renumerar ERP 1–19. Para una empresa interesada, el
+implementador comienza por RE-00 y no por una copia del módulo legado:
+
+1. registrar `C:\cosme\mega\miaterra`, rama `miaterra_master`, raíz `fuente/tag`
+   y el commit completo realmente analizado, sin checkout ni modificación del
+   legado;
+2. confirmar perfiles de negocio y resolver RE-D01 a RE-D12 con producto;
+3. separar identidad inmobiliaria de participantes, stock físico, ventas,
+   documentos, dinero, deuda, asientos y una eventual gestión de obras;
+4. decidir propietarios y contratos de reserva, venta, alquiler, cronogramas,
+   mora, comisiones, presupuestos y costos antes de modelar tablas;
+5. inventariar selectores, catálogos administrables, fuentes normativas, archivos,
+   mapas, privacidad, retención y migración;
+6. fijar dependencias requeridas/opcionales y probar la composición presente,
+   ausente, activa e inactiva por empresa;
+7. ejecutar una iteración propia con Maven, ArchUnit, PostgreSQL/Testcontainers,
+   JTA, Docker/Compose, seguridad negativa, Playwright responsive, demo, manuales,
+   PDF y decisión de instalador.
+
+Si RE-00 demuestra que desarrollo, alquiler o administración tienen ciclos y
+propietarios independientes, el ADR debe evolucionar a una familia antes de crear
+módulos. Las fuentes canónicas son el
+[ADR-0048](../adr/0048-plugin-gestion-inmobiliaria.md), la
+[épica inmobiliaria](../backlog/epica-gestion-inmobiliaria.md) y la
+[evidencia de incorporación](../evidence/ADR-0048-plan-gestion-inmobiliaria.md).
+
 ### Qué está disponible de Compras en J11-S9-07
 
 > **Compuesta y validada automáticamente:** dominio, tablas, repositorios,
@@ -1826,7 +1858,7 @@ Docker/Compose y Playwright antes de considerarse cerrada.
 | ADR-0031 y caracterización de facturación masiva; portal oficial verificado con MT 150 + NT-027 | lote comercial idempotente dentro de `commercial_documents` y lotes fiscales separados; implementación futura |
 | ADR-0033, análisis y épica de `recurring_billing` | planes/versiones, suscripciones, prorrateo, consumo facturable, cargos reproducibles e integración por candidatos; implementación futura |
 | ADR-0034, caracterización y épica de `vehicle_telemetry` | dispositivos, asignaciones, observaciones, recorridos, geocercas, alertas y seguimiento `ACTIVE/PAUSED/STOPPED`; implementación futura después de `logistics` |
-| ADR-0011/ADR-0027/ADR-0030/ADR-0032/ADR-0033/ADR-0034/ADR-0035/ADR-0036/ADR-0037/ADR-0038/ADR-0040/ADR-0045/ADR-0046/ADR-0013: fundación R0, diecinueve plugins ERP, tres de operaciones del proveedor, seis cooperativos, un técnico de migración, un funcional transversal BPM, familia Flota F1/F2, telemetría, facturación recurrente, POS offline, estaciones de servicio, familia de RR. HH., personalización y contrato outbox | implementación progresiva desde `inventory`; secuencia ERP 1–19 sin cambios y familias futuras separadas de proveedor, cooperativa, migración, BPM y Flota; `legacy_migration`, `business_process_management`, `fleet_maintenance` y `automotive_workshop` aún no están implementados |
+| ADR-0011/ADR-0027/ADR-0030/ADR-0032/ADR-0033/ADR-0034/ADR-0035/ADR-0036/ADR-0037/ADR-0038/ADR-0040/ADR-0045/ADR-0046/ADR-0048/ADR-0013: fundación R0, diecinueve plugins ERP, tres de operaciones del proveedor, seis cooperativos, un técnico de migración, un funcional transversal BPM, familia Flota F1/F2, `real_estate`, telemetría, facturación recurrente, POS offline, estaciones de servicio, familia de RR. HH., personalización y contrato outbox | implementación progresiva desde `inventory`; secuencia ERP 1–19 sin cambios y familias futuras separadas de proveedor, cooperativa, migración, BPM, Flota e Inmobiliaria; `legacy_migration`, `business_process_management`, `fleet_maintenance`, `automotive_workshop` y `real_estate` aún no están implementados |
 | ADR-0026 e instalador Windows interno con preflight, consentimiento, reparación, health y `current` verificados | Authenticode, VM limpia/incompatible y escenarios reales de UAC/cancelación |
 
 ## Validación editorial y técnica
@@ -2066,6 +2098,11 @@ interno deberá regenerarse si la matriz o G7 modifica el baseline final de cier
 | 1.0-rc104 | 2026-08-14 | J11-S10-01: `plugin-api` 0.4.4, propósito/regiones/semántica/acciones de floorplan v2, estados dinámicos y constructores v1 compatibles; 539 pruebas y 28 módulos verdes; renderer v2 pendiente de J11-S10-02 |
 | 1.0-rc105 | 2026-08-14 | J11-S10-02: experiencia preservada en `ComposedScreen`, cinco renderers cerrados del shell, estados dinámicos con rechazo seguro, Facelets/CSS responsive y regresión v1 verde; pilotos productivos pendientes de J11-S10-03/J11-S10-04 |
 | 1.0-rc106 | 2026-08-15 | J11-S10-03: `plugin-api` 0.4.5, `inventory-api` 1.2.0 y `inventory:stock` migrado en su misma ruta a operación guiada; puente JSF y transporte semántico revalidado; 555 pruebas/28 módulos, Docker/health, Playwright integral y 24 capturas verdes; validación independiente pendiente |
-| 1.0-rc107 | 2026-08-15 | J11-S10-04: `purchasing-api`/`purchasing` 1.2.0 y cinco pantallas migradas sobre sus rutas a bandeja, editor transaccional, operaciones guiadas y consulta; dominio/migraciones sin cambios; 565 pruebas, Docker/health, Playwright y 18 capturas verdes |
-| 1.0-rc108 | 2026-08-20 | J11-S10-05: foco postback, teclado, movimiento reducido, seguridad negativa y límites responsive validados; corregida la barra empresarial compacta; 573 pruebas y 42 capturas verdes |
-| 1.0-rc109 | 2026-08-20 | J11-S10-06: composición, demo acumulada, fotografía de ocho plugins, manuales y PDF de Sprint 10; gates automáticos verdes; validación independiente y decisión J11-S10-07 pendientes |
+| 1.0-rc107 | 2026-08-15 | ADR-0048: `real_estate` agregado como plugin vertical planificado; fuente legado `miaterra_master` de solo lectura, RE-D01 a RE-D12 y RE-00 obligatorios; catálogo 33→34, ERP 1–19 y Sprint 10 sin cambios; sin código ejecutable afectado |
+| 1.0-rc108 | 2026-08-15 | J11-S10-04: `purchasing-api`/`purchasing` 1.2.0 y cinco pantallas migradas sobre sus rutas a bandeja, editor transaccional, operaciones guiadas y consulta; dominio/migraciones sin cambios; 565 pruebas, Docker/health, Playwright y 18 capturas verdes |
+| 1.0-rc109 | 2026-08-20 | J11-S10-05: foco postback, teclado, movimiento reducido, seguridad negativa y límites responsive validados; corregida la barra empresarial compacta; 573 pruebas y 42 capturas verdes |
+| 1.0-rc110 | 2026-08-20 | J11-S10-06: composición, demo acumulada, fotografía de ocho plugins, manuales y PDF de Sprint 10; gates automáticos verdes; validación independiente y decisión J11-S10-07 pendientes |
+| 1.0-rc111 | 2026-08-21 | J11-S11-03: `plg_sales` V1, ocho tablas, JPA `validate`, repositorios empresariales y gate PostgreSQL/Testcontainers verdes; validación independiente pendiente |
+| 1.0-rc112 | 2026-08-21 | J11-S11-04: aplicación autorizada e idempotente de Ventas, `inventory-api` 1.3.0 y coordinación JTA de reservas; módulo, 3 escenarios PostgreSQL/Testcontainers, 37 pruebas ArchUnit/composición y reactor de 30 módulos verdes; validación independiente pendiente |
+
+[Preparación de persistencia de Ventas](sales-persistence.md)

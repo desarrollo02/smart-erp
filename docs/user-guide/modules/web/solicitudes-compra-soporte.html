@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manual de soporte - Solicitudes de compra</title>
+<style>
+:root{--teal:#006a64;--dark:#173e3a;--pale:#d4efec;--ink:#172321;--line:#b8c8c5;--surface:#f4f8f7}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font:16px/1.55 system-ui,Segoe UI,sans-serif;background:#e9efed}
+main{max-width:1100px;margin:auto;background:white;padding:clamp(20px,5vw,64px);box-shadow:0 3px 20px #173e3a22}
+h1{font-size:clamp(2rem,5vw,3.2rem);color:var(--dark);line-height:1.08}h2{margin-top:2.4rem;color:var(--teal);border-bottom:1px solid var(--line);padding-bottom:.35rem}h3{color:var(--dark);margin-top:1.7rem}
+p,li{max-width:88ch}code{background:var(--surface);padding:.1rem .3rem;border-radius:.25rem}aside,.verified-example{padding:1rem;border-left:5px solid var(--teal);background:var(--pale);border-radius:.5rem}.verified-example{font-weight:700;margin-top:1.5rem}
+.table-shell{overflow-x:auto;margin:1rem 0}table{width:100%;border-collapse:collapse;font-size:.9rem}th{background:var(--dark);color:white;text-align:left}th,td{border:1px solid var(--line);padding:.55rem;vertical-align:top}tbody tr:nth-child(even){background:var(--surface)}
+pre{overflow:auto;background:var(--surface);border:1px solid var(--line);padding:1rem;border-radius:.6rem;font-size:.78rem}figure{margin:1.5rem 0}img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:.7rem;box-shadow:0 3px 12px #173e3a22}figcaption{text-align:center;color:#52615f;font-size:.85rem;margin-top:.35rem}
+@media print{body{background:white}main{box-shadow:none;max-width:none;padding:0}h2{break-before:page}figure,table,pre{break-inside:avoid}}
+</style></head><body><main><h1>Manual de usuario y soporte - Solicitudes de compra</h1>
+<p><b>Smart ERP · Compras · versión 1.0 · 20 de agosto de 2026</b></p>
+<p>Este manual enseña a operar y diagnosticar la pantalla <b>Solicitudes de compra</b>. Su alcance es una pantalla de menú con tres modos: lista, alta y detalle. No cubre órdenes de compra, recepciones, devoluciones ni seguimiento, salvo cuando ayudan a explicar el destino de una solicitud aprobada.</p>
+<aside>Evidencia: código y migraciones del baseline local; prueba E2E del 20 de agosto de 2026; cuatro capturas reales de la aplicación con datos ficticios; y consultas <code>SELECT</code> ejecutadas dentro de transacciones <code>READ ONLY</code> sobre PostgreSQL 18.4. Se ocultaron dos identificadores internos de actores. No se consultaron ni publicaron contraseñas, tokens o datos productivos.</aside>
+<h2>Índice</h2>
+<ol><li>Alcance, audiencia y acceso</li><li>Conceptos necesarios para leer este manual</li><li>Permisos y responsabilidades</li><li>Ubicación y modos de la pantalla</li><li>Lista y filtros</li><li>Alta de una solicitud</li><li>Detalle, líneas y cambios de estado</li><li>Diagnóstico para soporte</li><li>Bosquejo orientativo de la pantalla</li><li>Diagrama detallado de datos y triggers</li><li>Caso práctico simulado</li><li>Seguridad, escalamiento y glosario</li></ol>
+<h2>1. Alcance, audiencia y acceso</h2>
+<p>La pantalla sirve para registrar una necesidad interna antes de comprometer una compra con un proveedor. Está pensada para solicitantes, aprobadores y personal de soporte. Cada operación queda limitada a la empresa activa de la sesión.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Caso observado: la base aislada contenía tres solicitudes y las tres pertenecían</li></ul>
+<p>  a la misma empresa ficticia mostrada por la prueba E2E.</p>
+<ul><li>Resultado observado: la lista y cada consulta se resolvieron con el permiso</li></ul>
+<p>  <code>purchasing.view</code> y con contexto empresarial; la auditoría registró   <code>company_scoped = true</code>.</p>
+<ul><li>Origen técnico: <code>core.audit_event.company_id</code>, <code>plugin_id</code>, <code>permission_id</code>.</li><li>Consulta: 20/08/2026. Los identificadores UUID de los actores fueron omitidos.</li></ul>
+<h3>Matriz de cobertura</h3>
+<div class="table-shell"><table><thead><tr><th>Nº</th><th>Pantalla</th><th>Ruta pública</th><th>Permisos</th><th>Vista y lógica</th><th>Persistencia</th><th>Estado</th></tr></thead><tbody>
+<tr><td>1</td><td>Solicitudes de compra</td><td><code>/faces/app/view.xhtml?route=%2Fpurchasing%2Frequests</code></td><td><code>purchasing.view</code>, <code>purchasing.requests.create</code>, <code>purchasing.requests.submit</code>, <code>purchasing.requests.approve</code></td><td><code>app/view.xhtml</code>, <code>PurchasingRequestScreenHandler</code>, <code>PurchasingRequestService</code></td><td><code>plg_purchasing.purchase_request</code>, <code>purchase_request_line</code>, <code>purchasing_operation</code>; <code>core.audit_event</code></td><td>Relevada, redactada, diagramada y validada</td></tr>
+</tbody></table></div>
+<h2>2. Conceptos necesarios para leer este manual</h2>
+<ul><li><b>Plugin:</b> módulo funcional incorporado físicamente a Smart ERP. <code>purchasing</code></li></ul>
+<p>  es el plugin propietario de Compras.</p>
+<ul><li><b>Empresa activa:</b> empresa seleccionada para la sesión; delimita los registros</li></ul>
+<p>  y permisos disponibles.</p>
+<ul><li><b>Permiso:</b> autorización que el servidor vuelve a comprobar antes de leer o</li></ul>
+<p>  modificar datos.</p>
+<ul><li><b>Solicitud de compra:</b> documento interno que expresa qué se necesita, cuánto</li></ul>
+<p>  y para qué fecha, antes de crear una orden a un proveedor.</p>
+<ul><li><b>Solicitante:</b> usuario que crea la solicitud y conserva la responsabilidad de</li></ul>
+<p>  editarla, enviarla o cancelarla mientras el estado lo permita.</p>
+<ul><li><b>Línea:</b> renglón de una solicitud que describe un producto con existencia, un</li></ul>
+<p>  producto sin existencia o un servicio, junto con unidad y cantidad.</p>
+<ul><li><b>Estado:</b> etapa controlada del documento: Borrador, Enviada, Aprobada,</li></ul>
+<p>  Rechazada o Cancelada.</p>
+<ul><li><b>Catálogo:</b> conjunto administrado de artículos, servicios, unidades y monedas</li></ul>
+<p>  que la pantalla consulta mediante contratos públicos.</p>
+<ul><li><b>Snapshot o copia histórica:</b> valores de descripción, unidad, moneda y otros</li></ul>
+<p>  datos guardados con la línea para que cambios futuros del catálogo no reescriban   el documento.</p>
+<ul><li><b>Versión del documento:</b> número que aumenta con cada cambio y permite detectar</li></ul>
+<p>  que otra sesión modificó el registro antes de guardar.</p>
+<ul><li><b>Idempotencia:</b> protección que evita ejecutar dos veces la misma orden técnica</li></ul>
+<p>  cuando el navegador reintenta una acción.</p>
+<ul><li><b>Auditoría:</b> registro técnico inmutable de quién intentó una operación, con qué</li></ul>
+<p>  permiso, resultado y versión, sin guardar contraseñas.</p>
+<ul><li><b>Base de datos:</b> conjunto organizado de información que la aplicación consulta</li></ul>
+<p>  o modifica.</p>
+<ul><li><b>Esquema:</b> espacio lógico de la base de datos que agrupa objetos; las tablas</li></ul>
+<p>  privadas de Compras viven en <code>plg_purchasing</code> y la auditoría transversal en   <code>core</code>.</p>
+<ul><li><b>Tabla:</b> estructura que guarda registros de un mismo tipo.</li><li><b>Registro o fila:</b> conjunto de datos que representa una ocurrencia, por ejemplo</li></ul>
+<p>  una solicitud.</p>
+<ul><li><b>Columna o campo de base:</b> dato individual almacenado en una tabla.</li><li><b>ID o identificador:</b> valor que distingue un registro de los demás.</li><li><b>Restricción o constraint:</b> regla que la base obliga a cumplir.</li><li><b>SQL:</b> lenguaje usado para consultar o modificar una base de datos.</li><li><b>DML:</b> parte de SQL que opera sobre filas mediante <code>SELECT</code>, <code>INSERT</code>, <code>UPDATE</code></li></ul>
+<p>  y <code>DELETE</code>.</p>
+<ul><li><b>Clave primaria (PK):</b> columna o grupo de columnas que identifica una fila de</li></ul>
+<p>  forma única.</p>
+<ul><li><b>Clave foránea (FK):</b> columna que referencia la PK de otra fila.</li><li><b>Clave única (UK):</b> restricción que impide repetir un valor o combinación.</li><li><b>Nulo / no nulo (NN):</b> ausencia permitida de valor / obligación de informarlo.</li><li><b>Relación y cardinalidad:</b> vínculo entre objetos y cantidad de filas que pueden</li></ul>
+<p>  asociarse, por ejemplo una solicitud con una o muchas líneas.</p>
+<ul><li><b>Índice:</b> estructura que acelera búsquedas o garantiza unicidad.</li><li><b>Vista / vista materializada:</b> consulta guardada / resultado almacenado que</li></ul>
+<p>  requiere refresco. El esquema <code>plg_purchasing</code> verificado no posee ninguna.</p>
+<ul><li><b>Trigger:</b> rutina que la base ejecuta automáticamente ante un evento.</li><li><b>Función o procedimiento:</b> rutina de base invocada para validar, calcular o</li></ul>
+<p>  ejecutar una tarea.</p>
+<ul><li><b>ABM o CRUD:</b> alta, consulta, modificación y baja de registros.</li><li><b>C, R, U, D y EXT:</b> leyenda del diagrama: crear, leer, modificar, eliminar y</li></ul>
+<p>  consultar un sistema o servicio externo.</p>
+<h2>3. Permisos y responsabilidades</h2>
+<div class="table-shell"><table><thead><tr><th>Permiso</th><th>Habilita</th><th>Perfil operativo recomendado</th></tr></thead><tbody>
+<tr><td><code>purchasing.view</code></td><td>Ver menú, buscar y abrir solicitudes</td><td>Consulta y soporte</td></tr>
+<tr><td><code>purchasing.requests.create</code></td><td>Crear, agregar líneas, clonar y cancelar una solicitud propia</td><td>Solicitante</td></tr>
+<tr><td><code>purchasing.requests.submit</code></td><td>Enviar una solicitud propia a decisión</td><td>Solicitante</td></tr>
+<tr><td><code>purchasing.requests.approve</code></td><td>Aprobar o rechazar una solicitud enviada por otra persona</td><td>Aprobador</td></tr>
+</tbody></table></div>
+<p>La interfaz puede ocultar una acción, pero la autorización efectiva siempre se revalida en el servidor. El mismo usuario que solicitó no puede aprobar ni rechazar su propio documento.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Caso observado: <code>SC-3A8949E1</code> fue creada y enviada por un actor y aprobada por</li></ul>
+<p>  otro; la comparación almacenada <code>requester_id &lt;&gt; decision_actor_id</code> resultó   verdadera.</p>
+<ul><li>Resultado observado: <code>core.audit_event</code> registró la aprobación con permiso</li></ul>
+<p>  <code>purchasing.requests.approve</code>, resultado <code>SUCCESS</code> y cambio de versión 1 a 2.</p>
+<ul><li>Origen técnico: <code>purchase_request.requester_id</code>, <code>decision_actor_id</code> y</li></ul>
+<p>  <code>core.audit_event.permission_id</code>.</p>
+<ul><li>Consulta: 20/08/2026. Se ocultaron los dos UUID de actores.</li></ul>
+<h2>4. Ubicación y modos de la pantalla</h2>
+<p>Abrí <b>Trabajo &gt; Solicitudes de compra</b>. La ruta usa el parámetro <code>mode</code>:</p>
+<ul><li><code>directory</code>: muestra filtros, resultados y <b>Preparar solicitud</b>;</li><li><code>create</code>: muestra el formulario de alta y <b>Volver a la lista</b>;</li><li><code>detail</code>: muestra la solicitud elegida, sus líneas y acciones válidas.</li></ul>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Caso observado: la prueba E2E abrió la lista, cambió a alta mediante</li></ul>
+<p>  <b>Preparar solicitud</b>, creó <code>SC-3A8949E1</code> y terminó en detalle.</p>
+<ul><li>Resultado observado: lista y alta no aparecieron mezcladas; el detalle conservó</li></ul>
+<p>  el ID y la versión del recurso seleccionado.</p>
+<ul><li>Origen técnico: contrato <code>PurchasingScreenContract.REQUESTS</code>, renderer del shell</li></ul>
+<p>  y registro final en <code>purchase_request</code>.</p>
+<ul><li>Verificación: 20/08/2026, en 375, 720 y 1280 px.</li></ul>
+<h2>5. Lista y filtros</h2>
+<h3>Términos de esta pantalla</h3>
+<ul><li><b>Bandeja de trabajo:</b> lista de documentos disponibles para la empresa activa.</li><li><b>Filtro de texto:</b> búsqueda parcial por número de solicitud o descripción de</li></ul>
+<p>  una línea, sin distinguir mayúsculas de minúsculas.</p>
+<ul><li><b>Filtro de estado:</b> selector cerrado con Todos, Borrador, Enviada, Aprobada,</li></ul>
+<p>  Rechazada y Cancelada.</p>
+<p>La lista muestra Número, Fecha, Estado, cantidad de Líneas y la acción <b>Ver</b>. <b>Buscar</b> aplica el texto y el estado; <b>Preparar solicitud</b> abre el alta. En pantallas compactas cada fila se convierte en una tarjeta para evitar desplazamiento horizontal.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Datos iniciales: tres solicitudes reales de la base aislada, todas con fecha</li></ul>
+<p>  20/08/2026, estado Aprobada y una línea.</p>
+<ul><li>Acción comprobada: consulta agrupada por estado equivalente al filtro de lista.</li><li>Resultado observado: <code>APPROVED = 3</code>; buscar <code>SC-3A8949E1</code> identifica una sola</li></ul>
+<p>  solicitud y su línea contiene la descripción <code>Producto compra 3A8949E1</code>.</p>
+<ul><li>Origen técnico: <code>purchase_request.request_number</code>, <code>requested_on</code>,</li></ul>
+<p>  <code>request_state</code>; <code>purchase_request_line.item_description_snapshot</code>.</p>
+<ul><li>Consulta: 20/08/2026. Los valores son ficticios, pero proceden de filas reales.</li></ul>
+<h3>Captura real - lista expandida</h3>
+<figure><img src="../assets/purchasing-requests/directory-expanded-1280.png" alt="Lista real de Solicitudes de compra en 1280 px"/><figcaption>Lista real de Solicitudes de compra en 1280 px</figcaption></figure>
+<h3>Captura real - lista compacta</h3>
+<figure><img src="../assets/purchasing-requests/directory-compact-375.png" alt="Lista real de Solicitudes de compra en 375 px"/><figcaption>Lista real de Solicitudes de compra en 375 px</figcaption></figure>
+<h2>6. Alta de una solicitud</h2>
+<h3>Datos de cabecera</h3>
+<div class="table-shell"><table><thead><tr><th>Dato visible</th><th>Formato y obligación</th><th>Origen y efecto</th></tr></thead><tbody>
+<tr><td>Número</td><td>Texto, obligatorio, máximo técnico 64 caracteres</td><td>Lo ingresa el solicitante; no se repite dentro de la empresa</td></tr>
+<tr><td>Fecha solicitada</td><td>Fecha <code>AAAA-MM-DD</code>, obligatoria</td><td>Propone la fecha actual; queda como fecha histórica del documento</td></tr>
+</tbody></table></div>
+<p>Al pulsar <b>Preparar solicitud</b>, el servidor crea un Borrador con versión 0, el usuario actual como solicitante y al menos una línea válida.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Datos iniciales: número <code>SC-3A8949E1</code>, fecha <code>2026-08-20</code> y una línea.</li><li>Resultado observado: <code>purchasing_operation</code> registró</li></ul>
+<p>  <code>CREATE_PURCHASE_REQUEST</code>, recurso <code>purchase_request</code>, versión resultante 0 a   las 22:20:12 UTC.</p>
+<ul><li>Origen técnico: <code>purchase_request.request_number</code>, <code>requester_id</code>,</li></ul>
+<p>  <code>requested_on</code>, <code>request_state</code>, <code>entity_version</code>; operación idempotente en   <code>purchasing_operation</code>.</p>
+<ul><li>Consulta: 20/08/2026. El UUID del solicitante fue ocultado.</li></ul>
+<h3>Datos de la primera línea</h3>
+<div class="table-shell"><table><thead><tr><th>Dato visible</th><th>Formato y obligación</th><th>Regla</th></tr></thead><tbody>
+<tr><td>Tipo de línea</td><td>Selector obligatorio</td><td>Producto con existencia, producto sin existencia o servicio</td></tr>
+<tr><td>Artículo o servicio</td><td>Referencia buscable; obligatoria para existencia</td><td>Sólo conceptos activos y habilitados para compra</td></tr>
+<tr><td>Descripción</td><td>Texto obligatorio, máximo técnico 240</td><td>Se conserva como snapshot</td></tr>
+<tr><td>Unidad</td><td>Texto obligatorio, máximo técnico 16</td><td>Se conserva unidad presentada y base</td></tr>
+<tr><td>Cantidad</td><td>Decimal positivo, hasta 6 decimales</td><td>Debe ser mayor que cero</td></tr>
+<tr><td>Precio esperado</td><td>Decimal opcional, no negativo</td><td>Es una estimación; no compromete una orden</td></tr>
+<tr><td>Moneda estimada</td><td>Referencia obligatoria cuando hay precio</td><td>Conserva código, nombre, decimales y versión normativa</td></tr>
+</tbody></table></div>
+<p>El selector <b>Artículo o servicio</b> consulta el catálogo comercial por texto; la moneda consulta datos de referencia. Los plugins propietarios entregan la opción mediante contratos públicos: Compras no lee sus tablas privadas.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Línea observada: tipo <code>STOCK</code>, artículo <code>PC-3A8949E1</code>, descripción</li></ul>
+<p>  <code>Producto compra 3A8949E1</code>, unidad <code>U3A8949E</code>, cantidad <code>10.000000</code>, precio   esperado <code>100.000000</code> y moneda <code>PYG - Guarani</code>.</p>
+<ul><li>Resultado observado: la conversión presentada/base fue 1 y la base conservó</li></ul>
+<p>  código, descripción, unidad, cantidad, precio y moneda como snapshots.</p>
+<ul><li>Origen técnico: todas las columnas de <code>purchase_request_line</code>; referencias EXT</li></ul>
+<p>  <code>CatalogItemDirectory</code> y <code>ReferenceDataDirectory</code>.</p>
+<ul><li>Consulta: 20/08/2026. No hubo valores sensibles.</li></ul>
+<h3>Captura real - alta</h3>
+<figure><img src="../assets/purchasing-requests/create-expanded-1280.png" alt="Alta real de una Solicitud de compra en 1280 px"/><figcaption>Alta real de una Solicitud de compra en 1280 px</figcaption></figure>
+<h2>7. Detalle, líneas y cambios de estado</h2>
+<h3>Abrir y revisar el detalle</h3>
+<p><b>Ver</b> abre el documento y muestra estado, fecha solicitada, solicitante, líneas y versión. La versión evita guardar sobre un cambio concurrente.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Caso observado: <code>SC-3A8949E1</code> quedó Aprobada, con una línea y versión 2.</li><li>Resultado observado: la auditoría registró lecturas</li></ul>
+<p>  <code>VIEW_PURCHASE_REQUEST_DETAIL</code> con resultado <code>UNCHANGED/SUCCESS</code>.</p>
+<ul><li>Origen técnico: <code>purchase_request</code>, <code>purchase_request_line</code> y</li></ul>
+<p>  <code>core.audit_event</code>.</p>
+<ul><li>Consulta: 20/08/2026.</li></ul>
+<h3>Agregar líneas</h3>
+<p>Sólo el solicitante puede agregar una línea mientras la solicitud está en Borrador. El servidor reemplaza atómicamente el conjunto de líneas y aumenta la versión. Cuando el documento deja Borrador, el trigger de base impide insertar, modificar o eliminar líneas.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Entrada real: <code>SC-3A8949E1</code>, estado Aprobada, versión 2, una línea de cantidad</li></ul>
+<p>  10.</p>
+<ul><li>Resultado esperado, no ejecutado: la interfaz oculta <b>Agregar línea</b> y el</li></ul>
+<p>  trigger <code>trg_purchase_request_line_immutable</code> rechazaría cualquier DML sobre la   línea con código SQL <code>P2001</code> y mensaje <code>Final purchase request lines are immutable</code>.</p>
+<ul><li>Origen técnico: estado en <code>purchase_request</code>, trigger de</li></ul>
+<p>  <code>purchase_request_line</code> y función <code>reject_final_purchasing_line_change()</code>.</p>
+<ul><li>Consulta: 20/08/2026. No se intentó ninguna escritura.</li></ul>
+<h3>Enviar a aprobación</h3>
+<p>El solicitante pulsa <b>Enviar solicitud</b> desde Borrador. El estado cambia a Enviada, se registra la fecha/hora de envío y la versión aumenta. La solicitud ya no admite cambios de líneas.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Caso observado: <code>SC-3A8949E1</code> pasó de versión 0 a 1.</li><li>Resultado observado: <code>purchasing_operation</code> registró</li></ul>
+<p>  <code>SUBMIT_PURCHASE_REQUEST</code> a las 22:20:13 UTC; <code>core.audit_event</code> registró permiso   <code>purchasing.requests.submit</code>, resultado <code>CHANGED/SUCCESS</code> y versiones 0 -&gt; 1.</p>
+<ul><li>Origen técnico: <code>purchase_request.submitted_at</code>, <code>request_state</code>,</li></ul>
+<p>  <code>entity_version</code>, <code>purchasing_operation</code> y <code>core.audit_event</code>.</p>
+<ul><li>Consulta: 20/08/2026.</li></ul>
+<h3>Aprobar o rechazar</h3>
+<p>Un aprobador distinto del solicitante decide una solicitud Enviada. <b>Aprobar</b> no requiere motivo; <b>Rechazar</b> exige un motivo. La decisión conserva actor, fecha y, cuando corresponde, razón.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Caso observado: <code>SC-3A8949E1</code> fue aprobada por una persona distinta.</li><li>Resultado observado: estado Aprobada, versión 2, <code>decision_reason</code> nulo y</li></ul>
+<p>  operación <code>APPROVE_PURCHASE_REQUEST</code> a las 22:20:17 UTC.</p>
+<ul><li>Origen técnico: <code>purchase_request.decision_actor_id</code>, <code>decision_at</code>,</li></ul>
+<p>  <code>decision_reason</code>, <code>request_state</code>, <code>entity_version</code> y auditoría.</p>
+<ul><li>Consulta: 20/08/2026. Se ocultaron los dos UUID de actores.</li></ul>
+<h3>Cancelar</h3>
+<p>El solicitante puede cancelar su propia solicitud si está Borrador o Enviada y debe informar un motivo. Una solicitud Aprobada, Rechazada o Cancelada no muestra la acción.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Entrada real: <code>SC-3A8949E1</code>, estado Aprobada.</li><li>Resultado esperado, no ejecutado: <b>Cancelar</b> no está disponible porque el</li></ul>
+<p>  estado ya es final; no se realizó un <code>UPDATE</code> para fabricar evidencia.</p>
+<ul><li>Origen técnico: política <code>PurchasingFloorplanStates.requests()</code> y restricción</li></ul>
+<p>  <code>ck_purchase_request_state_shape</code>.</p>
+<ul><li>Consulta: 20/08/2026.</li></ul>
+<h3>Clonar</h3>
+<p><b>Clonar solicitud</b> crea un nuevo Borrador con otro número y fecha, nuevas IDs de línea y las mismas descripciones, cantidades y precios históricos. No cambia el documento origen.</p>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Entrada real disponible: <code>SC-3A8949E1</code>, Aprobada, una línea de 10 unidades a</li></ul>
+<p>  precio esperado 100 PYG.</p>
+<ul><li>Resultado esperado, no ejecutado: una clonación válida produciría otro Borrador</li></ul>
+<p>  versión 0 con una línea equivalente y nuevos identificadores; el origen seguiría   Aprobado versión 2.</p>
+<ul><li>Origen técnico: <code>PurchasingRequestService.cloneRequest()</code> y tablas</li></ul>
+<p>  <code>purchase_request</code>, <code>purchase_request_line</code>, <code>purchasing_operation</code>.</p>
+<ul><li>Consulta: 20/08/2026. No se ejecutó la clonación.</li></ul>
+<h3>Captura real - detalle enviado</h3>
+<figure><img src="../assets/purchasing-requests/detail-submitted-expanded-1280.png" alt="Detalle real de una Solicitud de compra enviada"/><figcaption>Detalle real de una Solicitud de compra enviada</figcaption></figure>
+<h2>8. Diagnóstico para soporte</h2>
+<div class="table-shell"><table><thead><tr><th>Síntoma</th><th>Comprobación</th><th>Causa probable</th><th>Acción segura</th></tr></thead><tbody>
+<tr><td>No aparece el menú</td><td>Empresa activa, plugin y <code>purchasing.view</code></td><td>Plugin deshabilitado o permiso ausente</td><td>Corregir activación/rol mediante administración autorizada</td></tr>
+<tr><td>Buscar no devuelve el documento</td><td>Empresa, número, texto y estado</td><td>Filtro no coincide o documento pertenece a otra empresa</td><td>Limpiar filtros y confirmar empresa; no consultar otra empresa manualmente</td></tr>
+<tr><td>No aparece Agregar línea</td><td>Estado y solicitante</td><td>Sólo Borrador propio es editable</td><td>Revisar detalle y auditoría; no modificar SQL</td></tr>
+<tr><td>No aparece Enviar</td><td>Estado, solicitante y permiso</td><td>No es Borrador propio o falta <code>purchasing.requests.submit</code></td><td>Ajustar rol si corresponde</td></tr>
+<tr><td>Aprobar/Rechazar bloqueados</td><td>Solicitante y aprobador</td><td>Separación de funciones: autor no decide</td><td>Usar otro aprobador autorizado</td></tr>
+<tr><td>“Revisa los datos ingresados”</td><td>Formato de fecha, cantidad, precio y relación de selectores</td><td>Campo inválido o referencia incompatible</td><td>Corregir desde UI; conservar captura y hora</td></tr>
+<tr><td>Conflicto de versión</td><td>Versión visible y auditoría</td><td>Otra sesión cambió el documento</td><td>Volver a la lista, reabrir y repetir conscientemente</td></tr>
+<tr><td>Línea final inmutable / <code>P2001</code></td><td>Estado del padre y trigger</td><td>Intento de cambiar líneas fuera de Borrador</td><td>Detener la operación; no desactivar trigger</td></tr>
+</tbody></table></div>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Caso observado: para <code>SC-3A8949E1</code>, el historial idempotente muestra exactamente</li></ul>
+<p>  Crear 0, Enviar 1 y Aprobar 2; la auditoría confirma los permisos y resultados.</p>
+<ul><li>Uso para soporte: si el usuario informa un reintento, comparar número, empresa,</li></ul>
+<p>  operación, hora, versión y correlación antes de asumir duplicación.</p>
+<ul><li>Origen técnico: <code>purchasing_operation.operation_type</code>, <code>resulting_version</code>,</li></ul>
+<p>  <code>occurred_at</code>; <code>core.audit_event.operation</code>, <code>outcome</code>, <code>result_code</code>,   <code>correlation_id</code>.</p>
+<ul><li>Consulta: 20/08/2026. Huellas técnicas e IDs de actores no se publican.</li></ul>
+<h2>9. Bosquejo orientativo de la pantalla</h2>
+<p>Representación estimada; la disposición puede variar según versión, resolución, permiso o estado.</p>
+<pre>┌──────────── SOLICITUDES DE COMPRA · LISTA ─────────────────────┐
+│ Título y contexto                         [Preparar solicitud] │
+├────────────────────────────────────────────────────────────────┤
+│ Filtros: Número o descripción [________] Estado [▼] [Buscar]   │
+├────────────────────────────────────────────────────────────────┤
+│ Número │ Fecha │ Estado │ Líneas │                         Ver │
+└────────────────────────────────────────────────────────────────┘
+                              │
+                    Preparar  │  Ver
+                              ▼
+┌──────────── ALTA / DETALLE ─────────────────────────────────────┐
+│ [Volver a la lista]                                            │
+│ Cabecera: Número [____] Fecha [AAAA-MM-DD]                     │
+│ Línea: Tipo [▼] Artículo [buscar] Descripción [____]           │
+│        Unidad [__] Cantidad [__] Precio [__] Moneda [buscar]   │
+│ Detalle: Estado · Solicitante · Versión · Líneas               │
+│ Acciones según estado: Agregar · Enviar · Aprobar/Rechazar     │
+│                         Cancelar · Clonar                      │
+└────────────────────────────────────────────────────────────────┘</pre>
+<h2>10. Diagrama detallado de datos y triggers</h2>
+<h3>Flujo y relaciones</h3>
+<pre>CatalogItemDirectory [EXT] ── snapshot ─┐
+ReferenceDataDirectory [EXT] ─ moneda ──┼──&gt; PURCHASE_REQUEST_LINE (1..N)
+                                        │              │ FK compuesta
+                                        │              ▼
+                                        └──── PURCHASE_REQUEST (1)
+                                                   │ ID lógico, sin FK
+                         ┌─────────────────────────┴─────────────────────┐
+                         ▼                                               ▼
+              PURCHASING_OPERATION                              CORE.AUDIT_EVENT
+              idempotencia append-only                          auditoría append-only
+
+Cambiar línea
+    │ INSERT / UPDATE / DELETE
+    ▼
+trg_purchase_request_line_immutable [BEFORE, ROW]
+    └── reject_final_purchasing_line_change()
+          ├── R purchase_request.request_state
+          └── si estado != DRAFT: error P2001
+
+Modificar o borrar auditoría
+    ▼
+audit_event_no_update_or_delete [BEFORE UPDATE/DELETE, ROW]
+    └── reject_audit_event_mutation() -&gt; “core.audit_event is append-only”</pre>
+<h3><code>plg_purchasing.purchase_request</code> - C/R/U</h3>
+<div class="table-shell"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Clave/NN</th><th>Acceso y origen visual</th></tr></thead><tbody>
+<tr><td><code>company_id</code></td><td>UUID</td><td>PK, NN</td><td>C/R, empresa activa</td></tr>
+<tr><td><code>purchase_request_id</code></td><td>UUID</td><td>PK, NN</td><td>C/R, recurso seleccionado</td></tr>
+<tr><td><code>request_number</code></td><td>varchar(64)</td><td>UK por empresa, NN</td><td>C/R/filtro, Número</td></tr>
+<tr><td><code>requester_id</code></td><td>UUID</td><td>NN</td><td>C/R, solicitante autenticado</td></tr>
+<tr><td><code>requested_on</code></td><td>date</td><td>NN</td><td>C/R/filtro, Fecha solicitada</td></tr>
+<tr><td><code>request_state</code></td><td>varchar(24)</td><td>NN, CHECK</td><td>C/R/U/filtro, Estado</td></tr>
+<tr><td><code>submitted_at</code></td><td>timestamptz</td><td>opcional</td><td>U/R, Enviar</td></tr>
+<tr><td><code>decision_actor_id</code></td><td>UUID</td><td>opcional</td><td>U/R, Aprobar/Rechazar/Cancelar</td></tr>
+<tr><td><code>decision_at</code></td><td>timestamptz</td><td>opcional</td><td>U/R, decisión</td></tr>
+<tr><td><code>decision_reason</code></td><td>varchar(240)</td><td>opcional</td><td>U/R, motivo requerido</td></tr>
+<tr><td><code>entity_version</code></td><td>bigint</td><td>NN, &gt;=0</td><td>C/R/U, control de versión</td></tr>
+</tbody></table></div>
+<p>Restricciones relevantes: PK <code>(company_id, purchase_request_id)</code>, UK <code>(company_id, request_number)</code>, estados cerrados, pares actor/fecha coherentes, formas válidas por estado, aprobador distinto del solicitante y versión no negativa.</p>
+<h3><code>plg_purchasing.purchase_request_line</code> - C/R/U/D sólo en Borrador</h3>
+<div class="table-shell"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Clave/NN</th><th>Acceso y origen visual</th></tr></thead><tbody>
+<tr><td><code>company_id</code></td><td>UUID</td><td>PK/FK, NN</td><td>C/R/U/D, empresa</td></tr>
+<tr><td><code>purchase_request_id</code></td><td>UUID</td><td>PK/FK, NN</td><td>C/R/U/D, solicitud</td></tr>
+<tr><td><code>purchase_request_line_id</code></td><td>UUID</td><td>PK/UK, NN</td><td>C/R/U/D, línea</td></tr>
+<tr><td><code>line_position</code></td><td>integer</td><td>UK por solicitud, NN, &gt;0</td><td>C/R, orden de línea</td></tr>
+<tr><td><code>catalog_item_id</code></td><td>UUID</td><td>opcional</td><td>C/R, selector de artículo</td></tr>
+<tr><td><code>catalog_code_snapshot</code></td><td>varchar(64)</td><td>opcional en par</td><td>C/R, código histórico</td></tr>
+<tr><td><code>item_description_snapshot</code></td><td>varchar(240)</td><td>NN</td><td>C/R, Descripción</td></tr>
+<tr><td><code>presented_unit_code_snapshot</code></td><td>varchar(16)</td><td>NN</td><td>C/R, Unidad visible</td></tr>
+<tr><td><code>base_unit_code_snapshot</code></td><td>varchar(16)</td><td>NN</td><td>C/R, unidad base</td></tr>
+<tr><td><code>conversion_factor</code></td><td>numeric(30,12)</td><td>NN, &gt;0</td><td>C/R, conversión</td></tr>
+<tr><td><code>line_kind</code></td><td>varchar(24)</td><td>NN, CHECK</td><td>C/R, Tipo de línea</td></tr>
+<tr><td><code>catalog_source_version</code></td><td>bigint</td><td>NN, &gt;=0</td><td>C/R, versión del catálogo</td></tr>
+<tr><td><code>requested_quantity</code></td><td>numeric(30,6)</td><td>NN, &gt;0</td><td>C/R, Cantidad</td></tr>
+<tr><td><code>expected_unit_price</code></td><td>numeric(30,6)</td><td>opcional, &gt;=0</td><td>C/R, Precio esperado</td></tr>
+<tr><td><code>expected_currency_code</code></td><td>varchar(3)</td><td>opcional en grupo</td><td>C/R, Moneda</td></tr>
+<tr><td><code>expected_currency_minor_unit</code></td><td>integer</td><td>opcional, 0..9</td><td>C/R, decimales moneda</td></tr>
+<tr><td><code>expected_currency_name</code></td><td>varchar(160)</td><td>opcional en grupo</td><td>C/R, nombre histórico</td></tr>
+<tr><td><code>expected_currency_release_id</code></td><td>varchar(64)</td><td>opcional en grupo</td><td>C/R, versión normativa</td></tr>
+</tbody></table></div>
+<p>Relación: <code>purchase_request (1) -&gt; (1..N) purchase_request_line</code> mediante la FK compuesta <code>(company_id, purchase_request_id)</code>. El dominio exige al menos una línea.</p>
+<h3><code>plg_purchasing.purchasing_operation</code> - C/R</h3>
+<div class="table-shell"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Clave/NN</th><th>Acceso</th></tr></thead><tbody>
+<tr><td><code>company_id</code></td><td>UUID</td><td>PK, NN</td><td>C/R, empresa</td></tr>
+<tr><td><code>idempotency_key</code></td><td>varchar(160)</td><td>PK, NN</td><td>C/R, reintento técnico</td></tr>
+<tr><td><code>operation_type</code></td><td>varchar(64)</td><td>NN</td><td>C/R, crear/cambiar estado/clonar</td></tr>
+<tr><td><code>request_fingerprint</code></td><td>char(64)</td><td>NN, CHECK hexadecimal</td><td>C/R, detectar reuso distinto</td></tr>
+<tr><td><code>resource_type</code></td><td>varchar(64)</td><td>NN</td><td>C/R, <code>purchase_request</code></td></tr>
+<tr><td><code>resource_id</code></td><td>UUID</td><td>NN, vínculo lógico sin FK</td><td>C/R, solicitud</td></tr>
+<tr><td><code>resulting_version</code></td><td>bigint</td><td>NN, &gt;=0</td><td>C/R, versión devuelta</td></tr>
+<tr><td><code>occurred_at</code></td><td>timestamptz</td><td>NN</td><td>C/R, hora de operación</td></tr>
+</tbody></table></div>
+<h3><code>core.audit_event</code> - C/R, sin relación JPA con Compras</h3>
+<p>Campos usados y observados para Solicitudes: <code>audit_event_id</code> PK, <code>category</code>, <code>operation</code>, <code>outcome</code>, <code>actor_kind</code>, <code>actor_user_id</code>, <code>company_id</code>, <code>plugin_id</code>, <code>permission_id</code>, <code>result_code</code>, <code>previous_version</code>, <code>resulting_version</code>, <code>correlation_id</code>, <code>occurred_at</code>, <code>resource_type</code> y <code>resource_id</code>. El vínculo con la solicitud es lógico; no existe FK entre esquemas privados. En los eventos observados no se usaron <code>subject_user_id</code>, <code>role_id</code>, <code>system_role_id</code> ni <code>screen_id</code>.</p>
+<h3>Servicios externos - EXT/R</h3>
+<ul><li><code>CatalogItemDirectory</code>: ID, código, nombre visible, tipo, estado activo, alcance</li></ul>
+<p>  de compra, unidad y versión; Compras persiste snapshots, no una relación JPA.</p>
+<ul><li><code>ReferenceDataDirectory</code>: código de moneda, nombre, unidad menor y release; la</li></ul>
+<p>  moneda se guarda completa sólo cuando existe precio esperado.</p>
+<h3>Ficha de triggers</h3>
+<div class="table-shell"><table><thead><tr><th>Dato</th><th><code>trg_purchase_request_line_immutable</code></th></tr></thead><tbody>
+<tr><td>Tabla</td><td><code>plg_purchasing.purchase_request_line</code></td></tr>
+<tr><td>Momento/evento/nivel</td><td>BEFORE INSERT, UPDATE o DELETE; por fila</td></tr>
+<tr><td>Condición</td><td>Consulta el estado de la solicitud propietaria</td></tr>
+<tr><td>Lee</td><td><code>purchase_request.company_id</code>, <code>purchase_request_id</code>, <code>request_state</code></td></tr>
+<tr><td>Modifica</td><td>Ninguna tabla secundaria</td></tr>
+<tr><td>Llama</td><td><code>reject_final_purchasing_line_change()</code></td></tr>
+<tr><td>Error</td><td><code>P2001</code>, <code>Final purchase request lines are immutable</code></td></tr>
+<tr><td>Efecto funcional</td><td>Sólo permite cambiar líneas mientras el padre está Borrador</td></tr>
+<tr><td>Evidencia</td><td>Metadatos PostgreSQL 18.4 y migración V1, 20/08/2026</td></tr>
+</tbody></table></div>
+<div class="table-shell"><table><thead><tr><th>Dato</th><th><code>audit_event_no_update_or_delete</code></th></tr></thead><tbody>
+<tr><td>Tabla</td><td><code>core.audit_event</code></td></tr>
+<tr><td>Momento/evento/nivel</td><td>BEFORE UPDATE o DELETE; por fila</td></tr>
+<tr><td>Condición</td><td>Todo intento de modificación o borrado</td></tr>
+<tr><td>Lee/modifica</td><td>No modifica tablas secundarias</td></tr>
+<tr><td>Llama</td><td><code>core.reject_audit_event_mutation()</code></td></tr>
+<tr><td>Error</td><td><code>core.audit_event is append-only</code></td></tr>
+<tr><td>Efecto funcional</td><td>La evidencia técnica sólo admite nuevas filas</td></tr>
+<tr><td>Evidencia</td><td>Metadatos PostgreSQL 18.4, 20/08/2026</td></tr>
+</tbody></table></div>
+<p class="verified-example"><b>Ejemplo verificado con datos reales</b></p>
+<ul><li>Resultado observado: el esquema tenía 12 tablas, cero vistas y cero secuencias;</li></ul>
+<p>  para esta pantalla participan directamente tres tablas privadas y la tabla de   auditoría transversal, más dos servicios EXT.</p>
+<ul><li>Triggers observados: uno protege líneas de solicitudes y otro protege la</li></ul>
+<p>  auditoría frente a UPDATE/DELETE.</p>
+<ul><li>Resultado esperado, no ejecutado: una escritura sobre la línea aprobada de</li></ul>
+<p>  <code>SC-3A8949E1</code> sería rechazada por el trigger; no se probó mediante DML.</p>
+<ul><li>Consulta: 20/08/2026, transacción <code>READ ONLY = on</code>, usuario local <code>logixone</code>.</li></ul>
+<h2>11. Caso práctico simulado</h2>
+<p><b>Ejemplo simulado:</b> una oficina necesita 5 resmas de papel. El solicitante abre la lista, pulsa <b>Preparar solicitud</b>, informa un número nuevo, fecha, producto, unidad y cantidad, y guarda. Luego revisa el detalle y envía. Otra persona con permiso de aprobación abre el documento y decide. Este ejemplo es pedagógico y no se contabiliza como evidencia real.</p>
+<h2>12. Seguridad, escalamiento y glosario</h2>
+<h3>Reglas de seguridad</h3>
+<ul><li>No otorgar permisos para “hacer aparecer” un botón sin validar la función del</li></ul>
+<p>  usuario.</p>
+<ul><li>No aprobar con la identidad del solicitante ni compartir cuentas.</li><li>No corregir solicitudes mediante SQL, no desactivar triggers y no reducir la</li></ul>
+<p>  versión manualmente.</p>
+<ul><li>No enviar a soporte contraseñas, tokens, capturas con secretos ni UUID completos</li></ul>
+<p>  de actores cuando no sean indispensables.</p>
+<ul><li>Conservar empresa, número, hora, estado, acción, mensaje y correlación al escalar.</li></ul>
+<h3>Información que soporte debe solicitar</h3>
+<ol><li>Empresa activa y usuario afectado, identificados por canales seguros.</li><li>Número de solicitud y fecha aproximada.</li><li>Modo de pantalla: lista, alta o detalle.</li><li>Acción exacta y mensaje visible.</li><li>Estado y versión mostrados.</li><li>Hora con zona y, si aparece, ID de correlación.</li><li>Captura sin secretos y pasos para reproducir.</li><li>Confirmación de plugin activo y permisos efectivos.</li></ol>
+<h3>Glosario de consulta</h3>
+<p><b>Aprobador:</b> persona distinta del solicitante que decide una solicitud Enviada. <b>Borrador:</b> estado editable por el solicitante. <b>Enviada:</b> estado pendiente de decisión. <b>Aprobada/Rechazada/Cancelada:</b> estados finales de la solicitud. <b>Línea:</b> necesidad concreta dentro del documento. <b>Snapshot:</b> copia histórica de datos externos. <b>Versión:</b> contador de concurrencia del documento. <b>Idempotencia:</b> protección contra reintentos duplicados. <b>Correlación:</b> código técnico que vincula registros de una misma operación. <b>P2001:</b> código SQL usado por el trigger al rechazar cambios de líneas finales.</p>
+<h2>Evidencia y límites de validación</h2>
+<ul><li>Base consultada: PostgreSQL 18.4, base <code>logixone</code>, candidata aislada.</li><li>Acceso: sólo <code>SELECT</code>, catálogos y metadatos dentro de transacciones</li></ul>
+<p>  <code>READ ONLY</code>; no se ejecutaron DML, DDL, migraciones ni procedimientos con efecto.</p>
+<ul><li>Objetos comprobados: tablas, 57 columnas de los cuatro objetos documentados,</li></ul>
+<p>  restricciones, cinco índices de solicitud/línea, ausencia de vistas y   secuencias, dos triggers y sus funciones.</p>
+<ul><li>Ejemplos reales: 14 bloques; dos identificadores internos de actores protegidos.</li><li>Capturas reales: 4, generadas por Playwright sobre la aplicación local con datos</li></ul>
+<p>  ficticios y sin secretos.</p>
+<ul><li>Validación independiente por otra persona: pendiente.</li></ul></main></body></html>

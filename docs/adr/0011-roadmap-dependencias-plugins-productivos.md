@@ -6,7 +6,8 @@
   vertical cooperativa agregada por ADR-0037; módulo técnico transversal de
   migración planificado por ADR-0040; plugin funcional transversal BPM
   planificado por ADR-0045; familia vertical de mantenimiento de flota y taller
-  automotriz planificada por ADR-0046
+  automotriz planificada por ADR-0046; plugin vertical inmobiliario planificado
+  por ADR-0048
 - Fecha: 2026-07-28
 - Decisión de producto: construir doce plugins reutilizables y una personalización distinta por empresa
 - Inicio condicionado: reemplazado parcialmente por ADR-0012; los habilitadores
@@ -65,6 +66,12 @@
 > ERP 1–19 y separa la orden técnica de la recepción, autorización y venta del
 > servicio. F1 comienza después de estabilizar `logistics-api`; F2 requiere F1,
 > `sales` y `commercial_documents`.
+
+> [ADR-0048](0048-plugin-gestion-inmobiliaria.md) planifica `real_estate` como
+> plugin funcional vertical, reutilizable y opcional por empresa. Eleva el
+> catálogo global planificado a treinta y cuatro reutilizables, no renumera ERP
+> 1–19 y exige caracterizar primero la rama legado `miaterra_master`. Su frontera
+> y dependencias se deciden en RE-00 antes de autorizar código.
 
 > Nota de ejecución del 2026-08-11: producto autorizó abrir Sprint 9 con
 > `purchasing`, cuarto plugin de este orden, aunque Sprint 8 conserve pendientes
@@ -234,6 +241,15 @@ autorización y entrega comercial para vehículos de clientes, pero referencia l
 dominios propietarios. La familia usa orden interno F1–F2, no altera J11-S9-06 y
 no está implementada.
 
+ADR-0048 planifica también fuera de la secuencia ERP `real_estate`. El candidato
+poseerá la identidad e historia de proyectos y unidades inmobiliarias que RE-00
+apruebe, sin convertir lotes en stock ni duplicar participantes, ventas,
+documentos, cobros, deuda o asientos. La fuente legado preferente será la rama
+`miaterra_master` del repositorio Miaterra actualizado, consultada exclusivamente
+en modo de solo lectura y fijada por commit en la caracterización. El plugin no
+altera Sprint 10, no está implementado y puede dividirse en una familia si RE-00
+demuestra más de un dominio independiente.
+
 ## Consecuencias
 
 ### Positivas
@@ -248,6 +264,8 @@ no está implementada.
   de dominio al kernel ni bifurcar plugins funcionales.
 - mantenimiento técnico puede evolucionar sin contaminar Logística o Telemetría,
   y la venta de taller queda separada del costo y la ejecución de la OT.
+- la identidad inmobiliaria puede evolucionar sin convertirse en stock ni
+  trasladar ventas, cuotas, cobros o contabilidad a un módulo monolítico.
 
 ### Costes y riesgos
 
@@ -264,6 +282,8 @@ no está implementada.
 - la familia Flota agrega dos esquemas y contratos; lecturas, consumos,
   indisponibilidad y autorizaciones externas exigen idempotencia y seguridad
   específicas.
+- el legado inmobiliario mezcla proyectos, catastro, alquiler, venta, cobranza y
+  obras; RE-00 puede revelar que un solo plugin no es una frontera suficiente.
 
 ## Alternativas descartadas
 
@@ -318,4 +338,5 @@ Cada épica o Sprint de plugin deberá:
 - [ADR-0040 — Módulo técnico de migración de legados](0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md)
 - [ADR-0045 — Plugin de gestión de procesos de negocio BPM](0045-plugin-gestion-procesos-negocio-bpm.md)
 - [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](0046-familia-mantenimiento-flota-taller-automotriz.md)
+- [ADR-0048 — Plugin de gestión inmobiliaria](0048-plugin-gestion-inmobiliaria.md)
 - [Épica del roadmap de plugins](../backlog/epica-roadmap-plugins-productivos.md)

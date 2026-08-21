@@ -452,7 +452,7 @@ public final class PurchasingScreenContract {
         List<ScreenElementDefinition> elements = List.of(
                 field(TRACKING_SEARCH_TEXT, ScreenElementType.TEXT_INPUT, "filters", 10, false, "tracking"),
                 field(TRACKING_SEARCH_STATE, ScreenElementType.SELECT, "filters", 20, false, "tracking"),
-                action(TRACKING_SEARCH, "actions", 10, "tracking"),
+                action(TRACKING_SEARCH, "filters", 30, "tracking"),
                 content(TRACKING_RESULTS, ScreenElementType.DATA_TABLE, "content", 10, "tracking"),
                 content(TRACKING_SUMMARY, ScreenElementType.DISPLAY_TEXT, "content", 20, "tracking"),
                 action(SELECT_TRACKING_ORDER, "actions", 20, "tracking"));

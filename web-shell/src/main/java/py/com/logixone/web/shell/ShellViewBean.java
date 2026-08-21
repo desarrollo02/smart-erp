@@ -1054,6 +1054,66 @@ public class ShellViewBean {
         return "detail".equals(requestedMode);
     }
 
+    public boolean isFloorplanElementVisible(String elementId) {
+        ShellScreenInteractionView.ElementStateView state =
+                activeInteraction.getElementStates().get(elementId);
+        return state == null || state.isVisible();
+    }
+
+    public boolean isFloorplanRegionVisible(ShellScreenRegionView region) {
+        if (region == null) {
+            return false;
+        }
+        boolean hasVisibleField = region.getFields().stream()
+                .anyMatch(field -> isFloorplanFieldVisible(region, field));
+        boolean hasVisibleTable = region.getTables().stream()
+                .anyMatch(table -> isFloorplanTableVisible(region, table));
+        boolean hasVisibleAction = region.getActions().stream()
+                .anyMatch(action -> isFloorplanActionVisible(region, action));
+        return hasVisibleField || hasVisibleTable || hasVisibleAction;
+    }
+
+    public boolean isFloorplanFieldVisible(
+            ShellScreenRegionView region,
+            ShellScreenElementView field) {
+        if (region == null || field == null || !isFloorplanElementVisible(field.getId())) {
+            return false;
+        }
+        if (!activeScreen.isFloorplanSeparatedByMode()) {
+            return true;
+        }
+        return isDirectoryMode() ? region.isFilterRegion() : !region.isFilterRegion();
+    }
+
+    public boolean isFloorplanTableVisible(
+            ShellScreenRegionView region,
+            ShellScreenElementView table) {
+        if (region == null || table == null
+                || !isFloorplanElementVisible(table.getId())
+                || !activeInteraction.isHasTable()
+                || !activeInteraction.getTable().getElementId().equals(table.getId())) {
+            return false;
+        }
+        if (!activeScreen.isFloorplanSeparatedByMode()) {
+            return true;
+        }
+        return isDirectoryMode() != table.isEditableLines();
+    }
+
+    public boolean isFloorplanActionVisible(
+            ShellScreenRegionView region,
+            ShellScreenElementView action) {
+        if (region == null || action == null
+                || !isFloorplanElementVisible(action.getId())
+                || (activeScreen.isHasFloorplanRowAction() && action.isNavigateIntent())) {
+            return false;
+        }
+        if (!activeScreen.isFloorplanSeparatedByMode()) {
+            return true;
+        }
+        return isDirectoryMode() ? action.isSearchIntent() : !action.isSearchIntent();
+    }
+
     public boolean isSummaryTab() {
         return "summary".equals(requestedTab);
     }

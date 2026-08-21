@@ -1,0 +1,2 @@
+package py.com.logixone.plugins.sales.application.port;
+public final class SalesPersistenceException extends RuntimeException { private final SalesPersistenceCode code; public SalesPersistenceException(SalesPersistenceCode code){super(code.name());this.code=code;} public SalesPersistenceException(SalesPersistenceCode code,Throwable cause){super(code.name(),cause);this.code=code;} public SalesPersistenceCode code(){return code;} }

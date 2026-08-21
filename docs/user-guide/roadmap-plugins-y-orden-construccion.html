@@ -116,9 +116,9 @@
     <div class="cover-rule"></div>
     <p class="subtitle">Catálogo completo de capacidades reutilizables, secuencia ERP, familias paralelas y plugins transversales.</p>
     <div class="cover-meta">
-      <div class="meta-card"><strong>33</strong><span>plugins reutilizables planificados</span></div>
+      <div class="meta-card"><strong>34</strong><span>plugins reutilizables planificados</span></div>
       <div class="meta-card"><strong>1-19</strong><span>secuencia principal de construcción ERP</span></div>
-      <div class="meta-card"><strong>2026-08-12</strong><span>fecha del baseline documentado</span></div>
+      <div class="meta-card"><strong>2026-08-15</strong><span>fecha del baseline documentado</span></div>
     </div>
     <div class="callout" style="margin-top: 12mm;">
       <strong>Propósito.</strong> Mostrar qué se construye, en qué orden y para qué sirve cada plugin. Esta guía no convierte capacidades planificadas en implementadas ni modifica las prioridades aprobadas.
@@ -127,13 +127,13 @@
 
   <section class="page">
     <h2>1. Cómo leer el orden</h2>
-    <p class="lead">Smart ERP no tiene una sola fila de 33 posiciones. El catálogo se divide en una secuencia ERP principal, tres familias con perfiles propios y dos capacidades transversales.</p>
+    <p class="lead">Smart ERP no tiene una sola fila de 34 posiciones. El catálogo se divide en una secuencia ERP principal, familias y verticales con perfiles propios y dos capacidades transversales.</p>
     <div class="metric-row">
       <div class="metric"><strong>20</strong><span>fundación R0 más 19 plugins ERP</span></div>
       <div class="metric"><strong>3</strong><span>operaciones del proveedor</span></div>
       <div class="metric"><strong>6</strong><span>familia cooperativa C1-C6</span></div>
       <div class="metric"><strong>2</strong><span>transversales: migración y BPM</span></div>
-      <div class="metric"><strong>2</strong><span>familia Flota F1-F2</span></div>
+      <div class="metric"><strong>3</strong><span>Flota F1-F2 más Inmobiliaria</span></div>
     </div>
     <div class="tracks">
       <div class="track">
@@ -153,12 +153,12 @@
         <div class="track-flow"><span class="node">Migración de legados: cuando existan destinos y proyecto de migración</span><span class="node">BPM: después de Compras compuesta y eventos reales</span></div>
       </div>
       <div class="track fleet">
-        <div class="track-label">Flota</div>
-        <div class="track-flow"><span class="node">F1 Mantenimiento de flota: después de VehicleId estable</span><span class="arrow">&rarr;</span><span class="node">F2 Taller comercial: después de F1, Ventas y Documentos</span></div>
+        <div class="track-label">Verticales</div>
+        <div class="track-flow"><span class="node">F1 Mantenimiento: después de VehicleId estable</span><span class="arrow">&rarr;</span><span class="node">F2 Taller: después de F1, Ventas y Documentos</span><span class="node">Inmobiliaria: RE-00 antes del código</span></div>
       </div>
     </div>
     <div class="callout warning">
-      <strong>Importante.</strong> Los rótulos R0, 1-19, C1-C6 y F1-F2 son órdenes aprobados. Los plugins del proveedor y los transversales no reciben números ERP. Su momento depende de prerrequisitos y de una prioridad explícita de producto.
+      <strong>Importante.</strong> Los rótulos R0, 1-19, C1-C6 y F1-F2 son órdenes aprobados. Los plugins del proveedor, los transversales y <code>real_estate</code> no reciben números ERP. Su momento depende de prerrequisitos y de una prioridad explícita de producto.
     </div>
     <h3>Reglas que aplican a todos</h3>
     <ul>
@@ -271,7 +271,23 @@
   </section>
 
   <section class="page">
-    <h2>6. Plugins transversales y personalización</h2>
+    <h2>6. Vertical inmobiliario</h2>
+    <p class="lead"><code>real_estate</code> queda planificado como plugin funcional vertical, reutilizable y opcional. No renumera ERP 1-19 y no está implementado.</p>
+    <div class="sequence-card">
+      <div class="sequence-title" style="background:#6b3f67"><h3>real_estate</h3><span class="badge planned">Planificado</span></div>
+      <div class="sequence-body">
+        <p><strong>Alcance candidato:</strong> proyectos o desarrollos, inmuebles, fracciones, lotes, edificios/unidades, catastro, mejoras, documentación, estados y disponibilidad. RE-00 debe confirmar si constituyen un dominio o una familia.</p>
+        <p><strong>Límites:</strong> Socios conserva personas; Inventario bienes físicos; Ventas presupuestos/pedidos; Documentos facturas; Tesorería dinero; Cuentas por Cobrar deuda y Contabilidad asientos. Un lote inmobiliario no es stock.</p>
+        <p><strong>Fuente legado:</strong> repositorio <code>C:\cosme\mega\miaterra</code>, rama <code>miaterra_master</code>, raíz <code>fuente/tag</code>, siempre en modo de solo lectura y fijada por commit completo en la caracterización.</p>
+        <div class="steps"><div class="step"><b>1. Caracterizar</b>Perfiles, glosario, ciclos, datos y acoplamientos.</div><div class="step"><b>2. Decidir</b>RE-D01 a RE-D12, propietarios y contratos.</div><div class="step"><b>3. Implementar</b>Sólo en una iteración futura explícitamente autorizada.</div></div>
+      </div>
+    </div>
+    <div class="callout warning"><strong>Decisiones abiertas.</strong> Reserva, venta, alquiler, contratos, cronogramas, mora, comisiones, obras y costos no se asignan por semejanza con tablas o pantallas del legado.</div>
+    <div class="callout success"><strong>Incorporación al plan.</strong> ADR-0048 eleva el catálogo 33→34; Sprint 10 y la secuencia ERP 1-19 no cambian, y no se agrega código ejecutable.</div>
+  </section>
+
+  <section class="page">
+    <h2>7. Plugins transversales y personalización</h2>
     <div class="sequence-card">
       <div class="sequence-title"><h3>legacy_migration</h3><span class="badge planned">Planificado</span></div>
       <div class="sequence-body">
@@ -291,29 +307,29 @@
     <div class="sequence-card">
       <div class="sequence-title" style="background:#31506f"><h3>&lt;empresa&gt;_customization</h3><span class="badge" style="background:#dce8f4;color:#274761">Uno por empresa</span></div>
       <div class="sequence-body">
-        <p><strong>No integra el conteo de 33 reutilizables.</strong> Cada empresa operativa tiene una personalización propia. Se construye al final, después de estabilizar los contratos y pantallas que modifica. Nunca es compartida por varias empresas ni puede relajar guardas del servidor.</p>
+        <p><strong>No integra el conteo de 34 reutilizables.</strong> Cada empresa operativa tiene una personalización propia. Se construye al final, después de estabilizar los contratos y pantallas que modifica. Nunca es compartida por varias empresas ni puede relajar guardas del servidor.</p>
       </div>
     </div>
   </section>
 
   <section class="page">
-    <h2>7. Estado actual y siguiente construcción</h2>
+    <h2>8. Estado actual y siguiente construcción</h2>
     <div class="status-grid">
       <div class="status-box">
-        <h3 style="margin-top:0">Situación al 2026-08-12</h3>
+        <h3 style="margin-top:0">Situación al 2026-08-15</h3>
         <div class="timeline">
           <div class="timeline-item"><strong>R0</strong><span><span class="badge done">Implementado</span> Datos de referencia en el reactor y consumido por fundaciones.</span></div>
           <div class="timeline-item"><strong>ERP 1-3</strong><span><span class="badge done">Implementados</span> Socios, Catálogo e Inventario con demos oficiales y gates técnicos ejecutados.</span></div>
-          <div class="timeline-item current"><strong>ERP 4</strong><span><span class="badge partial">En curso</span> Compras tiene código y pruebas automatizadas verdes; falta composición, runtime, Playwright y demo navegable.</span></div>
-          <div class="timeline-item future"><strong>Sprint 10 transversal</strong><span><span class="badge planned">Planificado</span> Floorplans operativos sobre Inventario y Compras antes de Ventas.</span></div>
+          <div class="timeline-item"><strong>ERP 4</strong><span><span class="badge done">Validado automáticamente</span> Compras está compuesta; su validación independiente continúa pendiente.</span></div>
+          <div class="timeline-item current"><strong>Sprint 10 transversal</strong><span><span class="badge partial">En curso</span> Floorplans operativos sobre Inventario y Compras antes de Ventas.</span></div>
           <div class="timeline-item future"><strong>ERP 5-19</strong><span><span class="badge planned">Planificados</span> Continúan desde Ventas después del gate transversal, sin cambiar el orden aprobado.</span></div>
-          <div class="timeline-item future"><strong>Otras rutas</strong><span><span class="badge planned">Planificadas</span> Proveedor, Cooperativa, Migración, BPM y Flota requieren prioridad e iteración propias.</span></div>
+          <div class="timeline-item future"><strong>Otras rutas</strong><span><span class="badge planned">Planificadas</span> Proveedor, Cooperativa, Migración, BPM, Flota e Inmobiliaria requieren prioridad e iteración propias.</span></div>
         </div>
       </div>
       <div class="status-box">
         <h3 style="margin-top:0">Siguiente paso autorizado</h3>
-        <p class="lead"><strong>J11-S9-07/J11-S9-08:</strong> congelar el baseline técnico de Compras, completar sus artefactos de cierre y registrar la decisión del instalador.</p>
-        <div class="callout success"><strong>Después:</strong> ejecutar Sprint 10 para incorporar bandejas, editores transaccionales y capturas guiadas sobre Inventario y Compras. <code>sales</code> comenzará en Sprint 11 con esa fundación validada.</div>
+        <p class="lead"><strong>Sprint 10:</strong> completar y cerrar el gate de bandejas, editores transaccionales y operaciones guiadas sobre Inventario y Compras.</p>
+        <div class="callout success"><strong>Después:</strong> continuar con <code>sales</code>, orden ERP 5, salvo una nueva decisión explícita de producto.</div>
         <div class="callout warning"><strong>No confundir elegibilidad con prioridad.</strong> BPM será técnicamente elegible después de Compras compuesta, pero no se convierte automáticamente en el siguiente Sprint.</div>
       </div>
     </div>
@@ -324,6 +340,7 @@
       <li>Familias del proveedor o cooperativa únicamente para sus perfiles y prioridades.</li>
       <li>Migración y BPM cuando sus prerrequisitos y una decisión de producto habiliten la iteración.</li>
       <li>Flota F1 después de <code>VehicleId</code> estable; F2 después de F1, Ventas y Documentos.</li>
+      <li>Inmobiliaria sólo después de RE-00, RE-D01 a RE-D12 y contratos públicos estables del perfil aprobado.</li>
     </ol>
     <h3>Fuentes canónicas</h3>
     <ul class="source-list">
@@ -339,6 +356,7 @@
       <li>ADR-0040 - Migración de legados.</li>
       <li>ADR-0045 - Gestión de procesos BPM.</li>
       <li>ADR-0046 - Mantenimiento de flota y taller automotriz.</li>
+      <li>ADR-0048 - Plugin de gestión inmobiliaria.</li>
       <li>Épica de roadmap de plugins productivos.</li>
     </ul>
     <div class="callout"><strong>Alcance.</strong> Este PDF resume el plan vigente. Los ADR y Markdown versionados son la fuente canónica; el PDF es un artefacto derivado para consulta.</div>

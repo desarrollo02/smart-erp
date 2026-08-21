@@ -36,6 +36,10 @@ public final class ShellScreenRegionView {
                 + role.name().toLowerCase(Locale.ROOT).replace('_', '-');
     }
 
+    boolean isFilterRegion() {
+        return role == ScreenRegionRole.FILTERS;
+    }
+
     public List<ShellScreenElementView> getFields() {
         return elements.stream()
                 .filter(element -> !element.isAction() && !element.isDataTable())

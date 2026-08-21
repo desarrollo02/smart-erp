@@ -122,6 +122,8 @@
             <artifactId>purchasing</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency><groupId>py.com.logixone</groupId><artifactId>sales-api</artifactId><scope>test</scope></dependency>
+        <dependency><groupId>py.com.logixone</groupId><artifactId>sales</artifactId><scope>test</scope></dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5</artifactId>

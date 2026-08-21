@@ -325,6 +325,24 @@ public final class ShellScreenView {
         return getFloorplanRowAction() != null;
     }
 
+    public List<ShellScreenElementView> getFloorplanCreateActions() {
+        return floorplanRegions.stream()
+                .flatMap(region -> region.getActions().stream())
+                .filter(ShellScreenElementView::isCreateIntent)
+                .toList();
+    }
+
+    public boolean isFloorplanSeparatedByMode() {
+        boolean hasFilters = floorplanRegions.stream()
+                .anyMatch(ShellScreenRegionView::isFilterRegion);
+        boolean hasDirectoryTable = floorplanRegions.stream()
+                .flatMap(region -> region.getTables().stream())
+                .anyMatch(table -> !table.isEditableLines());
+        return hasFilters
+                && hasDirectoryTable
+                && (isHasFloorplanRowAction() || !getFloorplanCreateActions().isEmpty());
+    }
+
     boolean acceptsAction(String actionId) {
         if (rowAction != null && rowAction.getId().equals(actionId) && rowAction.isEnabled()) {
             return true;

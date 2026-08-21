@@ -7,7 +7,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>
 endobj
 3 0 obj
-<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R] /Count 8 >>
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R] /Count 9 >>
 endobj
 4 0 obj
 << /Length 1666 >>
@@ -25,7 +25,7 @@ BT /F1 15 Tf 0.2 0.25 0.34 rg 1 0 0 1 48 494.19 Tm (familias paralelas y plugins
 0.91 0.94 1 rg
 0.69 0.78 0.91 RG
 48 331.89 153 80 re B
-BT /F2 22 Tf 0.122 0.31 0.561 rg 1 0 0 1 62 376.73 Tm (33) Tj ET
+BT /F2 22 Tf 0.122 0.31 0.561 rg 1 0 0 1 62 376.73 Tm (34) Tj ET
 BT /F1 8.5 Tf 0.34 0.38 0.47 rg 1 0 0 1 62 357.26 Tm (plugins reutilizables) Tj ET
 0.91 0.94 1 rg
 0.69 0.78 0.91 RG
@@ -35,7 +35,7 @@ BT /F1 8.5 Tf 0.34 0.38 0.47 rg 1 0 0 1 233 357.26 Tm (secuencia principal ERP) 
 0.91 0.94 1 rg
 0.69 0.78 0.91 RG
 390 331.89 153 80 re B
-BT /F2 22 Tf 0.122 0.31 0.561 rg 1 0 0 1 404 376.73 Tm (2026-08-12) Tj ET
+BT /F2 22 Tf 0.122 0.31 0.561 rg 1 0 0 1 404 376.73 Tm (2026-08-15) Tj ET
 BT /F1 8.5 Tf 0.34 0.38 0.47 rg 1 0 0 1 404 357.26 Tm (baseline documentado) Tj ET
 0.91 0.94 1 rg
 40 209.89 515 62 re f
@@ -52,7 +52,7 @@ endobj
 << /Type /Page /Parent 3 0 R /MediaBox [0 0 595.276 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 4 0 R >>
 endobj
 6 0 obj
-<< /Length 4578 >>
+<< /Length 4616 >>
 stream
 1 1 1 rg
 0 0 595.276 841.89 re f
@@ -64,8 +64,8 @@ BT /F2 11 Tf 0.059 0.42 0.38 rg 1 0 0 1 40 778.31 Tm (01) Tj ET
 BT /F2 21 Tf 0.071 0.22 0.4 rg 1 0 0 1 40 753.51 Tm (Cómo leer el orden) Tj ET
 0.42 0.59 0.78 RG
 1.4 w 40 741.89 m 555 741.89 l S
-BT /F1 10.5 Tf 0.2 0.25 0.34 rg 1 0 0 1 40 715.7 Tm (Smart ERP no tiene una única fila de 33 posiciones. El catálogo usa una secuencia ERP principal, tres) Tj ET
-BT /F1 10.5 Tf 0.2 0.25 0.34 rg 1 0 0 1 40 701.7 Tm (familias con perfiles propios y dos capacidades transversales.) Tj ET
+BT /F1 10.5 Tf 0.2 0.25 0.34 rg 1 0 0 1 40 715.7 Tm (Smart ERP no tiene una única fila de 34 posiciones. El catálogo usa una secuencia ERP principal, familias y) Tj ET
+BT /F1 10.5 Tf 0.2 0.25 0.34 rg 1 0 0 1 40 701.7 Tm (verticales con perfiles propios y dos capacidades transversales.) Tj ET
 0.965 0.973 0.988 rg
 0.77 0.82 0.88 RG
 40 612.89 121 62 re B
@@ -79,8 +79,9 @@ BT /F1 7.8 Tf 0.34 0.38 0.47 rg 1 0 0 1 181 628.806 Tm (operaciones del proveedo
 0.965 0.973 0.988 rg
 0.77 0.82 0.88 RG
 302 612.89 121 62 re B
-BT /F2 18 Tf 0.122 0.31 0.561 rg 1 0 0 1 312 646.85 Tm (8) Tj ET
-BT /F1 7.8 Tf 0.34 0.38 0.47 rg 1 0 0 1 312 628.806 Tm (verticales: C1-C6 y F1-F2) Tj ET
+BT /F2 18 Tf 0.122 0.31 0.561 rg 1 0 0 1 312 646.85 Tm (9) Tj ET
+BT /F1 7.8 Tf 0.34 0.38 0.47 rg 1 0 0 1 312 628.806 Tm (verticales: C1-C6, F1-F2 e) Tj ET
+BT /F1 7.8 Tf 0.34 0.38 0.47 rg 1 0 0 1 312 619.806 Tm (Inmobiliaria) Tj ET
 0.965 0.973 0.988 rg
 0.77 0.82 0.88 RG
 433 612.89 121 62 re B
@@ -109,12 +110,11 @@ BT /F2 8.3 Tf 1 1 1 rg 1 0 0 1 50 450.416 Tm (COOPERATIVA) Tj ET
 BT /F1 8 Tf 0.12 0.16 0.23 rg 1 0 0 1 157 454.65 Tm (C1 Membresía -> C2 Gobierno -> C3 LA/FT -> C4 Ahorros -> C5 Crédito -> C6 Regulación PY) Tj ET
 0.19 0.37 0.47 rg
 40 355.89 105 54 re f
-BT /F2 8.3 Tf 1 1 1 rg 1 0 0 1 50 388.416 Tm (FLOTA) Tj ET
+BT /F2 8.3 Tf 1 1 1 rg 1 0 0 1 50 388.416 Tm (VERTICALES) Tj ET
 0.965 0.973 0.988 rg
 0.77 0.82 0.88 RG
 145 355.89 410 54 re B
-BT /F1 8 Tf 0.12 0.16 0.23 rg 1 0 0 1 157 392.65 Tm (F1 Mantenimiento: después de VehicleId estable -> F2 Taller comercial: después de F1, Ventas y) Tj ET
-BT /F1 8 Tf 0.12 0.16 0.23 rg 1 0 0 1 157 382.65 Tm (Documentos) Tj ET
+BT /F1 8 Tf 0.12 0.16 0.23 rg 1 0 0 1 157 392.65 Tm (F1 Mantenimiento -> F2 Taller comercial | real_estate: RE-00 y decisiones aprobadas antes del código) Tj ET
 0.059 0.42 0.38 rg
 40 293.89 105 54 re f
 BT /F2 8.3 Tf 1 1 1 rg 1 0 0 1 50 326.416 Tm (TRANSVERSALES) Tj ET
@@ -127,8 +127,8 @@ BT /F1 8 Tf 0.12 0.16 0.23 rg 1 0 0 1 157 330.65 Tm (Migración: según destinos y
 0.6 0.3 0 rg
 40 219.89 4 58 re f
 BT /F2 9.3 Tf 0.6 0.3 0 rg 1 0 0 1 52 261.636 Tm (Importante) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 247.26 Tm (R0, 1-19, C1-C6 y F1-F2 son órdenes aprobados. Proveedor y transversales no reciben número ERP; su momento depende de) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 237.26 Tm (prerrequisitos y prioridad explícita.) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 247.26 Tm (R0, 1-19, C1-C6 y F1-F2 son órdenes aprobados. Proveedor, transversales y real_estate no reciben número ERP; su momento) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 237.26 Tm (depende de prerrequisitos y prioridad explícita.) Tj ET
 BT /F2 13 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 193.75 Tm (Reglas comunes) Tj ET
 0.059 0.42 0.38 rg
 43 169.89 5 5 re f
@@ -848,6 +848,96 @@ endobj
 << /Type /Page /Parent 3 0 R /MediaBox [0 0 595.276 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 14 0 R >>
 endobj
 16 0 obj
+<< /Length 4522 >>
+stream
+1 1 1 rg
+0 0 595.276 841.89 re f
+BT /F2 8 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 809.65 Tm (SMART ERP) Tj ET
+BT /F1 7.5 Tf 0.34 0.38 0.47 rg 1 0 0 1 440 810.04 Tm (VERTICAL INMOBILIARIO) Tj ET
+0.68 0.75 0.85 RG
+0.8 w 40 802.89 m 555 802.89 l S
+BT /F2 11 Tf 0.059 0.42 0.38 rg 1 0 0 1 40 778.31 Tm (06) Tj ET
+BT /F2 21 Tf 0.071 0.22 0.4 rg 1 0 0 1 40 753.51 Tm (Gestión inmobiliaria) Tj ET
+0.42 0.59 0.78 RG
+1.4 w 40 741.89 m 555 741.89 l S
+BT /F1 9.2 Tf 0.2 0.25 0.34 rg 1 0 0 1 40 718.714 Tm (real_estate queda planificado como plugin funcional vertical, reutilizable y opcional por empresa. No renumera ERP 1-19 y) Tj ET
+BT /F1 9.2 Tf 0.2 0.25 0.34 rg 1 0 0 1 40 706.714 Tm (no está implementado.) Tj ET
+0.96 0.92 0.96 rg
+0.76 0.62 0.75 RG
+40 529.89 515 154 re B
+0.42 0.25 0.4 rg
+40 645.89 515 38 re f
+BT /F2 12 Tf 1 1 1 rg 1 0 0 1 52 663.53 Tm (real_estate) Tj ET
+BT /F2 8 Tf 1 1 1 rg 1 0 0 1 456 664.65 Tm (PLANIFICADO) Tj ET
+BT /F2 9 Tf 0.42 0.25 0.4 rg 1 0 0 1 52 624.87 Tm (Alcance candidato) Tj ET
+BT /F1 8.6 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 607.182 Tm (Proyectos o desarrollos, inmuebles, fracciones, lotes, edificios y unidades, catastro, mejoras, documentos, estados y) Tj ET
+BT /F1 8.6 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 596.682 Tm (disponibilidad. RE-00 confirmará si forman un dominio o una familia.) Tj ET
+BT /F2 9 Tf 0.42 0.25 0.4 rg 1 0 0 1 52 551.87 Tm (Inicio) Tj ET
+BT /F1 8.6 Tf 0.16 0.21 0.29 rg 1 0 0 1 100 552.182 Tm (Después de RE-00, RE-D01 a RE-D12 aprobadas y APIs públicas estables del perfil elegido.) Tj ET
+BT /F2 13 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 494.75 Tm (Propietarios que no se trasladan) Tj ET
+0.965 0.973 0.988 rg
+0.77 0.82 0.88 RG
+40 404.89 250 72 re B
+BT /F2 8.8 Tf 0.122 0.31 0.561 rg 1 0 0 1 50 459.026 Tm (Socios) Tj ET
+BT /F1 8 Tf 0.16 0.21 0.29 rg 1 0 0 1 50 438.65 Tm (personas, organizaciones, propietarios y clientes) Tj ET
+0.965 0.973 0.988 rg
+0.77 0.82 0.88 RG
+300 404.89 250 72 re B
+BT /F2 8.8 Tf 0.122 0.31 0.561 rg 1 0 0 1 310 459.026 Tm (Inventario) Tj ET
+BT /F1 8 Tf 0.16 0.21 0.29 rg 1 0 0 1 310 438.65 Tm (bienes físicos, depósitos, saldos y movimientos) Tj ET
+0.965 0.973 0.988 rg
+0.77 0.82 0.88 RG
+40 322.89 250 72 re B
+BT /F2 8.8 Tf 0.122 0.31 0.561 rg 1 0 0 1 50 377.026 Tm (Ventas y Documentos) Tj ET
+BT /F1 8 Tf 0.16 0.21 0.29 rg 1 0 0 1 50 356.65 Tm (presupuestos, pedidos, facturas y notas) Tj ET
+0.965 0.973 0.988 rg
+0.77 0.82 0.88 RG
+300 322.89 250 72 re B
+BT /F2 8.8 Tf 0.122 0.31 0.561 rg 1 0 0 1 310 377.026 Tm (Finanzas) Tj ET
+BT /F1 8 Tf 0.16 0.21 0.29 rg 1 0 0 1 310 356.65 Tm (dinero, deuda, cobranzas y asientos) Tj ET
+0.91 0.94 1 rg
+40 228.89 515 68 re f
+0.122 0.31 0.561 rg
+40 228.89 4 68 re f
+BT /F2 9.3 Tf 0.122 0.31 0.561 rg 1 0 0 1 52 280.636 Tm (Fuente legado de solo lectura) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 266.26 Tm (C:\\cosme\\mega\\miaterra, rama miaterra_master, raíz fuente/tag. RE-00 debe registrar el commit completo analizado; no) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 256.26 Tm (se copian clases, XHTML, SQL ni dependencias javax.) Tj ET
+BT /F2 13 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 199.75 Tm (Secuencia de decisión) Tj ET
+0.96 0.92 0.96 rg
+0.76 0.62 0.75 RG
+40 119.89 164 62 re B
+BT /F2 13 Tf 0.42 0.25 0.4 rg 1 0 0 1 50 159.75 Tm (1) Tj ET
+BT /F2 8.5 Tf 0.42 0.25 0.4 rg 1 0 0 1 74 162.26 Tm (Caracterizar) Tj ET
+BT /F1 7.7 Tf 0.16 0.21 0.29 rg 1 0 0 1 50 139.884 Tm (perfiles, ciclos y datos) Tj ET
+0.96 0.92 0.96 rg
+0.76 0.62 0.75 RG
+214 119.89 164 62 re B
+BT /F2 13 Tf 0.42 0.25 0.4 rg 1 0 0 1 224 159.75 Tm (2) Tj ET
+BT /F2 8.5 Tf 0.42 0.25 0.4 rg 1 0 0 1 248 162.26 Tm (Decidir) Tj ET
+BT /F1 7.7 Tf 0.16 0.21 0.29 rg 1 0 0 1 224 139.884 Tm (frontera y propietarios) Tj ET
+0.96 0.92 0.96 rg
+0.76 0.62 0.75 RG
+388 119.89 164 62 re B
+BT /F2 13 Tf 0.42 0.25 0.4 rg 1 0 0 1 398 159.75 Tm (3) Tj ET
+BT /F2 8.5 Tf 0.42 0.25 0.4 rg 1 0 0 1 422 162.26 Tm (Implementar) Tj ET
+BT /F1 7.7 Tf 0.16 0.21 0.29 rg 1 0 0 1 398 139.884 Tm (sólo con iteración autorizada) Tj ET
+0.89 0.96 0.93 rg
+40 58.89 515 48 re f
+0.059 0.42 0.38 rg
+40 58.89 4 48 re f
+BT /F2 9.3 Tf 0.059 0.42 0.38 rg 1 0 0 1 52 90.636 Tm (Incorporación al plan) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 76.26 Tm (ADR-0048 eleva el catálogo 33 -> 34. Sprint 10 y ERP 1-19 no cambian; no se agrega código ejecutable.) Tj ET
+0.76 0.8 0.86 RG
+0.7 w 40 35.89 m 555 35.89 l S
+BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 40 23.274 Tm (Guía 00 - Plugins y orden de construcción) Tj ET
+BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 515 23.274 Tm (Página 7) Tj ET
+
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595.276 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
 << /Length 3600 >>
 stream
 1 1 1 rg
@@ -856,7 +946,7 @@ BT /F2 8 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 809.65 Tm (SMART ERP) Tj ET
 BT /F1 7.5 Tf 0.34 0.38 0.47 rg 1 0 0 1 440 810.04 Tm (TRANSVERSALES) Tj ET
 0.68 0.75 0.85 RG
 0.8 w 40 802.89 m 555 802.89 l S
-BT /F2 11 Tf 0.059 0.42 0.38 rg 1 0 0 1 40 778.31 Tm (06) Tj ET
+BT /F2 11 Tf 0.059 0.42 0.38 rg 1 0 0 1 40 778.31 Tm (07) Tj ET
 BT /F2 21 Tf 0.071 0.22 0.4 rg 1 0 0 1 40 753.51 Tm (Migración, BPM y personalización) Tj ET
 0.42 0.59 0.78 RG
 1.4 w 40 741.89 m 555 741.89 l S
@@ -894,7 +984,7 @@ BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 380.76 Tm (solicitudes.) Tj ET
 BT /F2 11 Tf 1 1 1 rg 1 0 0 1 52 320.31 Tm (<empresa>_customization) Tj ET
 BT /F2 8 Tf 1 1 1 rg 1 0 0 1 455 321.65 Tm (Uno por empresa) Tj ET
 BT /F2 9 Tf 0.27 0.36 0.46 rg 1 0 0 1 52 279.87 Tm (Qué hace) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 264.26 Tm (Personalización exclusiva sobre contratos y pantallas estabilizados. No integra el conteo de 33 reutilizables.) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 264.26 Tm (Personalización exclusiva sobre contratos y pantallas estabilizados. No integra el conteo de 34 reutilizables.) Tj ET
 BT /F2 9 Tf 0.27 0.36 0.46 rg 1 0 0 1 52 216.87 Tm (Cuándo se construye) Tj ET
 BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 201.26 Tm (Se construye al final para cada empresa; nunca se comparte ni puede relajar seguridad o reglas del servidor.) Tj ET
 1 0.94 0.86 rg
@@ -907,83 +997,6 @@ BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 101.26 Tm (invariantes.) Tj ET
 0.76 0.8 0.86 RG
 0.7 w 40 35.89 m 555 35.89 l S
 BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 40 23.274 Tm (Guía 00 - Plugins y orden de construcción) Tj ET
-BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 515 23.274 Tm (Página 7) Tj ET
-
-endstream
-endobj
-17 0 obj
-<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595.276 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 16 0 R >>
-endobj
-18 0 obj
-<< /Length 4015 >>
-stream
-1 1 1 rg
-0 0 595.276 841.89 re f
-BT /F2 8 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 809.65 Tm (SMART ERP) Tj ET
-BT /F1 7.5 Tf 0.34 0.38 0.47 rg 1 0 0 1 440 810.04 Tm (ESTADO) Tj ET
-0.68 0.75 0.85 RG
-0.8 w 40 802.89 m 555 802.89 l S
-BT /F2 11 Tf 0.059 0.42 0.38 rg 1 0 0 1 40 778.31 Tm (07) Tj ET
-BT /F2 21 Tf 0.071 0.22 0.4 rg 1 0 0 1 40 753.51 Tm (Estado actual y siguiente construcción) Tj ET
-0.42 0.59 0.78 RG
-1.4 w 40 741.89 m 555 741.89 l S
-BT /F2 14 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 710.97 Tm (Situación al 2026-08-12) Tj ET
-0.89 0.96 0.93 rg
-0.77 0.82 0.88 RG
-40 632.89 515 58 re B
-BT /F2 9 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 671.87 Tm (R0) Tj ET
-BT /F2 7.3 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 654.196 Tm (IMPLEMENTADO) Tj ET
-BT /F1 8.3 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 671.416 Tm (Datos de referencia en el reactor y consumido por fundaciones.) Tj ET
-0.89 0.96 0.93 rg
-0.77 0.82 0.88 RG
-40 565.89 515 58 re B
-BT /F2 9 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 604.87 Tm (ERP 1-3) Tj ET
-BT /F2 7.3 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 587.196 Tm (IMPLEMENTADOS) Tj ET
-BT /F1 8.3 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 604.416 Tm (Socios, Catálogo e Inventario con demos oficiales y gates técnicos ejecutados.) Tj ET
-1 0.94 0.86 rg
-0.77 0.82 0.88 RG
-40 498.89 515 58 re B
-BT /F2 9 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 537.87 Tm (ERP 4) Tj ET
-BT /F2 7.3 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 520.196 Tm (EN CURSO) Tj ET
-BT /F1 8.3 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 537.416 Tm (Compras tiene código y pruebas automatizadas verdes; falta composición, runtime, Playwright y demo.) Tj ET
-0.965 0.945 0.988 rg
-0.77 0.82 0.88 RG
-40 431.89 515 58 re B
-BT /F2 9 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 470.87 Tm (ERP 5-19) Tj ET
-BT /F2 7.3 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 453.196 Tm (PLANIFICADOS) Tj ET
-BT /F1 8.3 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 470.416 Tm (Continúan desde Ventas según el orden aprobado.) Tj ET
-0.965 0.945 0.988 rg
-0.77 0.82 0.88 RG
-40 364.89 515 58 re B
-BT /F2 9 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 403.87 Tm (OTRAS RUTAS) Tj ET
-BT /F2 7.3 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 386.196 Tm (PLANIFICADAS) Tj ET
-BT /F1 8.3 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 403.416 Tm (Proveedor, Cooperativa, Migración, BPM y Flota requieren prioridad e iteración propias.) Tj ET
-0.89 0.96 0.93 rg
-40 283.89 515 62 re f
-0.059 0.42 0.38 rg
-40 283.89 4 62 re f
-BT /F2 9.3 Tf 0.059 0.42 0.38 rg 1 0 0 1 52 329.636 Tm (Siguiente paso autorizado: J11-S9-06) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 315.26 Tm (Componer purchasing en WAR y migrador, integrar la distribución y ejecutar Docker/Compose, health, OIDC y Playwright) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 305.26 Tm (sobre rutas navegables.) Tj ET
-0.91 0.94 1 rg
-40 209.89 515 62 re f
-0.122 0.31 0.561 rg
-40 209.89 4 62 re f
-BT /F2 9.3 Tf 0.122 0.31 0.561 rg 1 0 0 1 52 255.636 Tm (Después) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 241.26 Tm (Completar el cierre técnico de Compras y continuar con sales, salvo que producto abra una iteración transversal que ya) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 231.26 Tm (cumpla sus prerrequisitos.) Tj ET
-1 0.94 0.86 rg
-40 139.89 515 58 re f
-0.6 0.3 0 rg
-40 139.89 4 58 re f
-BT /F2 9.3 Tf 0.6 0.3 0 rg 1 0 0 1 52 181.636 Tm (No confundir elegibilidad con prioridad) Tj ET
-BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 167.26 Tm (BPM será técnicamente elegible después de Compras compuesta, pero no se convierte automáticamente en el siguiente Sprint.) Tj ET
-BT /F2 12 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 111.53 Tm (Fuentes canónicas) Tj ET
-BT /F1 8 Tf 0.34 0.38 0.47 rg 1 0 0 1 40 93.65 Tm (ADR-0011, ADR-0027, ADR-0030, ADR-0032, ADR-0033, ADR-0034, ADR-0036, ADR-0037, ADR-0038, ADR-0040, ADR-0045, ADR-0046 y la) Tj ET
-BT /F1 8 Tf 0.34 0.38 0.47 rg 1 0 0 1 40 83.65 Tm (Épica de roadmap de plugins productivos.) Tj ET
-0.76 0.8 0.86 RG
-0.7 w 40 35.89 m 555 35.89 l S
-BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 40 23.274 Tm (Guía 00 - Plugins y orden de construcción) Tj ET
 BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 515 23.274 Tm (Página 8) Tj ET
 
 endstream
@@ -992,37 +1005,120 @@ endobj
 << /Type /Page /Parent 3 0 R /MediaBox [0 0 595.276 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 18 0 R >>
 endobj
 20 0 obj
-<< /Type /Catalog /Pages 3 0 R /PageMode /UseNone >>
+<< /Length 4105 >>
+stream
+1 1 1 rg
+0 0 595.276 841.89 re f
+BT /F2 8 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 809.65 Tm (SMART ERP) Tj ET
+BT /F1 7.5 Tf 0.34 0.38 0.47 rg 1 0 0 1 440 810.04 Tm (ESTADO) Tj ET
+0.68 0.75 0.85 RG
+0.8 w 40 802.89 m 555 802.89 l S
+BT /F2 11 Tf 0.059 0.42 0.38 rg 1 0 0 1 40 778.31 Tm (08) Tj ET
+BT /F2 21 Tf 0.071 0.22 0.4 rg 1 0 0 1 40 753.51 Tm (Estado actual y siguiente construcción) Tj ET
+0.42 0.59 0.78 RG
+1.4 w 40 741.89 m 555 741.89 l S
+BT /F2 14 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 710.97 Tm (Situación al 2026-08-15) Tj ET
+0.89 0.96 0.93 rg
+0.77 0.82 0.88 RG
+40 640.89 515 50 re B
+BT /F2 8.5 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 675.26 Tm (R0) Tj ET
+BT /F2 7 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 658.43 Tm (IMPLEMENTADO) Tj ET
+BT /F1 8.1 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 674.572 Tm (Datos de referencia en el reactor y consumido por fundaciones.) Tj ET
+0.89 0.96 0.93 rg
+0.77 0.82 0.88 RG
+40 582.89 515 50 re B
+BT /F2 8.5 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 617.26 Tm (ERP 1-3) Tj ET
+BT /F2 7 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 600.43 Tm (IMPLEMENTADOS) Tj ET
+BT /F1 8.1 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 616.572 Tm (Socios, Catálogo e Inventario con demos oficiales y gates técnicos ejecutados.) Tj ET
+0.89 0.96 0.93 rg
+0.77 0.82 0.88 RG
+40 524.89 515 50 re B
+BT /F2 8.5 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 559.26 Tm (ERP 4) Tj ET
+BT /F2 7 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 542.43 Tm (VALIDADO AUTO.) Tj ET
+BT /F1 8.1 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 558.572 Tm (Compras está compuesta; su validación independiente continúa pendiente.) Tj ET
+1 0.94 0.86 rg
+0.77 0.82 0.88 RG
+40 466.89 515 50 re B
+BT /F2 8.5 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 501.26 Tm (SPRINT 10) Tj ET
+BT /F2 7 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 484.43 Tm (EN CURSO) Tj ET
+BT /F1 8.1 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 500.572 Tm (Floorplans operativos sobre Inventario y Compras antes de Ventas.) Tj ET
+0.965 0.945 0.988 rg
+0.77 0.82 0.88 RG
+40 408.89 515 50 re B
+BT /F2 8.5 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 443.26 Tm (ERP 5-19) Tj ET
+BT /F2 7 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 426.43 Tm (PLANIFICADOS) Tj ET
+BT /F1 8.1 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 442.572 Tm (Continúan desde Ventas según el orden aprobado.) Tj ET
+0.965 0.945 0.988 rg
+0.77 0.82 0.88 RG
+40 350.89 515 50 re B
+BT /F2 8.5 Tf 0.122 0.31 0.561 rg 1 0 0 1 51 385.26 Tm (OTRAS RUTAS) Tj ET
+BT /F2 7 Tf 0.34 0.38 0.47 rg 1 0 0 1 51 368.43 Tm (PLANIFICADAS) Tj ET
+BT /F1 8.1 Tf 0.16 0.21 0.29 rg 1 0 0 1 145 384.572 Tm (Proveedor, Cooperativa, Migración, BPM, Flota e Inmobiliaria requieren prioridad propia.) Tj ET
+0.89 0.96 0.93 rg
+40 273.89 515 58 re f
+0.059 0.42 0.38 rg
+40 273.89 4 58 re f
+BT /F2 9.3 Tf 0.059 0.42 0.38 rg 1 0 0 1 52 315.636 Tm (Siguiente paso autorizado: Sprint 10) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 301.26 Tm (Completar el gate de bandejas, editores transaccionales y operaciones guiadas sobre Inventario y Compras.) Tj ET
+0.91 0.94 1 rg
+40 207.89 515 54 re f
+0.122 0.31 0.561 rg
+40 207.89 4 54 re f
+BT /F2 9.3 Tf 0.122 0.31 0.561 rg 1 0 0 1 52 245.636 Tm (Después) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 231.26 Tm (Continuar con sales, orden ERP 5, salvo una nueva decisión explícita de producto.) Tj ET
+1 0.94 0.86 rg
+40 137.89 515 58 re f
+0.6 0.3 0 rg
+40 137.89 4 58 re f
+BT /F2 9.3 Tf 0.6 0.3 0 rg 1 0 0 1 52 179.636 Tm (No confundir planificación con prioridad) Tj ET
+BT /F1 8.5 Tf 0.16 0.21 0.29 rg 1 0 0 1 52 165.26 Tm (real_estate requiere RE-00 y decisiones aprobadas; su incorporación al catálogo no lo convierte en el siguiente Sprint.) Tj ET
+BT /F2 12 Tf 0.122 0.31 0.561 rg 1 0 0 1 40 114.53 Tm (Fuentes canónicas) Tj ET
+BT /F1 8 Tf 0.34 0.38 0.47 rg 1 0 0 1 40 96.65 Tm (ADR-0011, ADR-0027, ADR-0030, ADR-0032, ADR-0033, ADR-0034, ADR-0036, ADR-0037, ADR-0038, ADR-0040, ADR-0045, ADR-0046,) Tj ET
+BT /F1 8 Tf 0.34 0.38 0.47 rg 1 0 0 1 40 86.65 Tm (ADR-0048 y la Épica de roadmap de plugins productivos.) Tj ET
+0.76 0.8 0.86 RG
+0.7 w 40 35.89 m 555 35.89 l S
+BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 40 23.274 Tm (Guía 00 - Plugins y orden de construcción) Tj ET
+BT /F1 7.2 Tf 0.4 0.44 0.52 rg 1 0 0 1 515 23.274 Tm (Página 9) Tj ET
+
+endstream
 endobj
 21 0 obj
-<< /Title (Smart ERP - Plugins y orden de construcción) /Author (Smart ERP) /Subject (Catálogo de 33 plugins reutilizables y su orden de construcción) /Keywords (Smart ERP, plugins, roadmap) /Creator (PowerShell PDF generator) /CreationDate (D:20260812090000-04'00') >>
+<< /Type /Page /Parent 3 0 R /MediaBox [0 0 595.276 841.89] /Resources << /Font << /F1 1 0 R /F2 2 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Type /Catalog /Pages 3 0 R /PageMode /UseNone >>
+endobj
+23 0 obj
+<< /Title (Smart ERP - Plugins y orden de construcción) /Author (Smart ERP) /Subject (Catálogo de 34 plugins reutilizables y su orden de construcción) /Keywords (Smart ERP, plugins, roadmap) /Creator (PowerShell PDF generator) /CreationDate (D:20260815090000-04'00') >>
 endobj
 xref
-0 22
+0 24
 0000000000 65535 f 
 0000000015 00000 n 
 0000000112 00000 n 
 0000000214 00000 n 
-0000000318 00000 n 
-0000002036 00000 n 
-0000002179 00000 n 
-0000006809 00000 n 
-0000006952 00000 n 
-0000015411 00000 n 
-0000015554 00000 n 
-0000027063 00000 n 
-0000027208 00000 n 
-0000031836 00000 n 
-0000031981 00000 n 
-0000036302 00000 n 
-0000036447 00000 n 
-0000040100 00000 n 
-0000040245 00000 n 
-0000044313 00000 n 
-0000044458 00000 n 
-0000044527 00000 n 
+0000000325 00000 n 
+0000002043 00000 n 
+0000002186 00000 n 
+0000006854 00000 n 
+0000006997 00000 n 
+0000015456 00000 n 
+0000015599 00000 n 
+0000027108 00000 n 
+0000027253 00000 n 
+0000031881 00000 n 
+0000032026 00000 n 
+0000036347 00000 n 
+0000036492 00000 n 
+0000041067 00000 n 
+0000041212 00000 n 
+0000044865 00000 n 
+0000045010 00000 n 
+0000049168 00000 n 
+0000049313 00000 n 
+0000049382 00000 n 
 trailer
-<< /Size 22 /Root 20 0 R /Info 21 0 R >>
+<< /Size 24 /Root 22 0 R /Info 23 0 R >>
 startxref
-44813
+49668
 %%EOF

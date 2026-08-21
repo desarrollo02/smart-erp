@@ -187,7 +187,7 @@ Text 'SMART ERP | GUÍA 00' 48 145 10 -Bold -color '0.122 0.31 0.561'
 [void](Wrapped 'Plugins y orden de construcción' 48 182 490 34 38 -Bold -color '0.071 0.22 0.4')
 Rect 48 280 165 8 '0.059 0.42 0.38'
 [void](Wrapped 'Catálogo completo de capacidades reutilizables, secuencia ERP, familias paralelas y plugins transversales.' 48 316 475 15 20 -color '0.2 0.25 0.34')
-$cx=@(48,219,390);$cv=@('33','1-19','2026-08-12');$ct=@('plugins reutilizables','secuencia principal ERP','baseline documentado')
+$cx=@(48,219,390);$cv=@('34','1-19','2026-08-15');$ct=@('plugins reutilizables','secuencia principal ERP','baseline documentado')
 for($i=0;$i-lt3;$i++){Rect $cx[$i] 430 153 80 '0.91 0.94 1' '0.69 0.78 0.91';Text $cv[$i] ($cx[$i]+14) 448 22 -Bold -color '0.122 0.31 0.561';[void](Wrapped $ct[$i] ($cx[$i]+14) 478 125 8.5 10 -color '0.34 0.38 0.47')}
 Callout 'Propósito' 'Mostrar qué se construye, en qué orden y para qué sirve cada plugin. La guía no convierte capacidades planificadas en implementadas.' 570 'blue' 62
 Text 'Fuentes canónicas: ADR y Markdown versionados del proyecto.' 48 750 8 -color '0.4 0.44 0.52'
@@ -195,18 +195,18 @@ Finish-Page 1 $pagesObject $fontRegular $fontBold -Cover
 
 # 2. Panorama
 Start-Page 'PANORAMA';Title '01' 'Cómo leer el orden'
-[void](Wrapped 'Smart ERP no tiene una única fila de 33 posiciones. El catálogo usa una secuencia ERP principal, tres familias con perfiles propios y dos capacidades transversales.' 40 118 515 10.5 14 -color '0.2 0.25 0.34')
-$metrics=@(@('20','R0 más 19 ERP'),@('3','operaciones del proveedor'),@('8','verticales: C1-C6 y F1-F2'),@('2','plugins transversales'))
+[void](Wrapped 'Smart ERP no tiene una única fila de 34 posiciones. El catálogo usa una secuencia ERP principal, familias y verticales con perfiles propios y dos capacidades transversales.' 40 118 515 10.5 14 -color '0.2 0.25 0.34')
+$metrics=@(@('20','R0 más 19 ERP'),@('3','operaciones del proveedor'),@('9','verticales: C1-C6, F1-F2 e Inmobiliaria'),@('2','plugins transversales'))
 for($i=0;$i-lt4;$i++){$mx=40+($i*131);Rect $mx 167 121 62 '0.965 0.973 0.988' '0.77 0.82 0.88';Text $metrics[$i][0] ($mx+10) 181 18 -Bold -color '0.122 0.31 0.561';[void](Wrapped $metrics[$i][1] ($mx+10) 207 101 7.8 9 -color '0.34 0.38 0.47' -maxLines 2)}
 $tracks=@(
  @('RUTA ERP','R0 Datos -> 1 Socios -> 2 Catálogo -> 3 Inventario -> 4 Compras -> 5-19 Resto ERP -> Personalización','0.122 0.31 0.561'),
  @('PROVEEDOR','Releases y Soporte central pueden avanzar por prioridad -> Conector seguro opcional después','0.41 0.29 0.53'),
  @('COOPERATIVA','C1 Membresía -> C2 Gobierno -> C3 LA/FT -> C4 Ahorros -> C5 Crédito -> C6 Regulación PY','0.55 0.37 0.07'),
- @('FLOTA','F1 Mantenimiento: después de VehicleId estable -> F2 Taller comercial: después de F1, Ventas y Documentos','0.19 0.37 0.47'),
+ @('VERTICALES','F1 Mantenimiento -> F2 Taller comercial | real_estate: RE-00 y decisiones aprobadas antes del código','0.19 0.37 0.47'),
  @('TRANSVERSALES','Migración: según destinos y proyecto | BPM: después de Compras compuesta y eventos reales','0.059 0.42 0.38'))
 $top=246
 foreach($track in $tracks){Rect 40 $top 105 54 $track[2];[void](Wrapped $track[0] 50 ($top+15) 85 8.3 9.5 -Bold -color '1 1 1' -maxLines 2);Rect 145 $top 410 54 '0.965 0.973 0.988' '0.77 0.82 0.88';[void](Wrapped $track[1] 157 ($top+11) 385 8 10 -color '0.12 0.16 0.23' -maxLines 4);$top+=62}
-Callout 'Importante' 'R0, 1-19, C1-C6 y F1-F2 son órdenes aprobados. Proveedor y transversales no reciben número ERP; su momento depende de prerrequisitos y prioridad explícita.' 564 'amber' 58
+Callout 'Importante' 'R0, 1-19, C1-C6 y F1-F2 son órdenes aprobados. Proveedor, transversales y real_estate no reciben número ERP; su momento depende de prerrequisitos y prioridad explícita.' 564 'amber' 58
 Text 'Reglas comunes' 40 638 13 -Bold -color '0.122 0.31 0.561'
 $rules=@('Propiedad separada de código, permisos, esquema y migraciones.','Sin relaciones JPA ni lectura directa de tablas privadas ajenas.','Activación por empresa; desactivar no elimina datos.','Personalización empresarial al final, sobre contratos estabilizados.');$rt=664
 foreach($rule in $rules){Rect 43 ($rt+3) 5 5 '0.059 0.42 0.38';[void](Wrapped $rule 55 $rt 490 8.7 10 -color '0.16 0.21 0.29');$rt+=25}
@@ -283,12 +283,41 @@ Text '->' 376 711 15 -Bold -color '0.122 0.31 0.561'
 Rect 404 695 151 54 '1 0.96 0.9' '0.82 0.68 0.43';Text 'F2 comercial' 416 706 9 -Bold -color '0.46 0.32 0.1';Text 'Ventas + Documentos' 416 726 8 -color '0.34 0.38 0.47'
 Finish-Page 6 $pagesObject $fontRegular $fontBold
 
-# 7. Transversales
-Start-Page 'TRANSVERSALES';Title '06' 'Migración, BPM y personalización'
+# 7. Vertical inmobiliario
+Start-Page 'VERTICAL INMOBILIARIO';Title '06' 'Gestión inmobiliaria'
+[void](Wrapped 'real_estate queda planificado como plugin funcional vertical, reutilizable y opcional por empresa. No renumera ERP 1-19 y no está implementado.' 40 116 515 9.2 12 -color '0.2 0.25 0.34')
+
+Rect 40 158 515 154 '0.96 0.92 0.96' '0.76 0.62 0.75';Rect 40 158 515 38 '0.42 0.25 0.4'
+Text 'real_estate' 52 169 12 -Bold -color '1 1 1';Text 'PLANIFICADO' 456 171 8 -Bold -color '1 1 1'
+Text 'Alcance candidato' 52 210 9 -Bold -color '0.42 0.25 0.4'
+[void](Wrapped 'Proyectos o desarrollos, inmuebles, fracciones, lotes, edificios y unidades, catastro, mejoras, documentos, estados y disponibilidad. RE-00 confirmará si forman un dominio o una familia.' 52 228 486 8.6 10.5 -color '0.16 0.21 0.29' -maxLines 5)
+Text 'Inicio' 52 283 9 -Bold -color '0.42 0.25 0.4';[void](Wrapped 'Después de RE-00, RE-D01 a RE-D12 aprobadas y APIs públicas estables del perfil elegido.' 100 283 438 8.6 10.5 -color '0.16 0.21 0.29' -maxLines 2)
+
+Text 'Propietarios que no se trasladan' 40 337 13 -Bold -color '0.122 0.31 0.561'
+$realEstateLimits=@(
+ @('Socios','personas, organizaciones, propietarios y clientes'),
+ @('Inventario','bienes físicos, depósitos, saldos y movimientos'),
+ @('Ventas y Documentos','presupuestos, pedidos, facturas y notas'),
+ @('Finanzas','dinero, deuda, cobranzas y asientos'))
+for($i=0;$i-lt$realEstateLimits.Count;$i++){
+ $col=$i%2;$row=[Math]::Floor($i/2);$x=40+($col*260);$y=365+($row*82)
+ Rect $x $y 250 72 '0.965 0.973 0.988' '0.77 0.82 0.88';Text $realEstateLimits[$i][0] ($x+10) ($y+11) 8.8 -Bold -color '0.122 0.31 0.561'
+ [void](Wrapped $realEstateLimits[$i][1] ($x+10) ($y+32) 228 8 9.5 -color '0.16 0.21 0.29' -maxLines 3)
+}
+
+Callout 'Fuente legado de solo lectura' 'C:\cosme\mega\miaterra, rama miaterra_master, raíz fuente/tag. RE-00 debe registrar el commit completo analizado; no se copian clases, XHTML, SQL ni dependencias javax.' 545 'blue' 68
+Text 'Secuencia de decisión' 40 632 13 -Bold -color '0.122 0.31 0.561'
+$realEstateSteps=@(@('1','Caracterizar','perfiles, ciclos y datos'),@('2','Decidir','frontera y propietarios'),@('3','Implementar','sólo con iteración autorizada'))
+for($i=0;$i-lt3;$i++){$x=40+($i*174);Rect $x 660 164 62 '0.96 0.92 0.96' '0.76 0.62 0.75';Text $realEstateSteps[$i][0] ($x+10) 672 13 -Bold -color '0.42 0.25 0.4';Text $realEstateSteps[$i][1] ($x+34) 673 8.5 -Bold -color '0.42 0.25 0.4';[void](Wrapped $realEstateSteps[$i][2] ($x+10) 696 142 7.7 9 -color '0.16 0.21 0.29' -maxLines 2)}
+Callout 'Incorporación al plan' 'ADR-0048 eleva el catálogo 33 -> 34. Sprint 10 y ERP 1-19 no cambian; no se agrega código ejecutable.' 735 'green' 48
+Finish-Page 7 $pagesObject $fontRegular $fontBold
+
+# 8. Transversales
+Start-Page 'TRANSVERSALES';Title '07' 'Migración, BPM y personalización'
 $cards=@(
  @('legacy_migration','Planificado','Inventaría legados, gobierna paquetes y mapeos, ensayos, cuarentena, importación idempotente, conciliación, corte y rollback. Oracle Forms & Reports es el primer perfil.','Descubrimiento cuando exista una oportunidad; adaptadores después de estabilizar APIs destino; obligatorio antes de vender migración Oracle.','0.059 0.42 0.38','0.89 0.96 0.93'),
  @('business_process_management','Planificado','Procesos versionados por empresa, tareas humanas, responsables, plazos, temporizadores, incidentes, SLA, métricas y cuellos de botella.','Después de Compras compuesta y eventos reales; BPM-D01 a BPM-D12 y spike de motor antes del código; piloto con solicitudes.','0.122 0.31 0.561','0.91 0.94 1'),
- @('<empresa>_customization','Uno por empresa','Personalización exclusiva sobre contratos y pantallas estabilizados. No integra el conteo de 33 reutilizables.','Se construye al final para cada empresa; nunca se comparte ni puede relajar seguridad o reglas del servidor.','0.27 0.36 0.46','0.93 0.95 0.97'))
+ @('<empresa>_customization','Uno por empresa','Personalización exclusiva sobre contratos y pantallas estabilizados. No integra el conteo de 34 reutilizables.','Se construye al final para cada empresa; nunca se comparte ni puede relajar seguridad o reglas del servidor.','0.27 0.36 0.46','0.93 0.95 0.97'))
 $top=122
 foreach($card in $cards){
  Rect 40 $top 515 174 $card[5] '0.7 0.76 0.83';Rect 40 $top 515 38 $card[4]
@@ -298,30 +327,31 @@ foreach($card in $cards){
  $top+=190
 }
 Callout 'Límite BPM' 'BPM coordina, pero el dominio decide. No ejecuta SQL, scripts o HTTP arbitrario ni reemplaza permisos, estados o invariantes.' 700 'amber' 54
-Finish-Page 7 $pagesObject $fontRegular $fontBold
+Finish-Page 8 $pagesObject $fontRegular $fontBold
 
-# 8. Estado
-Start-Page 'ESTADO';Title '07' 'Estado actual y siguiente construcción'
-Text 'Situación al 2026-08-12' 40 120 14 -Bold -color '0.122 0.31 0.561'
+# 9. Estado
+Start-Page 'ESTADO';Title '08' 'Estado actual y siguiente construcción'
+Text 'Situación al 2026-08-15' 40 120 14 -Bold -color '0.122 0.31 0.561'
 $status=@(
  @('R0','IMPLEMENTADO','Datos de referencia en el reactor y consumido por fundaciones.','0.89 0.96 0.93'),
  @('ERP 1-3','IMPLEMENTADOS','Socios, Catálogo e Inventario con demos oficiales y gates técnicos ejecutados.','0.89 0.96 0.93'),
- @('ERP 4','EN CURSO','Compras tiene código y pruebas automatizadas verdes; falta composición, runtime, Playwright y demo.','1 0.94 0.86'),
+ @('ERP 4','VALIDADO AUTO.','Compras está compuesta; su validación independiente continúa pendiente.','0.89 0.96 0.93'),
+ @('SPRINT 10','EN CURSO','Floorplans operativos sobre Inventario y Compras antes de Ventas.','1 0.94 0.86'),
  @('ERP 5-19','PLANIFICADOS','Continúan desde Ventas según el orden aprobado.','0.965 0.945 0.988'),
- @('OTRAS RUTAS','PLANIFICADAS','Proveedor, Cooperativa, Migración, BPM y Flota requieren prioridad e iteración propias.','0.965 0.945 0.988'))
+ @('OTRAS RUTAS','PLANIFICADAS','Proveedor, Cooperativa, Migración, BPM, Flota e Inmobiliaria requieren prioridad propia.','0.965 0.945 0.988'))
 $top=151
-foreach($item in $status){Rect 40 $top 515 58 $item[3] '0.77 0.82 0.88';Text $item[0] 51 ($top+12) 9 -Bold -color '0.122 0.31 0.561';Text $item[1] 51 ($top+31) 7.3 -Bold -color '0.34 0.38 0.47';[void](Wrapped $item[2] 145 ($top+13) 395 8.3 10 -color '0.16 0.21 0.29' -maxLines 4);$top+=67}
-Callout 'Siguiente paso autorizado: J11-S9-06' 'Componer purchasing en WAR y migrador, integrar la distribución y ejecutar Docker/Compose, health, OIDC y Playwright sobre rutas navegables.' 496 'green' 62
-Callout 'Después' 'Completar el cierre técnico de Compras y continuar con sales, salvo que producto abra una iteración transversal que ya cumpla sus prerrequisitos.' 570 'blue' 62
-Callout 'No confundir elegibilidad con prioridad' 'BPM será técnicamente elegible después de Compras compuesta, pero no se convierte automáticamente en el siguiente Sprint.' 644 'amber' 58
-Text 'Fuentes canónicas' 40 721 12 -Bold -color '0.122 0.31 0.561'
-[void](Wrapped 'ADR-0011, ADR-0027, ADR-0030, ADR-0032, ADR-0033, ADR-0034, ADR-0036, ADR-0037, ADR-0038, ADR-0040, ADR-0045, ADR-0046 y la Épica de roadmap de plugins productivos.' 40 742 515 8 10 -color '0.34 0.38 0.47' -maxLines 4)
-Finish-Page 8 $pagesObject $fontRegular $fontBold
+foreach($item in $status){Rect 40 $top 515 50 $item[3] '0.77 0.82 0.88';Text $item[0] 51 ($top+9) 8.5 -Bold -color '0.122 0.31 0.561';Text $item[1] 51 ($top+27) 7 -Bold -color '0.34 0.38 0.47';[void](Wrapped $item[2] 145 ($top+10) 395 8.1 9.5 -color '0.16 0.21 0.29' -maxLines 3);$top+=58}
+Callout 'Siguiente paso autorizado: Sprint 10' 'Completar el gate de bandejas, editores transaccionales y operaciones guiadas sobre Inventario y Compras.' 510 'green' 58
+Callout 'Después' 'Continuar con sales, orden ERP 5, salvo una nueva decisión explícita de producto.' 580 'blue' 54
+Callout 'No confundir planificación con prioridad' 'real_estate requiere RE-00 y decisiones aprobadas; su incorporación al catálogo no lo convierte en el siguiente Sprint.' 646 'amber' 58
+Text 'Fuentes canónicas' 40 718 12 -Bold -color '0.122 0.31 0.561'
+[void](Wrapped 'ADR-0011, ADR-0027, ADR-0030, ADR-0032, ADR-0033, ADR-0034, ADR-0036, ADR-0037, ADR-0038, ADR-0040, ADR-0045, ADR-0046, ADR-0048 y la Épica de roadmap de plugins productivos.' 40 739 515 8 10 -color '0.34 0.38 0.47' -maxLines 4)
+Finish-Page 9 $pagesObject $fontRegular $fontBold
 
 $kids=($script:PageObjects|ForEach-Object{"$_ 0 R"})-join' '
 Set-Object $pagesObject (B ("<< /Type /Pages /Kids [{0}] /Count {1} >>" -f $kids,$script:PageObjects.Count))
 $catalogObject=Add-Object (B ("<< /Type /Catalog /Pages {0} 0 R /PageMode /UseNone >>" -f $pagesObject))
-$infoObject=Add-Object (B '<< /Title (Smart ERP - Plugins y orden de construcción) /Author (Smart ERP) /Subject (Catálogo de 33 plugins reutilizables y su orden de construcción) /Keywords (Smart ERP, plugins, roadmap) /Creator (PowerShell PDF generator) /CreationDate (D:20260812090000-04''00'') >>')
+$infoObject=Add-Object (B '<< /Title (Smart ERP - Plugins y orden de construcción) /Author (Smart ERP) /Subject (Catálogo de 34 plugins reutilizables y su orden de construcción) /Keywords (Smart ERP, plugins, roadmap) /Creator (PowerShell PDF generator) /CreationDate (D:20260815090000-04''00'') >>')
 
 $memory=New-Object IO.MemoryStream;$header=B "%PDF-1.4`n%âãÏÓ`n";$memory.Write($header,0,$header.Length)
 $offsets=New-Object 'System.Collections.Generic.List[long]';[void]$offsets.Add(0)

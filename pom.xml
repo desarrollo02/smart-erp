@@ -58,6 +58,8 @@
         <module>plugins/business-partners</module>
         <module>plugins/purchasing-api</module>
         <module>plugins/purchasing</module>
+        <module>plugins/sales-api</module>
+        <module>plugins/sales</module>
         <module>kernel-domain</module>
         <module>kernel-application</module>
         <module>kernel-infrastructure-jakarta</module>
@@ -205,6 +207,16 @@
             <dependency>
                 <groupId>py.com.logixone</groupId>
                 <artifactId>purchasing</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>py.com.logixone</groupId>
+                <artifactId>sales-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>py.com.logixone</groupId>
+                <artifactId>sales</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

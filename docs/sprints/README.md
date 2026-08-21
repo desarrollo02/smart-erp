@@ -35,3 +35,6 @@ hasta completar además composición, gates runtime y aceptación independiente.
 - [Sprint 10 — Floorplans operativos y transaccionales](sprint-10/README.md)
 - [J11-S10-06 — Validación integral y demo oficial de Sprint 10](sprint-10/J11-S10-06-validacion-demo-cierre.md)
 - [J11-S10-07 — Decisión de instalador Windows para Sprint 10](sprint-10/J11-S10-07-decision-instalador-windows.md)
+- [Sprint 11 — Ventas `sales`](sprint-11/README.md)
+- [J11-S11-00 — Gobierno y planificación de Ventas](sprint-11/J11-S11-00-gobierno-planificacion.md)
+- [J11-S11-01 — Caracterización de Ventas](sprint-11/J11-S11-01-caracterizacion-sales.md)

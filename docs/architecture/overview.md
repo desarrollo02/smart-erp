@@ -1,9 +1,9 @@
 # Vista general de arquitectura
 
-- Versión: 63
+- Versión: 64
 - Fecha: 2026-08-20
-- Estado: J11-S10-06 valida automáticamente los floorplans v2 de Inventario y Compras, composición y demo del perfil `with-purchasing-demo`; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045 y la familia Flota F1/F2 por ADR-0046; validación independiente, J11-S10-07, Authenticode y matriz Windows externa pendientes
-- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07`, J11-S9-00 a J11-S9-08 y J11-S10-00 a J11-S10-06; ADR-0009 a ADR-0047
+- Estado: J11-S10-06 valida automáticamente los floorplans v2 de Inventario y Compras, composición y demo del perfil `with-purchasing-demo`; `legacy_migration` continúa planificado por ADR-0040, `business_process_management` por ADR-0045, la familia Flota F1/F2 por ADR-0046 y `real_estate` por ADR-0048; validación independiente, J11-S10-07, Authenticode y matriz Windows externa pendientes
+- Historia: `J11-S1-07`, `J11-S2-01` a `J11-S2-08`, `J11-S3-00` a `J11-S3-08`, `J11-S4-00` a `J11-S4-08`, `J11-S5-01` a `J11-S5-04`, `J11-S6-01` a `J11-S6-07`, `J11-S7-01` a `J11-S7-07`, `J11-S8-01` a `J11-S8-08`, `J11-S8-C01` a `J11-S8-C07`, J11-S9-00 a J11-S9-08 y Sprint 10; ADR-0009 a ADR-0048
 
 ## Objetivo
 
@@ -124,6 +124,30 @@ F1 sólo puede comenzar después de estabilizar `logistics-api`; Telemetría y B
 son opcionales. F2 requiere F1, `sales` y `commercial_documents`. Producto aprobó
 FM-D01 a FM-D12 y AW-D01 a AW-D10 el 2026-08-12, pero no autorizó código: J11-S9-06
 continúa siendo el siguiente trabajo.
+
+## Extensión planificada para gestión inmobiliaria
+
+ADR-0048 planifica `real_estate` como plugin funcional vertical, reutilizable y
+opcional por empresa. No está implementado, no forma parte del reactor y no
+renumera ERP 1–19. El catálogo global futuro aumenta de treinta y tres a treinta
+y cuatro reutilizables.
+
+```mermaid
+flowchart LR
+    BP["business_partners / participantes"] --> RE["real_estate"]
+    RD["reference_data / referencias"] --> RE
+    RE -->|"unidad y disponibilidad públicas"| S["sales"]
+    S --> D["commercial_documents"]
+    D --> AR["accounts_receivable"]
+    AR --> T["treasury"]
+```
+
+El diagrama es una hipótesis de integración, no una dependencia ya aprobada.
+RE-00 debe caracterizar la rama `miaterra_master` fijada por commit y resolver
+RE-D01 a RE-D12 antes del código. Inmobiliaria no convierte lotes en existencias
+de Inventario ni posee participantes, presupuestos/pedidos canónicos, facturas,
+dinero, deuda o asientos. Venta, alquiler, cronogramas, mora, obras y costos
+mantienen propietario pendiente hasta esa decisión.
 
 ## Extensión aceptada para Sprint 2
 
@@ -621,8 +645,10 @@ agrega un técnico transversal opcional y
 [ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) agrega un funcional
 transversal opcional y
 [ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md) agrega la
-familia vertical Flota F1–F2. El catálogo futuro general contiene treinta y tres
-reutilizables, pero no existe una composición objetivo que los empaquete a todos.
+familia vertical Flota F1–F2 y
+[ADR-0048](../adr/0048-plugin-gestion-inmobiliaria.md) agrega el vertical
+`real_estate`. El catálogo futuro general contiene treinta y cuatro reutilizables,
+pero no existe una composición objetivo que los empaquete a todos.
 La secuencia ERP 1–19 conserva su numeración.
 
 [ADR-0047](../adr/0047-floorplans-operativos-transaccionales.md) implementa un
@@ -1250,6 +1276,7 @@ Estas decisiones no autorizan valores implícitos. Deben documentarse y probarse
 - [ADR-0045 — Plugin de gestión de procesos de negocio BPM](../adr/0045-plugin-gestion-procesos-negocio-bpm.md)
 - [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
 - [ADR-0047 — Floorplans operativos y transaccionales](../adr/0047-floorplans-operativos-transaccionales.md)
+- [ADR-0048 — Plugin de gestión inmobiliaria](../adr/0048-plugin-gestion-inmobiliaria.md)
 - [ADR-0012 — Composición física única y migraciones de plugins](../adr/0012-composicion-unica-y-migraciones-de-plugins.md)
 - [ADR-0014 — Modelo de participante comercial y contrato público](../adr/0014-modelo-participante-comercial-y-contrato-publico.md)
 - [ADR-0015 — Persistencia privada de participantes comerciales](../adr/0015-persistencia-privada-business-partners.md)

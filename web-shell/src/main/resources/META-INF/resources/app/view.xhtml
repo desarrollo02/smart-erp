@@ -198,15 +198,38 @@
                         <header class="floorplan-page-header">
                             <div>
                                 <span class="entity-context">#{shellView.activeScreen.floorplanLabel}</span>
-                                <h1 id="composed-screen-title" tabindex="-1">#{shellView.activeScreen.title}</h1>
+                                <h1 id="composed-screen-title" tabindex="-1">
+                                    <ui:fragment rendered="#{not shellView.detailMode}">#{shellView.activeScreen.title}</ui:fragment>
+                                    <ui:fragment rendered="#{shellView.detailMode and shellView.activeInteraction.hasDetail}">#{shellView.activeInteraction.detail.title}</ui:fragment>
+                                </h1>
                                 <p>#{shellView.activeScreen.description}</p>
                             </div>
-                            <span class="floorplan-contract-chip">
-                                Contrato #{shellView.activeScreen.contractVersion}
-                            </span>
+                            <div class="floorplan-page-actions">
+                                <ui:repeat value="#{shellView.activeScreen.floorplanCreateActions}" var="createAction">
+                                    <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                                  styleClass="button button-primary"
+                                                  rendered="#{shellView.activeScreen.floorplanSeparatedByMode and shellView.directoryMode and shellView.isFloorplanElementVisible(createAction.id)}">
+                                        <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                        <f:param name="mode" value="create"/>
+                                        <f:param name="selectorContext" value="#{shellView.selectorContextId}"
+                                                 disable="#{empty shellView.selectorContextId}"/>
+                                        <span aria-hidden="true">+</span> #{createAction.label}
+                                    </h:outputLink>
+                                </ui:repeat>
+                                <h:outputLink value="#{facesContext.externalContext.requestContextPath}/faces/app/view.xhtml"
+                                              styleClass="button button-quiet"
+                                              rendered="#{shellView.activeScreen.floorplanSeparatedByMode and not shellView.directoryMode}">
+                                    <f:param name="route" value="#{shellView.requestedRoute}"/>
+                                    <f:param name="mode" value="directory"/>
+                                    <span aria-hidden="true">←</span> Volver a la lista
+                                </h:outputLink>
+                                <span class="floorplan-contract-chip">
+                                    Contrato #{shellView.activeScreen.contractVersion}
+                                </span>
+                            </div>
                         </header>
 
-                        <div class="floorplan-shell">
+                        <div class="floorplan-shell floorplan-mode-#{shellView.requestedMode}">
                             <div class="screen-notices" aria-live="polite">
                                 <ui:repeat value="#{shellView.activeInteraction.notices}" var="notice">
                                     <div class="#{notice.styleClass}" role="#{notice.role}">
@@ -246,6 +269,7 @@
                                                  pt:aria-hidden="true"
                                                  tabindex="-1"/>
                                 <ui:repeat value="#{shellView.activeScreen.floorplanRegions}" var="region">
+                                    <ui:fragment rendered="#{shellView.isFloorplanRegionVisible(region)}">
                                     <section class="#{region.styleClass}"
                                              aria-labelledby="floorplan-region-#{region.id}">
                                         <h:panelGroup layout="block">
@@ -256,12 +280,12 @@
                                         <div class="floorplan-field-grid">
                                             <ui:repeat value="#{region.fields}" var="element">
                                                 <h:inputHidden id="floorplan-token"
-                                                               rendered="#{element.technicalToken}"
+                                                               rendered="#{element.technicalToken and shellView.isFloorplanFieldVisible(region, element)}"
                                                                pt:data-screen-input="#{element.id}"
                                                                value="#{shellView.inputValues[element.id]}"/>
                                                 <h:panelGroup layout="block"
-                                                              rendered="#{not element.technicalToken and (empty shellView.activeInteraction.elementStates[element.id] or shellView.activeInteraction.elementStates[element.id].visible)}"
-                                                              styleClass="floorplan-field #{element.semanticClass}">
+                                                              rendered="#{not element.technicalToken and shellView.isFloorplanFieldVisible(region, element)}"
+                                                              styleClass="floorplan-field #{element.semanticClass} #{element.select and shellView.activeInteraction.selectorSources[element.id].searchOnDemand ? 'floorplan-field-searchable' : ''}">
                                                     <h:panelGroup layout="block" rendered="#{element.displayText}">
                                                         <span class="field-label">#{element.label}</span>
                                                         <strong class="floorplan-output">
@@ -390,7 +414,7 @@
 
                                         <ui:repeat value="#{region.tables}" var="element">
                                             <h:panelGroup layout="block" styleClass="floorplan-table"
-                                                          rendered="#{(empty shellView.activeInteraction.elementStates[element.id] or shellView.activeInteraction.elementStates[element.id].visible) and shellView.activeInteraction.hasTable and shellView.activeInteraction.table.elementId eq element.id}">
+                                                          rendered="#{shellView.isFloorplanTableVisible(region, element)}">
                                                 <h:panelGroup layout="block" styleClass="empty-card"
                                                               rendered="#{shellView.activeInteraction.table.rowsEmpty}">
                                                     <h3>#{shellView.activeInteraction.table.emptyTitle}</h3>
@@ -475,7 +499,7 @@
                                         <div class="floorplan-actions">
                                             <ui:repeat value="#{region.actions}" var="element">
                                                 <h:panelGroup layout="block"
-                                                              rendered="#{not (shellView.activeScreen.hasFloorplanRowAction and element.navigateIntent) and (empty shellView.activeInteraction.elementStates[element.id] or shellView.activeInteraction.elementStates[element.id].visible)}"
+                                                              rendered="#{shellView.isFloorplanActionVisible(region, element)}"
                                                               styleClass="floorplan-action">
                                                     <h:commandButton type="button"
                                                                      value="#{element.label}"
@@ -492,6 +516,7 @@
                                         </div>
                                         </h:panelGroup>
                                     </section>
+                                    </ui:fragment>
                                 </ui:repeat>
                             </h:form>
                         </div>

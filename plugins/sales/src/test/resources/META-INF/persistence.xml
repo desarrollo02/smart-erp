@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence xmlns="https://jakarta.ee/xml/ns/persistence" version="3.2">
+  <persistence-unit name="logixone-sales-test-pu" transaction-type="RESOURCE_LOCAL">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesTermEntity</class>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesQuoteEntity</class>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesQuoteLineEntity</class>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesOrderEntity</class>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesOrderLineEntity</class>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesOrderReservationEntity</class>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesOperationEntity</class>
+    <class>py.com.logixone.plugins.sales.infrastructure.persistence.SalesTransitionHistoryEntity</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes><shared-cache-mode>NONE</shared-cache-mode><validation-mode>NONE</validation-mode>
+    <properties><property name="hibernate.hbm2ddl.auto" value="validate"/><property name="hibernate.default_schema" value="plg_sales"/><property name="hibernate.cache.use_second_level_cache" value="false"/><property name="hibernate.cache.use_query_cache" value="false"/></properties>
+  </persistence-unit>
+</persistence>

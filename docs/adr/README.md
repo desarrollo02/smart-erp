@@ -53,3 +53,7 @@ Las primeras decisiones previstas cubrirán el baseline Jakarta EE 11, el modelo
 - [ADR-0045 — Plugin de gestión de procesos de negocio BPM](0045-plugin-gestion-procesos-negocio-bpm.md)
 - [ADR-0046 — Familia de mantenimiento de flota y taller automotriz](0046-familia-mantenimiento-flota-taller-automotriz.md)
 - [ADR-0047 — Floorplans operativos y transaccionales](0047-floorplans-operativos-transaccionales.md)
+- [ADR-0048 — Plugin de gestión inmobiliaria](0048-plugin-gestion-inmobiliaria.md)
+- [ADR-0049 — Modelo `sales` y contratos públicos](0049-modelo-sales-y-contratos-publicos.md)
+- [ADR-0050 — Persistencia privada de `sales`](0050-persistencia-privada-sales.md)
+- [ADR-0051 — Aplicación JTA, seguridad y reservas de `sales`](0051-aplicacion-jta-reservas-sales.md)

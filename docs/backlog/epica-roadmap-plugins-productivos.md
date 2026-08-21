@@ -4,11 +4,11 @@
   plugins de operaciones del proveedor, seis de la familia cooperativa y el
   técnico transversal `legacy_migration` y el funcional transversal
   `business_process_management`, más F1 `fleet_maintenance` y F2
-  `automotive_workshop`, quedan planificados; tres plugins ERP tienen demo oficial
-  y la recongelación de Sprint 8 permanece pendiente
+  `automotive_workshop` y el vertical `real_estate`, quedan planificados; tres
+  plugins ERP tienen demo oficial y la recongelación de Sprint 8 permanece pendiente
 - Fecha de incorporación: 2026-07-28
 - Prioridad: habilitadores autorizados mientras la validación independiente del kernel sigue pendiente
-- Decisiones relacionadas: [ADR-0011](../adr/0011-roadmap-dependencias-plugins-productivos.md), [ADR-0027](../adr/0027-terminal-punto-venta-y-ampliacion-roadmap.md), [ADR-0030](../adr/0030-familia-recursos-humanos-nomina-paraguay.md), [ADR-0031](../adr/0031-facturacion-masiva-en-documentos-comerciales.md), [ADR-0032](../adr/0032-plugin-estaciones-servicio-combustible.md), [ADR-0033](../adr/0033-dominio-facturacion-recurrente.md), [ADR-0034](../adr/0034-plugin-telemetria-vehicular.md), [ADR-0035](../adr/0035-operacion-offline-terminal-punto-venta.md), [ADR-0036](../adr/0036-operaciones-proveedor-soporte-lanzamientos-conector.md), [ADR-0037](../adr/0037-familia-cooperativa-ahorro-credito-paraguay.md), [ADR-0038](../adr/0038-plugin-datos-referencia-normativos.md), [ADR-0040](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md), [ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md) y [ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md)
+- Decisiones relacionadas: [ADR-0011](../adr/0011-roadmap-dependencias-plugins-productivos.md), [ADR-0027](../adr/0027-terminal-punto-venta-y-ampliacion-roadmap.md), [ADR-0030](../adr/0030-familia-recursos-humanos-nomina-paraguay.md), [ADR-0031](../adr/0031-facturacion-masiva-en-documentos-comerciales.md), [ADR-0032](../adr/0032-plugin-estaciones-servicio-combustible.md), [ADR-0033](../adr/0033-dominio-facturacion-recurrente.md), [ADR-0034](../adr/0034-plugin-telemetria-vehicular.md), [ADR-0035](../adr/0035-operacion-offline-terminal-punto-venta.md), [ADR-0036](../adr/0036-operaciones-proveedor-soporte-lanzamientos-conector.md), [ADR-0037](../adr/0037-familia-cooperativa-ahorro-credito-paraguay.md), [ADR-0038](../adr/0038-plugin-datos-referencia-normativos.md), [ADR-0040](../adr/0040-modulo-tecnico-migracion-legados-oracle-forms-reports.md), [ADR-0045](../adr/0045-plugin-gestion-procesos-negocio-bpm.md), [ADR-0046](../adr/0046-familia-mantenimiento-flota-taller-automotriz.md) y [ADR-0048](../adr/0048-plugin-gestion-inmobiliaria.md)
 
 ## Objetivo
 
@@ -27,12 +27,12 @@ aunque la activación efectiva seguirá siendo independiente por empresa.
 El catálogo futuro general incorpora además `customer_support`,
 `release_management` y `support_connector`, más seis plugins para cooperativas de
 ahorro y crédito, más `legacy_migration`, `business_process_management` y la
-familia Flota F1–F2, llegando a treinta y tres reutilizables junto con
-`reference_data`.
+familia Flota F1–F2, además de `real_estate`, llegando a treinta y cuatro
+reutilizables junto con `reference_data`.
 Los dos primeros pertenecen
 a la composición central del proveedor, el conector a la instalación cliente y la
 familia cooperativa y Flota a perfiles verticales propios. No se pretende
-empaquetar los treinta y tres en una única distribución.
+empaquetar los treinta y cuatro en una única distribución.
 
 ## Secuencia aprobada
 
@@ -59,6 +59,29 @@ empaquetar los treinta y tres en una única distribución.
 | Personas | 18 | `payroll` | conceptos, períodos, liquidaciones y recibos neutrales |
 | País | 19 | `payroll_paraguay` | reglas y artefactos IPS/MTESS versionados |
 | Empresa | último | `<empresa>_customization` | cambios exclusivos sobre contratos públicos estabilizados |
+
+## Gate de revisión visual guiada después de Ventas
+
+Después de completar y validar automáticamente `sales`, y antes de iniciar
+`logistics`, se ejecutará un Sprint completo de revisión visual guiada. No agrega
+un plugin ni altera la numeración ERP: es un gate de producto sobre el perfil
+físico real disponible al terminar Ventas.
+
+El Sprint congelará primero el inventario y el orden de todas las pantallas
+navegables del perfil. Luego procesará una sola pantalla por vez siguiendo el
+recorrido definido en la
+[épica de revisión visual post-Ventas](epica-revision-visual-guiada-post-ventas.md):
+captura real, explicación funcional, consultas del responsable de producto,
+ajustes indicados, nueva captura y aceptación explícita. Una pantalla no se da por
+revisada por el solo hecho de que sus pruebas estén verdes.
+
+La conversación se realizará mediante un taller visual en caliente exclusivo de
+desarrollo local. Los cambios XHTML/CSS del shell se reflejarán automáticamente
+en la pantalla abierta y los cambios Java elegibles usarán compilación y
+redespliegue incremental con health check. Esto no habilita instalación o carga
+dinámica de plugins: cambios de dominio, migración, dependencia o composición
+siguen el flujo normal, y toda aceptación se confirma sobre una imagen inmutable
+reconstruida.
 
 ## Familia de operaciones del proveedor
 
@@ -161,6 +184,33 @@ decisión, límites e historias están en
 [caracterización](../knowledge-base/vehicle-maintenance/legacy-characterization.md).
 La planificación no autoriza código ni cambia J11-S9-07.
 
+## Plugin vertical de gestión inmobiliaria
+
+`real_estate` no recibe un orden ERP. Se planifica como plugin funcional vertical,
+reutilizable, opcional y compuesto sólo en perfiles inmobiliarios futuros. Su
+frontera candidata comprende proyectos/desarrollos, inmuebles, fracciones, lotes,
+edificios/unidades, catastro, mejoras, documentación, estados y disponibilidad;
+RE-00 debe confirmar o dividir este alcance antes de diseñar código.
+
+Participantes, Catálogo, Inventario físico, Compras, Ventas, Documentos,
+Tesorería, Cuentas por Cobrar y Contabilidad conservan sus fuentes de verdad. Un
+lote inmobiliario no se modela como existencia de Inventario. Reserva, venta,
+alquiler, contrato, cronograma, mora, comisión, obra y presupuesto quedan como
+decisiones expresas RE-D01 a RE-D12.
+
+La fuente legado preferente es `C:\cosme\mega\miaterra`, rama
+`miaterra_master`, raíz `fuente/tag`, siempre en solo lectura. RE-00 deberá fijar
+el commit completo analizado y convertir el comportamiento observado en
+requisitos, decisiones y pruebas de caracterización, sin copiar clases, XHTML,
+SQL o dependencias `javax.*`.
+
+La decisión, límites e historias están en
+[ADR-0048](../adr/0048-plugin-gestion-inmobiliaria.md), la
+[épica inmobiliaria](epica-gestion-inmobiliaria.md) y su
+[evidencia de incorporación](../evidence/ADR-0048-plan-gestion-inmobiliaria.md).
+La planificación aumenta el catálogo global a treinta y cuatro, no autoriza
+código y no altera Sprint 10 ni la precedencia de Ventas.
+
 ## Política de ejecución
 
 1. No se inicia un plugin mientras el anterior deje contratos o pruebas relevantes
@@ -195,6 +245,12 @@ La planificación no autoriza código ni cambia J11-S9-07.
     vehículo y F2 no comienza antes de F1, Ventas y Documentos Comerciales.
 16. El gate transversal de floorplans operativos se ejecuta después de Compras y
     antes de Ventas; no renumera ERP 1–19 ni permite que los plugins aporten XHTML.
+17. `real_estate` sólo comienza después de RE-00 y de estabilizar los contratos
+    públicos exigidos por el perfil aprobado; la rama `miaterra_master` se consulta
+    en solo lectura y se registra por commit completo.
+18. Después de completar `sales` se ejecuta el Sprint de revisión visual guiada
+    sobre cada pantalla real del perfil; `logistics` no comienza hasta terminar el
+    recorrido y registrar la aceptación de producto de todas las pantallas.
 
 ## Dependencias de producto
 
@@ -215,6 +271,10 @@ La planificación no autoriza código ni cambia J11-S9-07.
   posee vehículo, dispositivo, stock, compra, empleado o asiento.
 - `automotive_workshop` usa la OT pública de F1 y referencias de Socios, Ventas y
   Documentos; no duplica ejecución técnica, presupuesto, factura, pago o deuda.
+- `real_estate` poseerá únicamente las identidades y ciclos inmobiliarios que
+  apruebe RE-00; referencia participantes y operaciones comerciales/financieras
+  por contratos públicos, y no convierte inmuebles en stock ni duplica ventas,
+  facturas, cobros, deuda o asientos.
 - logística se integra con reservas, pedidos y participantes mediante IDs/eventos.
 - telemetría usa el `VehicleId` público de logística y posee dispositivos,
   observaciones, recorridos y tracking lifecycle; logística y documentos operan
@@ -308,7 +368,7 @@ productivos.
 - **CE-16:** la primera versión productiva de `point_of_sale` vende al menos en
   efectivo con una terminal aprovisionada y sin Internet, conserva un diario local
   durable y sincroniza sin duplicar efectos.
-- **CE-17:** el catálogo global planifica treinta y tres reutilizables, pero las
+- **CE-17:** el catálogo global planifica treinta y cuatro reutilizables, pero las
   composiciones de cliente y proveedor no incluyen plugins ajenos a su función.
 - **CE-18:** `customer_support` y `release_management` no forman parte por defecto
   de la distribución enviada a clientes.
@@ -341,6 +401,13 @@ productivos.
   recepción/autorización/entrega sin poseer presupuesto, factura, pago o deuda.
 - **CE-31:** F1 opera con Telemetría, BPM y F2 ausentes o inactivos; Logística
   opera con toda la familia Flota ausente o inactiva.
+- **CE-32:** `real_estate` tiene propietario, esquema y contratos separados y no
+  representa unidades inmobiliarias como existencias de Inventario.
+- **CE-33:** la caracterización inmobiliaria registra rama, commit completo y
+  evidencia de `miaterra_master` sin modificar el repositorio legado ni copiar
+  mecánicamente su código o modelo.
+- **CE-34:** RE-00 decide perfiles, frontera y propietarios de venta, alquiler,
+  cuotas, mora, obras y costos antes de autorizar módulos o migraciones.
 
 ## Fuera de alcance inicial
 
@@ -473,3 +540,17 @@ de `sales`. El trabajo versionará el contrato neutral y validará `WORKLIST`,
 `TRANSACTION_EDITOR` y `GUIDED_OPERATION` con Inventario y Compras reales. No
 altera la numeración de plugins: Compras continúa en 4 y Ventas en 5. El siguiente
 trabajo inmediato continúa siendo J11-S9-07.
+
+ADR-0048 agrega documentalmente `real_estate` como plugin funcional vertical y
+eleva el catálogo global planificado de treinta y tres a treinta y cuatro
+reutilizables. No modifica reactor, POM, migraciones, composición ni Sprint 10.
+RE-00 debe caracterizar la rama `miaterra_master` fijada por commit, resolver
+RE-D01 a RE-D12 y confirmar si el alcance cabe en un solo plugin antes de cualquier
+implementación.
+
+La decisión de producto del 2026-08-15 agrega un Sprint transversal inmediatamente
+posterior a `sales`. Durante ese Sprint se revisa cada pantalla del perfil real en
+conversación con el responsable de producto, se explican comportamiento y reglas,
+se responden dudas y se implementan los ajustes expresamente solicitados. El gate
+no altera contratos por anticipado ni renumera plugins; bloquea el inicio de
+`logistics` hasta completar el recorrido.

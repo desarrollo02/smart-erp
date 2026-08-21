@@ -1,6 +1,6 @@
 # Evidencia - PDF de plugins y orden de construcción
 
-- Fecha: 2026-08-12
+- Fecha: 2026-08-15
 - Artefacto: [`00-roadmap-plugins-y-orden-construccion.pdf`](../output/pdf/00-roadmap-plugins-y-orden-construccion.pdf)
 - Fuente web: [roadmap de plugins](../user-guide/roadmap-plugins-y-orden-construccion.html)
 - Generador: [`generate_plugin_roadmap_pdf.ps1`](../../tools/generate_plugin_roadmap_pdf.ps1)
@@ -9,7 +9,7 @@
 
 ## Cobertura
 
-- 33 plugins reutilizables planificados;
+- 34 plugins reutilizables planificados;
 - fundación compartida R0 y secuencia ERP 1-19;
 - tres plugins de operaciones del proveedor;
 - familia cooperativa C1-C6;
@@ -17,24 +17,27 @@
   número ERP;
 - familia Flota F1 `fleet_maintenance` y F2 `automotive_workshop`, con ejecución
   técnica separada de la recepción/venta comercial;
+- vertical `real_estate`, fuente legado `miaterra_master`, RE-00 y decisiones
+  RE-D01 a RE-D12 antes del código;
 - personalización final por empresa, fuera del conteo reutilizable;
-- estado actual y J11-S9-06 como siguiente paso autorizado.
+- estado actual y Sprint 10 como siguiente paso autorizado.
 
 ## Validación ejecutada
 
 | Comprobación | Resultado |
 |---|---|
-| generación reproducible | dos ejecuciones produjeron exactamente 45.334 bytes y el mismo SHA-256 |
-| reapertura | correcta con `Windows.Data.Pdf.PdfDocument` |
-| páginas | 8 |
-| render visual | 8/8 páginas a PNG, ancho 1400 px |
+| generación reproducible | dos ejecuciones produjeron exactamente 50.229 bytes y el mismo SHA-256 |
+| materialización | generador modificado copiado por hash sobre `git archive HEAD` en `.tools/tmp/validation/ADR-0048-pdf-roadmap-03` |
+| reapertura | correcta con Poppler `pdfinfo` y `Windows.Data.Pdf.PdfDocument` |
+| páginas | 9 |
+| render visual | 9/9 páginas con Poppler a 144 dpi y 9/9 con Windows a PNG de ancho 1400 px |
 | revisión visual | portada, encabezados, pies, tablas, tarjetas y llamadas sin cortes, solapamientos o páginas vacías |
 | estructura PDF | encabezado `%PDF-1.4`, catálogo, árbol de páginas, `startxref` y `%%EOF` presentes |
-| preservación en Git | `*.pdf binary`; blob preparado idéntico al archivo validado |
+| consistencia final | el PDF del repositorio coincide en tamaño y checksum con las dos ejecuciones deterministas |
 | metadatos | título, autor, asunto, palabras clave, creador y fecha presentes |
-| texto/contenido | título, metadato 33, F1 antes de F2, los 33 identificadores y J11-S9-06 recuperados; ninguno falta |
-| tamaño | 45.334 bytes |
-| SHA-256 | `9F7A0180BA338A829AD8BD8EDD598FBABDBA8D4613F1459EF60FB052EC455AB8` |
+| texto/contenido | título, metadato 34, F1 antes de F2, `real_estate`, `miaterra_master`, ADR-0048 y Sprint 10 recuperados |
+| tamaño | 50.229 bytes |
+| SHA-256 | `CF2D64A93954A9A0D0B45C618932003B0D7BEBF4BD004B71B21004E010E0819F` |
 
 El PDF es un artefacto derivado. Los ADR, épicas y guías Markdown versionados
 continúan siendo las fuentes canónicas del orden y del estado de implementación.

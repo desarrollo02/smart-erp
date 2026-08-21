@@ -1,5 +1,11 @@
 # Manuales de usuario por módulo
 
+El [manual integrado del instalador Windows y puesta en marcha](../operations/instalador-windows-puesta-en-marcha.md)
+compila estos siete manuales como apéndices de un único
+[PDF operativo](../../output/pdf/02-manual-instalador-windows-y-puesta-en-marcha.pdf).
+Use ese volumen cuando una persona necesite instalar la demo, preparar una
+empresa, habilitar plugins y agregar usuarios antes de recorrer las funciones.
+
 Este directorio contiene un manual independiente por cada módulo navegable del baseline candidato de Sprint 9. Cada manual explica el vocabulario funcional, las pantallas, los datos, los permisos, los recorridos operativos y las tablas afectadas.
 
 | Orden | Módulo | Pantallas | Fuente | Ayuda web | PDF |

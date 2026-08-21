@@ -119,6 +119,35 @@ class ShellFloorplanRendererTest {
     }
 
     @Test
+    void separatesDirectoryFromCreateAndDetailRegions() {
+        ShellScreenView view = new ShellScreenRegistry().render(
+                screen(
+                        "2.0.0",
+                        ScreenPurpose.WORKLIST,
+                        List.of(
+                                ScreenRegionRole.FILTERS,
+                                ScreenRegionRole.WORK_ITEMS,
+                                ScreenRegionRole.HEADER,
+                                ScreenRegionRole.LINES,
+                                ScreenRegionRole.SUMMARY,
+                                ScreenRegionRole.ACTIONS),
+                        ScreenActionIntent.CREATE),
+                TEXTS).orElseThrow();
+
+        assertTrue(view.isFloorplanSeparatedByMode());
+        assertEquals(1, view.getFloorplanCreateActions().size());
+
+        ShellScreenView singleStage = new ShellScreenRegistry().render(
+                screen(
+                        "2.0.0",
+                        ScreenPurpose.GUIDED_OPERATION,
+                        List.of(ScreenRegionRole.CONTENT, ScreenRegionRole.ACTIONS),
+                        ScreenActionIntent.CREATE),
+                TEXTS).orElseThrow();
+        assertFalse(singleStage.isFloorplanSeparatedByMode());
+    }
+
+    @Test
     void rejectsUnsupportedMajorAndIncompletePurposeButKeepsV1MastersUnchanged() {
         ShellScreenRegistry registry = new ShellScreenRegistry();
 

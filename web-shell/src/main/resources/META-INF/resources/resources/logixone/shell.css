@@ -544,6 +544,7 @@ a { color: inherit; }
 .floorplan-page-header { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; padding: 0.6rem 0 1rem; border-bottom: 1px solid var(--md-sys-color-outline-variant); }
 .floorplan-page-header h1 { margin: 0.18rem 0 0.3rem; font-size: clamp(1.55rem, 3vw, 2rem); line-height: 1.2; }
 .floorplan-page-header p { max-width: 48rem; margin: 0; color: var(--ink-soft); font-size: 0.88rem; line-height: 1.45; }
+.floorplan-page-actions { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.6rem; }
 .floorplan-contract-chip { flex: 0 0 auto; padding: 0.45rem 0.7rem; color: var(--md-sys-color-on-secondary-container); background: var(--md-sys-color-secondary-container); border-radius: var(--md-sys-shape-corner-full); font-size: 0.72rem; font-weight: 750; }
 .floorplan-shell { min-width: 0; display: grid; gap: 1rem; padding-top: 1rem; }
 .floorplan-form { min-width: 0; display: grid; gap: 1rem; }
@@ -551,7 +552,12 @@ a { color: inherit; }
 .floorplan-region-header { margin-bottom: 0.85rem; }
 .floorplan-region-header h2 { margin: 0; font-size: 1rem; }
 .floorplan-field-grid { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: 0.85rem; }
+.floorplan-region-header .floorplan-field-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+.floorplan-region-lines .floorplan-field-grid,
+.floorplan-region-content .floorplan-field-grid,
+.floorplan-region-context .floorplan-field-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
 .floorplan-field { min-width: 0; display: grid; align-content: start; gap: 0.35rem; }
+.floorplan-field-searchable { grid-column: span 2; }
 .floorplan-field label, .floorplan-field .field-label { color: var(--ink-soft); font-size: 0.76rem; font-weight: 750; }
 .floorplan-field .field-help { margin: 0; color: var(--ink-soft); font-size: 0.76rem; line-height: 1.4; }
 .floorplan-output { min-width: 0; overflow-wrap: anywhere; font-size: 0.92rem; }
@@ -715,6 +721,11 @@ a { color: inherit; }
     .floorplan-guided-operation .floorplan-region-actions,
     .floorplan-guided-operation .floorplan-region-context,
     .floorplan-guided-operation .floorplan-region-guidance { grid-column: 1; grid-row: auto; }
+    .floorplan-region-header .floorplan-field-grid,
+    .floorplan-region-lines .floorplan-field-grid,
+    .floorplan-region-content .floorplan-field-grid,
+    .floorplan-region-context .floorplan-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .floorplan-field-searchable { grid-column: 1 / -1; }
     .directory-filter-form { align-items: stretch; flex-direction: column; }
     .directory-filter-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .search-main-field { grid-column: 1 / -1; }
@@ -782,6 +793,7 @@ a { color: inherit; }
     .business-directory-layout, .screen-section-stack, .detail-section-grid { grid-template-columns: minmax(0, 1fr); }
     .screen-section, .directory-results { padding: 1rem; }
     .floorplan-page-header { align-items: flex-start; flex-direction: column; }
+    .floorplan-page-actions { width: 100%; align-items: stretch; flex-direction: column; }
     .floorplan-contract-chip { align-self: flex-start; }
     .floorplan-transaction-editor .floorplan-form,
     .floorplan-guided-operation .floorplan-form { grid-template-columns: minmax(0, 1fr); }
@@ -796,6 +808,7 @@ a { color: inherit; }
     .floorplan-guided-operation .floorplan-region-guidance { grid-column: 1; grid-row: auto; }
     .floorplan-region { padding: 0.85rem; }
     .floorplan-field-grid { grid-template-columns: minmax(0, 1fr); }
+    .floorplan-field-searchable { grid-column: 1; }
     .floorplan-actions { align-items: stretch; flex-direction: column; }
     .floorplan-action { justify-items: stretch; }
     .screen-section-actions { align-items: stretch; flex-direction: column; }
